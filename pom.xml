@@ -8,18 +8,18 @@
     <parent>
         <groupId>cc.uncarbon.framework</groupId>
         <artifactId>helio-starters</artifactId>
-        <version>1.10.0</version>
+        <version>1.10.1</version>
     </parent>
 
     <groupId>cc.uncarbon.module</groupId>
     <artifactId>helio-boot</artifactId>
     <description>Helio 单体脚手架</description>
-    <version>1.10.0</version>
+    <version>1.10.1</version>
 
     <properties>
         <!-- 这里管理全局第三方依赖版本，避免冲突 -->
         <!-- 文件上传 -->
-        <x-file-storage.version>2.0.0</x-file-storage.version>
+        <x-file-storage.version>2.1.0</x-file-storage.version>
         <minio.version>8.4.3</minio.version>
     </properties>
 

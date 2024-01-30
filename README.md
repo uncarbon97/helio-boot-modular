@@ -33,7 +33,7 @@ JDK compatibility: 1.8 - 21
 |----------------|-----------------------------------------------------------------------|---------------------------------------------------------------------------------|------------------------------------------------------------------------------|
 | library 图书管理系统 | [Gitee](https://gitee.com/uncarbon97/helio-boot/tree/demo%2Flibrary/) | [Gitee](https://gitee.com/uncarbon97/helio-admin-vue-vben/tree/demo%2Flibrary/) | attachments/db/MySQL/helio_boot.sql<br>attachments/db/demo/library_MySQL.sql |
 
-## 目录结构
+## 源码包结构
 ```
 ├───api
 │   ├───admin-api  【Maven模块】admin-api，用于后台管理的HTTP-API
