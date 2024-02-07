@@ -1,7 +1,9 @@
 package cc.uncarbon.module.sys.model.request;
 
+import cc.uncarbon.module.sys.constant.SysConstant;
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;
+import java.util.Objects;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,5 +35,12 @@ public class AdminInsertOrUpdateSysRoleDTO implements Serializable {
     @ApiModelProperty(value = "值", required = true)
     @NotBlank(message = "值不能为空")
     private String value;
+
+    /**
+     * 是否用于创建新租户管理员角色
+     */
+    public boolean creatingNewTenantAdmin() {
+        return Objects.nonNull(tenantId) && SysConstant.TENANT_ADMIN_ROLE_VALUE.equalsIgnoreCase(value);
+    }
 
 }

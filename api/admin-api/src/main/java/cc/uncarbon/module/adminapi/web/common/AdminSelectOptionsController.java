@@ -8,7 +8,9 @@ import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.model.response.SelectOptionItemVO;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cc.uncarbon.module.sys.model.response.SysDeptBO;
+import cc.uncarbon.module.sys.model.response.SysRoleBO;
 import cc.uncarbon.module.sys.service.SysDeptService;
+import cc.uncarbon.module.sys.service.SysRoleService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaIgnore;
 import io.swagger.annotations.Api;
@@ -30,7 +32,7 @@ import java.util.List;
 @Slf4j
 public class AdminSelectOptionsController {
 
-    private final SysDeptService sysDeptService;
+    private final SysRoleService sysRoleService;
 
 
     /*
@@ -39,38 +41,12 @@ public class AdminSelectOptionsController {
     造成重复开发
      */
 
-    // 👇该注解标记的接口不需要登录
-    @SaIgnore
-    @ApiOperation(value = "（演示接口；可删除）性别下拉框")
-    @GetMapping(value = "/select-options/genders")
-    public ApiResult<List<SelectOptionItemVO>> genders(YesOrNoEnum demo) {
-        if (demo == YesOrNoEnum.YES) {
-            // demo=YES时，不输出「未知」、多输出demoString1
-            List<SelectOptionItemVO> ret = SelectOptionItemVO.listOf(GenderEnum.class, item -> item != GenderEnum.UNKNOWN);
-            for (SelectOptionItemVO item : ret) {
-                item.setDemoString1("文本字段1-" + item.getValue());
-            }
-            return ApiResult.data(ret);
-        }
-        // 默认返回
-        return ApiResult.data(SelectOptionItemVO.listOf(GenderEnum.class));
-    }
-
-    // 👇该注解标记的接口不需要登录
-    @SaIgnore
-    @ApiOperation(value = "（演示接口；可删除）部门下拉框")
-    @GetMapping(value = "/select-options/depts")
-    public ApiResult<List<SelectOptionItemVO>> depts(YesOrNoEnum demo) {
-        if (demo == YesOrNoEnum.YES) {
-            // demo=YES时，多输出上级ID、多输出demoString1
-            List<SelectOptionItemVO> ret = SelectOptionItemVO.listOf(sysDeptService.adminList(), SysDeptBO::getId, SysDeptBO::getTitle, SysDeptBO::getParentId);
-            for (SelectOptionItemVO item : ret) {
-                item.setDemoString1("文本字段1-" + item.getId());
-            }
-            return ApiResult.data(ret);
-        }
-        // 默认返回
-        return ApiResult.data(SelectOptionItemVO.listOf(sysDeptService.adminList(), SysDeptBO::getId, SysDeptBO::getTitle));
+    @ApiOperation(value = "后台角色下拉框")
+    @GetMapping(value = "/select-options/roles")
+    public ApiResult<List<SelectOptionItemVO>> roles() {
+        return ApiResult.data(
+                SelectOptionItemVO.listOf(sysRoleService.adminSelectOptions(), SysRoleBO::getId, SysRoleBO::getTitle)
+        );
     }
 
 }
