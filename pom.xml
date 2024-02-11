@@ -13,7 +13,7 @@
 
     <groupId>cc.uncarbon.module</groupId>
     <artifactId>helio-boot</artifactId>
-    <description>Helio 单体脚手架</description>
+    <description>Helio 多模块版单体脚手架</description>
     <version>1.11.0</version>
 
     <properties>

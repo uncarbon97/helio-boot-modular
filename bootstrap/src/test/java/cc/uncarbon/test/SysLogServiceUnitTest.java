@@ -1,6 +1,6 @@
 package cc.uncarbon.test;
 
-import cc.uncarbon.HelioBootApplication;
+import cc.uncarbon.module.HelioBootApplication;
 import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.module.sys.model.request.AdminListSysLogDTO;
 import cc.uncarbon.module.sys.model.response.SysLogBO;

@@ -1,6 +1,6 @@
 package cc.uncarbon.test;
 
-import cc.uncarbon.HelioBootApplication;
+import cc.uncarbon.module.HelioBootApplication;
 import cc.uncarbon.framework.i18n.util.I18nUtil;
 import cc.uncarbon.module.sys.enums.SysErrorEnum;
 import cn.hutool.core.lang.Assert;
