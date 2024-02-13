@@ -5,7 +5,7 @@
 按职责拆分为多Maven模块，依然是大单体，但命名及用途对标`helio-cloud`；适合多人协作、但不打算使用微服务架构的团队  
 单模块版请移步至helio-boot项目
 
-JDK compatibility: **17** - 21
+JDK compatibility: 1.8 - 21
 
 【[前端演示站](https://helio-demo.uncarbon.cc/)】
 【[官方文档](https://helio.uncarbon.cc/)】 
