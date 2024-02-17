@@ -75,7 +75,7 @@ public class AdminSysTenantController {
     @PutMapping(value = "/sys/tenants/{id}")
     public ApiResult<Void> update(@PathVariable Long id, @RequestBody @Valid AdminUpdateSysTenantDTO dto) {
         dto.setId(id);
-        sysTenantService.adminUpdate(dto);
+        sysTenantFacade.adminUpdate(dto);
 
         return ApiResult.success();
     }
