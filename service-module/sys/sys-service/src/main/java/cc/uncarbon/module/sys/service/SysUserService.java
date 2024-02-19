@@ -336,29 +336,23 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理 - 取每个租户关联的用户IDs
-     * @param tenantIds 租户IDs，非主键ID
+     * 后台管理 - 取租户用户IDs
+     * @param tenantId 租户ID，非主键ID
      * @param statusEnums 仅保留符合指定状态的，可以为null
      */
-    public Map<Long, List<Long>> getTenantUserIdsMap(Collection<Long> tenantIds, Collection<EnabledStatusEnum> statusEnums) {
-        if (CollUtil.isEmpty(tenantIds)) {
-            return Collections.emptyMap();
+    public List<Long> listUserIdsByTenantId(Long tenantId, Collection<EnabledStatusEnum> statusEnums) {
+        if (Objects.isNull(tenantId)) {
+            return Collections.emptyList();
         }
         // 备份原始租户上下文；以下查询方式可同时兼容行级、数据源级多租户
         TenantContext originContext = TenantContextHolder.getTenantContext();
-        // 返回值
-        Map<Long, List<Long>> ret = new HashMap<>(tenantIds.size(), 1);
         try {
-            for (Long tenantId : tenantIds) {
-                // 临时切换租户
-                TenantContextHolder.setTenantContext(new TenantContext(tenantId, CharSequenceUtil.EMPTY));
-                List<Long> tenantUserIds = sysUserMapper.selectIds(statusEnums);
-                ret.put(tenantId, tenantUserIds);
-            }
+            // 临时切换租户
+            TenantContextHolder.setTenantContext(new TenantContext(tenantId, CharSequenceUtil.EMPTY));
+            return sysUserMapper.selectIds(statusEnums);
         } finally {
             TenantContextHolder.setTenantContext(originContext);
         }
-        return ret;
     }
 
     /*

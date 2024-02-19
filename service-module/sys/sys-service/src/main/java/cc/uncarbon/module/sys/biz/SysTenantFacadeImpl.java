@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.biz;
 
 import cc.uncarbon.framework.core.constant.HelioConstant;
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.core.function.StreamFunction;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.entity.SysTenantEntity;
 import cc.uncarbon.module.sys.enums.SysErrorEnum;
@@ -12,7 +13,7 @@ import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysUserDTO;
 import cc.uncarbon.module.sys.model.request.AdminInsertSysTenantDTO;
 import cc.uncarbon.module.sys.model.request.AdminUpdateSysTenantDTO;
 import cc.uncarbon.module.sys.model.response.SysTenantBO;
-import cc.uncarbon.module.sys.model.response.SysTenantEvictedUsersBO;
+import cc.uncarbon.module.sys.model.response.SysTenantKickOutUsersBO;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cc.uncarbon.module.sys.service.SysTenantService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
@@ -93,23 +94,23 @@ public class SysTenantFacadeImpl implements SysTenantFacade {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SysTenantEvictedUsersBO adminUpdate(AdminUpdateSysTenantDTO dto) {
+    public SysTenantKickOutUsersBO adminUpdate(AdminUpdateSysTenantDTO dto) {
         sysTenantService.adminUpdate(dto);
 
         if (dto.getStatus() == EnabledStatusEnum.DISABLED) {
-            // 新状态是禁用，查出需要连带踢出的用户
-            Collection<Long> tenantIds = determineTenantIdsByPrimaryKeys(Collections.singleton(dto.getId())).values();
-            if (CollUtil.isNotEmpty(tenantIds)) {
-                Map<Long, List<Long>> map = sysUserService.getTenantUserIdsMap(Collections.singleton(dto.getId()), Collections.singleton(EnabledStatusEnum.ENABLED));
-                return new SysTenantEvictedUsersBO(map.values().stream().flatMap(Collection::stream).collect(Collectors.toList()));
+            // 新状态是禁用，查出需要强制登出的用户
+            Long tenantId = CollUtil.getFirst(determineTenantIdsByPrimaryKeys(Collections.singleton(dto.getId())).values());
+            if (Objects.nonNull(tenantId)) {
+                List<Long> tenantSysUserIds = sysUserService.listUserIdsByTenantId(tenantId, Collections.singleton(EnabledStatusEnum.ENABLED));
+                return new SysTenantKickOutUsersBO(tenantSysUserIds);
             }
         }
-        return new SysTenantEvictedUsersBO();
+        return new SysTenantKickOutUsersBO();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SysTenantEvictedUsersBO adminDelete(Collection<Long> ids) {
+    public SysTenantKickOutUsersBO adminDelete(Collection<Long> ids) {
         Collection<Long> tenantIds = determineTenantIdsByPrimaryKeys(ids).values();
         if (CollUtil.isNotEmpty(tenantIds)) {
             // 不能删除「超级租户」（租户ID=0）
@@ -119,11 +120,14 @@ public class SysTenantFacadeImpl implements SysTenantFacade {
             sysRoleService.adminDeleteTenantRoles(tenantIds, Collections.singleton(SysConstant.TENANT_ADMIN_ROLE_VALUE));
             sysTenantService.adminDelete(ids);
 
-            // 查出需要连带踢出的用户
-            Map<Long, List<Long>> map = sysUserService.getTenantUserIdsMap(tenantIds, Collections.singleton(EnabledStatusEnum.ENABLED));
-            return new SysTenantEvictedUsersBO(map.values().stream().flatMap(Collection::stream).collect(Collectors.toList()));
+            // 查出需要强制登出的用户
+            List<Long> tenantSysUserIds = tenantIds.stream()
+                    .map(tenantId -> sysUserService.listUserIdsByTenantId(tenantId, Collections.singleton(EnabledStatusEnum.ENABLED)))
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            return new SysTenantKickOutUsersBO(tenantSysUserIds);
         }
-        return new SysTenantEvictedUsersBO();
+        return new SysTenantKickOutUsersBO();
     }
 
     /*
@@ -144,7 +148,7 @@ public class SysTenantFacadeImpl implements SysTenantFacade {
         if (CollUtil.isEmpty(sysTenantInfos)) {
             return Collections.emptyMap();
         }
-        return sysTenantInfos.stream().collect(Collectors.toMap(SysTenantBO::getId, SysTenantBO::getTenantId));
+        return sysTenantInfos.stream().collect(Collectors.toMap(SysTenantBO::getId, SysTenantBO::getTenantId, StreamFunction.ignoredThrowingMerger()));
     }
 
 }
