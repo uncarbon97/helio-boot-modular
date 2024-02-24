@@ -1,4 +1,4 @@
-package cc.uncarbon;
+package cc.uncarbon.module;
 
 import cc.uncarbon.framework.crud.annotation.EnableInitHikariPoolAtStartup;
 import org.springframework.boot.SpringApplication;

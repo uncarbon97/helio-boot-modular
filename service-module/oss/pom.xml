@@ -7,14 +7,14 @@
 
     <parent>
         <groupId>cc.uncarbon.module</groupId>
-        <artifactId>helio-boot</artifactId>
-        <version>1.10.0</version>
+        <artifactId>helio-boot-modular</artifactId>
+        <version>1.11.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>oss</artifactId>
     <description>文件上传下载服务</description>
-    <version>1.10.0</version>
+    <version>1.11.0</version>
 
     <modules>
         <module>oss-facade</module>

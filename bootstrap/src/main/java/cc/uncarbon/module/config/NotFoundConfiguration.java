@@ -1,4 +1,4 @@
-package cc.uncarbon.config;
+package cc.uncarbon.module.config;
 
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpHeaders;

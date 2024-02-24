@@ -1,4 +1,4 @@
-package cc.uncarbon.config;
+package cc.uncarbon.module.config;
 
 import cc.uncarbon.framework.core.context.UserContextHolder;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
