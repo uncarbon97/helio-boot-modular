@@ -3,15 +3,16 @@ package cc.uncarbon.module.sys.model.request;
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 
 
@@ -25,6 +26,7 @@ import java.io.Serializable;
 @Data
 public class AdminInsertOrUpdateSysMenuDTO implements Serializable {
 
+    @Schema(description = "主键ID", hidden = true, title = "仅更新时使用")
     @ApiModelProperty(value = "主键ID", hidden = true, notes = "仅更新时使用")
     private Long id;
 

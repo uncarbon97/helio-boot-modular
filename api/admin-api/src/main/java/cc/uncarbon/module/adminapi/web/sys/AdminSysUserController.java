@@ -8,35 +8,30 @@ import cc.uncarbon.framework.web.model.request.IdsDTO;
 import cc.uncarbon.framework.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
+import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cc.uncarbon.module.sys.annotation.SysLog;
-import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.response.SysUserBO;
 import cc.uncarbon.module.sys.model.response.VbenAdminUserInfoVO;
 import cc.uncarbon.module.sys.service.SysUserService;
-import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.extra.spring.SpringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.Collections;
 import java.util.Set;
 
 
 @SaCheckLogin(type = AdminStpUtil.TYPE)
 @Api(value = "后台用户管理接口", tags = {"后台用户管理接口"})
-@RequestMapping(value = {
-        // 兼容旧的API路由前缀
-        SysConstant.SYS_MODULE_CONTEXT_PATH + HelioConstant.Version.HTTP_API_VERSION_V1,
-        AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1"
-})
+@RequestMapping(value = AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -127,11 +122,7 @@ public class AdminSysUserController {
 
     @SysLog(value = "修改当前用户密码")
     @ApiOperation(value = "修改当前用户密码")
-    @PostMapping(value = {
-            "/sys/users/me/password:update",
-            // 兼容旧的API路由
-            "/sys/users/updatePassword"
-    })
+    @PostMapping(value = "/sys/users/me/password:update")
     public ApiResult<Void> updatePassword(@RequestBody @Valid AdminUpdateCurrentSysUserPasswordDTO dto) {
         if (!dto.getConfirmNewPassword().equals(dto.getNewPassword())) {
             throw new BusinessException(400, "密码与确认密码不同，请检查");
@@ -161,11 +152,7 @@ public class AdminSysUserController {
 
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + "kickOut")
     @ApiOperation(value = "踢某用户下线")
-    @PostMapping(value = {
-            "/sys/users/{userId}:kick-out",
-            // 兼容旧的API路由
-            "/sys/users/{userId}/kickOut"
-    })
+    @PostMapping(value = "/sys/users/{userId}:kick-out")
     public ApiResult<Void> kickOut(@PathVariable Long userId) {
         AdminStpUtil.kickout(userId);
 
@@ -174,11 +161,7 @@ public class AdminSysUserController {
 
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
     @ApiOperation(value = "取指定用户关联角色ID")
-    @GetMapping(value = {
-            "/sys/users/{userId}/roles",
-            // 兼容旧的API路由
-            "/sys/users/{userId}/relatedRoleIds"
-    })
+    @GetMapping(value = "/sys/users/{userId}/roles")
     public ApiResult<Set<Long>> listRelatedRoleIds(@PathVariable Long userId) {
         return ApiResult.data(sysUserService.listRelatedRoleIds(userId));
     }
