@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.model.request;
 
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,21 +23,21 @@ import java.io.Serializable;
 @Data
 public class AdminInsertOrUpdateSysDeptDTO implements Serializable {
 
-    @ApiModelProperty(value = "主键ID", hidden = true, notes = "仅更新时使用")
+    @Schema(description = "主键ID", hidden = true, title = "仅更新时使用")
     private Long id;
 
-    @ApiModelProperty(value = "部门名称", required = true)
+    @Schema(description = "部门名称", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 50, message = "【部门名称】最长50位")
     @NotBlank(message = "部门名称不能为空")
     private String title;
 
-    @ApiModelProperty(value = "上级ID(无上级节点设置为0)")
+    @Schema(description = "上级ID(无上级节点设置为0)")
     private Long parentId;
 
-    @ApiModelProperty(value = "排序")
+    @Schema(description = "排序")
     private Integer sort;
 
-    @ApiModelProperty(value = "状态")
+    @Schema(description = "状态")
     private EnabledStatusEnum status;
 
 }

@@ -14,8 +14,8 @@ import cc.uncarbon.module.sys.model.response.SysDataDictBO;
 import cc.uncarbon.module.sys.service.SysDataDictService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @SaCheckLogin(type = AdminStpUtil.TYPE)
-@Api(value = "数据字典管理接口", tags = {"数据字典管理接口"})
+@Tag(name = "数据字典管理接口")
 @RequestMapping(value = AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
 @RequiredArgsConstructor
 @RestController
@@ -36,14 +36,14 @@ public class AdminSysDataDictController {
 
 
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
-    @ApiOperation(value = "分页列表")
+    @Operation(summary = "分页列表")
     @GetMapping(value = "/sys/data-dicts")
     public ApiResult<PageResult<SysDataDictBO>> list(PageParam pageParam, AdminListSysDataDictDTO dto) {
         return ApiResult.data(sysDataDictService.adminList(pageParam, dto));
     }
 
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
-    @ApiOperation(value = "详情")
+    @Operation(summary = "详情")
     @GetMapping(value = "/sys/data-dicts/{id}")
     public ApiResult<SysDataDictBO> getById(@PathVariable Long id) {
         return ApiResult.data(sysDataDictService.getOneById(id, true));
@@ -51,7 +51,7 @@ public class AdminSysDataDictController {
 
     @SysLog(value = "新增数据字典")
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.CREATE)
-    @ApiOperation(value = "新增")
+    @Operation(summary = "新增")
     @PostMapping(value = "/sys/data-dicts")
     public ApiResult<Void> insert(@RequestBody @Valid AdminInsertOrUpdateSysDataDictDTO dto) {
         sysDataDictService.adminInsert(dto);
@@ -61,7 +61,7 @@ public class AdminSysDataDictController {
 
     @SysLog(value = "编辑数据字典")
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.UPDATE)
-    @ApiOperation(value = "编辑")
+    @Operation(summary = "编辑")
     @PutMapping(value = "/sys/data-dicts/{id}")
     public ApiResult<Void> update(@PathVariable Long id, @RequestBody @Valid AdminInsertOrUpdateSysDataDictDTO dto) {
         dto.setId(id);
@@ -72,7 +72,7 @@ public class AdminSysDataDictController {
 
     @SysLog(value = "删除数据字典")
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.DELETE)
-    @ApiOperation(value = "删除")
+    @Operation(summary = "删除")
     @DeleteMapping(value = "/sys/data-dicts")
     public ApiResult<Void> delete(@RequestBody @Valid IdsDTO<Long> dto) {
         sysDataDictService.adminDelete(dto.getIds());

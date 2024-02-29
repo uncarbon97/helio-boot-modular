@@ -18,8 +18,8 @@ import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.extra.spring.SpringUtil;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ import java.util.Set;
 
 
 @SaCheckLogin(type = AdminStpUtil.TYPE)
-@Api(value = "后台用户管理接口", tags = {"后台用户管理接口"})
+@Tag(name = "后台用户管理接口")
 @RequestMapping(value = AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
 @RequiredArgsConstructor
 @RestController
@@ -43,14 +43,14 @@ public class AdminSysUserController {
 
 
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
-    @ApiOperation(value = "分页列表")
+    @Operation(summary = "分页列表")
     @GetMapping(value = "/sys/users")
     public ApiResult<PageResult<SysUserBO>> list(PageParam pageParam, AdminListSysUserDTO dto) {
         return ApiResult.data(sysUserService.adminList(pageParam, dto));
     }
 
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
-    @ApiOperation(value = "详情")
+    @Operation(summary = "详情")
     @GetMapping(value = "/sys/users/{id}")
     public ApiResult<SysUserBO> getById(@PathVariable Long id) {
         return ApiResult.data(sysUserService.getOneById(id, true));
@@ -58,7 +58,7 @@ public class AdminSysUserController {
 
     @SysLog(value = "新增后台用户")
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.CREATE)
-    @ApiOperation(value = "新增")
+    @Operation(summary = "新增")
     @PostMapping(value = "/sys/users")
     public ApiResult<Void> insert(@RequestBody @Valid AdminInsertOrUpdateSysUserDTO dto) {
         dto.setId(null).setTenantId(null).validate();
@@ -69,7 +69,7 @@ public class AdminSysUserController {
 
     @SysLog(value = "编辑后台用户")
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.UPDATE)
-    @ApiOperation(value = "编辑")
+    @Operation(summary = "编辑")
     @PutMapping(value = "/sys/users/{id}")
     public ApiResult<Void> update(@PathVariable Long id, @RequestBody @Valid AdminInsertOrUpdateSysUserDTO dto) {
         dto.setId(id).setTenantId(null).validate();
@@ -87,7 +87,7 @@ public class AdminSysUserController {
 
     @SysLog(value = "删除后台用户")
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.DELETE)
-    @ApiOperation(value = "删除")
+    @Operation(summary = "删除")
     @DeleteMapping(value = "/sys/users")
     public ApiResult<Void> delete(@RequestBody @Valid IdsDTO<Long> dto) {
         sysUserService.adminDelete(dto.getIds());
@@ -100,7 +100,7 @@ public class AdminSysUserController {
         return ApiResult.success();
     }
 
-    @ApiOperation(value = "取当前用户信息")
+    @Operation(summary = "取当前用户信息")
     @GetMapping(value = "/sys/users/info")
     public ApiResult<VbenAdminUserInfoVO> getCurrentUserInfo() {
         return ApiResult.data(sysUserService.adminGetCurrentUserInfo());
@@ -108,7 +108,7 @@ public class AdminSysUserController {
 
     @SysLog(value = "重置某用户密码")
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + "resetPassword")
-    @ApiOperation(value = "重置某用户密码")
+    @Operation(summary = "重置某用户密码")
     @PutMapping(value = "/sys/users/{userId}/password")
     public ApiResult<Void> resetPassword(@PathVariable Long userId, @RequestBody @Valid AdminResetSysUserPasswordDTO dto) {
         dto.setUserId(userId);
@@ -121,7 +121,7 @@ public class AdminSysUserController {
     }
 
     @SysLog(value = "修改当前用户密码")
-    @ApiOperation(value = "修改当前用户密码")
+    @Operation(summary = "修改当前用户密码")
     @PostMapping(value = "/sys/users/me/password:update")
     public ApiResult<Void> updatePassword(@RequestBody @Valid AdminUpdateCurrentSysUserPasswordDTO dto) {
         if (!dto.getConfirmNewPassword().equals(dto.getNewPassword())) {
@@ -136,7 +136,7 @@ public class AdminSysUserController {
     }
 
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + "bindRoles")
-    @ApiOperation(value = "绑定用户与角色关联关系")
+    @Operation(summary = "绑定用户与角色关联关系")
     @PutMapping(value = "/sys/users/{userId}/roles")
     public ApiResult<Void> bindRoles(@PathVariable Long userId, @RequestBody AdminBindUserRoleRelationDTO dto) {
         dto.setUserId(userId);
@@ -151,7 +151,7 @@ public class AdminSysUserController {
     }
 
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + "kickOut")
-    @ApiOperation(value = "踢某用户下线")
+    @Operation(summary = "踢某用户下线")
     @PostMapping(value = "/sys/users/{userId}:kick-out")
     public ApiResult<Void> kickOut(@PathVariable Long userId) {
         AdminStpUtil.kickout(userId);
@@ -160,7 +160,7 @@ public class AdminSysUserController {
     }
 
     @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
-    @ApiOperation(value = "取指定用户关联角色ID")
+    @Operation(summary = "取指定用户关联角色ID")
     @GetMapping(value = "/sys/users/{userId}/roles")
     public ApiResult<Set<Long>> listRelatedRoleIds(@PathVariable Long userId) {
         return ApiResult.data(sysUserService.listRelatedRoleIds(userId));
