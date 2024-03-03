@@ -45,6 +45,8 @@ helio:
       - /favicon.ico
       # SpringDoc 接口
       - /v3/api-docs
+      # SpringMVC 404
+      - /error
       # C端登录接口
       - /app/api/v1/auth/login
   tenant:

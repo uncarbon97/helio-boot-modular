@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@RequiredArgsConstructor
-@Slf4j
 @Tag(name = "APP鉴权接口")
 @RequestMapping(AppApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
+@RequiredArgsConstructor
 @RestController
+@Slf4j
 public class AppAuthController {
 
     /*
@@ -27,10 +27,7 @@ public class AppAuthController {
     @Operation(summary = "登录")
     @PostMapping("/auth/login")
     public ApiResult<Void> login() {
-        /*
-        编码时请参考AdminAuthController#login
-         */
-
+        // 可参考 admin-api 的 AdminAuthController#login
         return ApiResult.success();
     }
 

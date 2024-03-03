@@ -18,7 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 
 /**
- * 一个空的单元测试，仅用于举例
+ * 一个仅用于示例的单元测试
  *
  * @author Uncarbon
  */
