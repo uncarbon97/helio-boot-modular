@@ -23,7 +23,7 @@
         <!-- 这里管理全局第三方依赖版本，避免冲突 -->
         <!-- 文件上传 -->
         <x-file-storage.version>2.2.1</x-file-storage.version>
-        <minio.version>8.5.8</minio.version>
+        <minio.version>8.5.17</minio.version>
     </properties>
 
     <modules>
