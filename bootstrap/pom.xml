@@ -67,6 +67,6 @@
                 </executions>
             </plugin>
         </plugins>
-        <finalName>${products.filename}-${version}</finalName>
+        <finalName>${products.filename}-${parent.version}</finalName>
     </build>
 </project>
