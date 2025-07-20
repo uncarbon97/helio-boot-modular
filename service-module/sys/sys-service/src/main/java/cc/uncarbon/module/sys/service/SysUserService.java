@@ -274,6 +274,10 @@ public class SysUserService {
                 .username(sysUserBO.getUsername())
                 .nickname(sysUserBO.getNickname())
                 .lastLoginAt(sysUserBO.getLastLoginAt())
+                .gender(sysUserBO.getGender())
+                .email(sysUserBO.getEmail())
+                .phoneNo(sysUserBO.getPhoneNo())
+                .avatar(null)
                 .build();
     }
 
@@ -353,6 +357,16 @@ public class SysUserService {
         } finally {
             TenantContextHolder.setTenantContext(originContext);
         }
+    }
+
+    /**
+     * 后台管理-更新当前用户信息资料
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void adminUpdateCurrentUserInfo(AdminUpdateCurrentSysUserInfoDTO dto) {
+        SysUserEntity update = SysUserEntity.of(dto);
+        update.setId(UserContextHolder.getUserId());
+        sysUserMapper.updateById(update);
     }
 
     /*

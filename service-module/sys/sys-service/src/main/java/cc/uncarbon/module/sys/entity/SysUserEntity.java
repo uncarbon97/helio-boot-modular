@@ -3,6 +3,7 @@ package cc.uncarbon.module.sys.entity;
 import cc.uncarbon.framework.core.enums.GenderEnum;
 import cc.uncarbon.framework.crud.entity.HelioBaseEntity;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
+import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserInfoDTO;
 import cn.hutool.core.annotation.Alias;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -65,5 +66,14 @@ public class SysUserEntity extends HelioBaseEntity<Long> {
 	@Schema(description = "最后登录时刻")
 	@TableField(value = "last_login_at")
 	private LocalDateTime lastLoginAt;
+
+	public static SysUserEntity of(AdminUpdateCurrentSysUserInfoDTO dto) {
+		SysUserEntity ret = new SysUserEntity();
+		ret.setNickname(dto.getNickname())
+		   .setGender(dto.getGender())
+		   .setEmail(dto.getEmail())
+		   .setPhoneNo(dto.getPhoneNo());
+		return ret;
+	}
 
 }
