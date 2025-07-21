@@ -16,7 +16,7 @@ import java.io.Serializable;
 
 
 /**
- * 后台管理-编辑当前后台用户信息资料
+ * 后台管理-更新当前后台用户信息资料
  */
 @Accessors(chain = true)
 @AllArgsConstructor

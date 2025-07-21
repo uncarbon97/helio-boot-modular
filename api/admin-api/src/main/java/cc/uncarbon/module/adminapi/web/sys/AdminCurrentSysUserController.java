@@ -5,6 +5,7 @@ import cc.uncarbon.framework.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cc.uncarbon.module.sys.annotation.SysLog;
+import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserAvatarDTO;
 import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserInfoDTO;
 import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserPasswordDTO;
 import cc.uncarbon.module.sys.model.response.VbenAdminUserInfoVO;
@@ -30,7 +31,7 @@ public class AdminCurrentSysUserController {
 
 
     @Operation(summary = "取当前用户信息资料")
-    // 新路由与旧路由
+    // 新路由与旧路由并行
     @GetMapping(value = {"/sys/users/me/info", "/sys/users/info"})
     public ApiResult<VbenAdminUserInfoVO> getMyInfo() {
         return ApiResult.data(sysUserService.adminGetCurrentUserInfo());
@@ -60,8 +61,8 @@ public class AdminCurrentSysUserController {
 
     @Operation(summary = "更新当前用户头像")
     @PutMapping(value = "/sys/users/me/avatar")
-    public ApiResult<Void> updateMyAvatar(@RequestBody @Valid AdminUpdateCurrentSysUserInfoDTO dto) {
-        // sysUserService.adminUpdateCurrentUserInfo(dto);
+    public ApiResult<Void> updateMyAvatar(@RequestBody @Valid AdminUpdateCurrentSysUserAvatarDTO dto) {
+        sysUserService.adminUpdateCurrentUserAvatar(dto);
         return ApiResult.success();
     }
 
