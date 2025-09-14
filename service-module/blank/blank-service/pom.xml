@@ -8,7 +8,7 @@
     <parent>
         <groupId>cc.uncarbon.module</groupId>
         <artifactId>blank</artifactId>
-        <version>0.0.0</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>blank-service</artifactId>

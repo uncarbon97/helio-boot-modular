@@ -8,19 +8,24 @@
     <parent>
         <groupId>cc.uncarbon.framework</groupId>
         <artifactId>helio-starters</artifactId>
-        <version>2.4.1</version>
+        <version>2.5.0-SNAPSHOT</version>
     </parent>
 
     <groupId>cc.uncarbon.module</groupId>
     <artifactId>helio-boot-modular</artifactId>
     <description>Helio 多模块版单体脚手架</description>
-    <version>2.4.1</version>
+    <version>${revision}</version>
 
     <properties>
+        <!-- 当前工程内统一版本号 -->
+        <revision>2.5.0-SNAPSHOT</revision>
         <!-- 如果实际开发使用的是JDK 21，则下面改成'21' -->
         <java.version>17</java.version>
 
         <!-- 这里管理全局第三方依赖版本，避免冲突 -->
+        <!-- 统一版本号插件 -->
+        <flatten-maven-plugin.version>1.7.0</flatten-maven-plugin.version>
+
         <!-- 文件上传 -->
         <x-file-storage.version>2.2.1</x-file-storage.version>
         <minio.version>8.5.17</minio.version>
@@ -111,6 +116,33 @@
                 <configuration>
                     <skipSource>true</skipSource>
                 </configuration>
+            </plugin>
+
+            <!-- 统一版本号，占位符 ${revision} -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${flatten-maven-plugin.version}</version>
+                <configuration>
+                    <flattenMode>oss</flattenMode>
+                    <updatePomFile>true</updatePomFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                    </execution>
+                    <execution>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
