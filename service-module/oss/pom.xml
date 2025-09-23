@@ -13,7 +13,9 @@
     </parent>
 
     <artifactId>oss</artifactId>
-    <description>文件上传下载服务</description>
+    <description>
+        文件上传下载服务
+    </description>
     <version>${revision}</version>
 
     <modules>

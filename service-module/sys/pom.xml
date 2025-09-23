@@ -13,7 +13,9 @@
     </parent>
 
     <artifactId>sys</artifactId>
-    <description>后台系统管理服务</description>
+    <description>
+        后台系统管理服务
+    </description>
     <version>${revision}</version>
 
     <modules>

@@ -13,7 +13,10 @@
     </parent>
 
     <artifactId>blank</artifactId>
-    <description>空白服务模板，方便复制、更名后作为服务模块使用；记得加入最上层 pom.xml</description>
+    <description>
+        空白服务模板，复制一下，将 blank 批量替换成新名字
+        记得加入最上层的 pom.xml
+    </description>
     <version>${revision}</version>
 
     <modules>
