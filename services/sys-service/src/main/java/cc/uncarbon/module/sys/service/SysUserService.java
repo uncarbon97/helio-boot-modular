@@ -68,7 +68,7 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-分页列表
+     * 平台管理-分页列表
      */
     public PageResult<SysUserBO> adminList(PageParam pageParam, AdminListSysUserDTO dto) {
         // 预处理：根据【手动选择的部门】筛选用户
@@ -137,13 +137,13 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-新增
+     * 平台管理-新增
      *
      * @return 主键ID
      */
     @Transactional(rollbackFor = Exception.class)
     public Long adminInsert(AdminInsertOrUpdateSysUserDTO dto) {
-        log.info("[后台管理-新增后台用户] >> 入参={}", dto);
+        log.info("[平台管理-新增后台用户] >> 入参={}", dto);
         this.checkExistence(dto);
 
         if (Objects.nonNull(dto.getDeptId())) {
@@ -172,11 +172,11 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-编辑
+     * 平台管理-编辑
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdate(AdminInsertOrUpdateSysUserDTO dto) {
-        log.info("[后台管理-编辑后台用户] >> 入参={}", dto);
+        log.info("[平台管理-编辑后台用户] >> 入参={}", dto);
         preUpdateCheck(dto.getId(), dto.getStatus());
         this.checkExistence(dto);
 
@@ -191,17 +191,17 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-删除
+     * 平台管理-删除
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminDelete(Collection<Long> ids) {
-        log.info("[后台管理-删除后台用户] >> 入参={}", ids);
+        log.info("[平台管理-删除后台用户] >> 入参={}", ids);
         preDeleteCheck(ids);
         sysUserMapper.deleteByIds(ids);
     }
 
     /**
-     * 后台管理-登录
+     * 平台管理-登录
      */
     public SysUserLoginBO adminLogin(SysUserLoginDTO dto) {
         /*
@@ -266,7 +266,7 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-取当前用户信息
+     * 平台管理-取当前用户信息
      */
     public VbenAdminUserInfoVO adminGetCurrentUserInfo() {
         SysUserBO sysUserBO = this.getOneById(UserContextHolder.getUserId(), true);
@@ -282,7 +282,7 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-重置某用户密码
+     * 平台管理-重置某用户密码
      */
     public void adminResetUserPassword(AdminResetSysUserPasswordDTO dto) {
         preUpdateCheck(dto.getUserId(), null);
@@ -297,7 +297,7 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-修改当前用户密码
+     * 平台管理-修改当前用户密码
      */
     public void adminUpdateCurrentUserPassword(AdminUpdateCurrentSysUserPasswordDTO dto) {
         SysUserEntity sysUserEntity = sysUserMapper.selectById(UserContextHolder.getUserId());
@@ -313,7 +313,7 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-绑定用户与角色关联关系
+     * 平台管理-绑定用户与角色关联关系
      */
     public void adminBindRoles(AdminBindUserRoleRelationDTO dto) {
         preBindUserRoleRelationCheck(dto);
@@ -328,7 +328,7 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理 - 取指定用户关联角色ID
+     * 平台管理 - 取指定用户关联角色ID
      * @param userId 用户ID
      * @return 角色Ids
      */
@@ -340,7 +340,7 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理 - 取租户用户IDs
+     * 平台管理 - 取租户用户IDs
      * @param tenantId 租户ID，非主键ID
      * @param statusEnums 仅保留符合指定状态的，可以为null
      */
@@ -360,7 +360,7 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-更新当前用户信息资料
+     * 平台管理-更新当前用户信息资料
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdateCurrentUserInfo(AdminUpdateCurrentSysUserInfoDTO dto) {
@@ -370,7 +370,7 @@ public class SysUserService {
     }
 
     /**
-     * 后台管理-更新当前用户头像
+     * 平台管理-更新当前用户头像
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdateCurrentUserAvatar(AdminUpdateCurrentSysUserAvatarDTO dto) {

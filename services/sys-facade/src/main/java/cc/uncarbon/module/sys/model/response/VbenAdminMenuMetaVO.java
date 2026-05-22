@@ -14,8 +14,8 @@ import java.io.Serializable;
 @Data
 public class VbenAdminMenuMetaVO implements Serializable {
 
-    @Schema(description = "标题")
-    private String title;
+    @Schema(description = "名称")
+    private String name;
 
     @Schema(description = "是否不可关闭")
     private Boolean affix;

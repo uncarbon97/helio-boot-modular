@@ -2,8 +2,8 @@ package cc.uncarbon.module.oss.facade;
 
 import cc.uncarbon.framework.core.exception.BusinessException;
 import cc.uncarbon.module.oss.model.request.UploadFileAttributeDTO;
+import cc.uncarbon.module.oss.model.response.FileMetaBO;
 import cc.uncarbon.module.oss.model.response.OssFileDownloadReplyBO;
-import cc.uncarbon.module.oss.model.response.OssFileInfoBO;
 import lombok.NonNull;
 
 /**
@@ -14,7 +14,7 @@ public interface OssUploadDownloadFacade {
     /**
      * 根据哈希值，查找是否已有文件
      */
-    OssFileInfoBO findByHash(String md5);
+    FileMetaBO findByHash(String digestSha256);
 
     /**
      * 正常上传文件到服务端
@@ -22,7 +22,7 @@ public interface OssUploadDownloadFacade {
      * @param fileBytes 文件数据
      * @param attr      附加属性
      */
-    OssFileInfoBO upload(byte[] fileBytes, @NonNull UploadFileAttributeDTO attr) throws BusinessException;
+    FileMetaBO upload(byte[] fileBytes, @NonNull UploadFileAttributeDTO attr) throws BusinessException;
 
     /**
      * 根据文件ID下载
@@ -33,8 +33,8 @@ public interface OssUploadDownloadFacade {
 
     /**
      * 是否为本地存储平台
-     * @param storagePlatform 存储平台名
+     * @param storageCode 存储点编码
      */
-    boolean isLocalPlatform(String storagePlatform);
+    boolean isLocalPlatform(String storageCode);
 
 }

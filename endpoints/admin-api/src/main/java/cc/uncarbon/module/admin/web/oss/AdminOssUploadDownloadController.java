@@ -34,7 +34,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 
-@Tag(name = "后台管理-上传、下载文件接口")
+@Tag(name = "平台管理-上传、下载文件接口")
 @RequestMapping(value = AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
 @RequiredArgsConstructor
 @RestController
@@ -46,7 +46,7 @@ public class AdminOssUploadDownloadController {
 
     @Operation(summary = "上传文件", tags = "")
     @PostMapping(value = "/oss/files")
-    // 约束：登录后才能上传   👇 后台管理对应的鉴权工具类
+    // 约束：登录后才能上传   👇 平台管理对应的鉴权工具类
     @SaCheckLogin(type = AdminStpUtil.TYPE)
     public ApiResult<OssFileUploadResult> upload(
             @RequestPart MultipartFile file, @RequestPart(required = false) @Valid UploadFileAttributeDTO attr,
@@ -87,7 +87,7 @@ public class AdminOssUploadDownloadController {
 
     @Operation(summary = "下载文件(根据文件ID)")
     @GetMapping(value = "/oss/files/{id}")
-    // 如果需要登录后才能下载，请解禁下方注解；注意是👇 后台管理对应的鉴权工具类
+    // 如果需要登录后才能下载，请解禁下方注解；注意是👇 平台管理对应的鉴权工具类
     // @SaCheckLogin(type = AdminStpUtil.TYPE)
     public void download(@PathVariable Long id, HttpServletResponse response) throws IOException {
         OssFileDownloadReplyBO reply = ossUploadDownloadFacade.downloadById(id);

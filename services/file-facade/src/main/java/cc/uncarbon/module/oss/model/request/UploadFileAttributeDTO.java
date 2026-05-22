@@ -18,8 +18,8 @@ import java.io.Serializable;
 @Data
 public class UploadFileAttributeDTO implements Serializable {
 
-    @Schema(description = "文件类别", example = "id_card=身份证 driver_license=驾驶证")
-    private String classified;
+    @Schema(description = "文件主分类", example = "id_card=身份证 driver_license=驾驶证")
+    private String category;
 
     /*
     以下字段为内部使用
@@ -30,8 +30,8 @@ public class UploadFileAttributeDTO implements Serializable {
     @Schema(description = "MIME类型", hidden = true)
     private String contentType;
 
-    @Schema(description = "MD5", hidden = true)
-    private String md5;
+    @Schema(description = "SHA256", hidden = true)
+    private String digestSha256;
 
     @Schema(description = "指定要上传到的平台名（null则取值默认平台）", hidden = true)
     private String platform;

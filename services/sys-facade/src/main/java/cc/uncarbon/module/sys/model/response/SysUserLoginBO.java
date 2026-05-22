@@ -10,7 +10,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import lombok.experimental.SuperBuilder;
 
 
 /**
@@ -27,7 +26,7 @@ public class SysUserLoginBO implements Serializable {
     private Long id;
 
     @Schema(description = "账号")
-    private String username;
+    private String pin;
 
     @Schema(description = "昵称")
     private String nickname;

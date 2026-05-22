@@ -16,7 +16,7 @@ import java.io.Serializable;
 
 
 /**
- * 后台管理-新增/编辑后台菜单
+ * 平台管理-新增/编辑系统菜单
  */
 @Accessors(chain = true)
 @Builder
@@ -31,20 +31,20 @@ public class AdminInsertOrUpdateSysMenuDTO implements Serializable {
     @Schema(description = "菜单名称", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 50, message = "【菜单名称】最长50位")
     @NotBlank(message = "菜单名称必填")
-    private String title;
+    private String name;
 
-    @Schema(description = "上级菜单ID(无上级节点设置为0)")
+    @Schema(description = "上级菜单ID(根菜单设置为0)")
     private Long parentId;
 
     @Schema(description = "菜单类型", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "菜单类型必填")
-    private SysMenuTypeEnum type;
+    private SysMenuTypeEnum menuType;
 
-    @Schema(description = "组件")
-    @Size(max = 50, message = "【组件】最长50位")
+    @Schema(description = "前端组件名称")
+    @Size(max = 50, message = "【前端组件名称】最长50位")
     private String component;
 
-    @Schema(description = "权限标识")
+    @Schema(description = "菜单权限标识")
     @Size(max = 255, message = "【权限标识】最长255位")
     private String permission;
 

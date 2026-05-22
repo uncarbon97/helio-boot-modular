@@ -1,23 +1,20 @@
 package cc.uncarbon.module.sys.model.response;
 
-import cc.uncarbon.framework.core.constant.HelioConstant;
 import cc.uncarbon.framework.core.enums.GenderEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 
 /**
- * 后台用户BO
+ * 系统用户BO
  */
 @Accessors(chain = true)
 @Builder
@@ -36,7 +33,7 @@ public class SysUserBO implements Serializable {
     private LocalDateTime updatedAt;
 
     @Schema(description = "账号")
-    private String username;
+    private String pin;
 
     @Schema(description = "昵称")
     private String nickname;
@@ -60,7 +57,7 @@ public class SysUserBO implements Serializable {
     private Long deptId;
 
     @Schema(description = "所属部门名称")
-    private String deptTitle;
+    private String deptName;
 
     @Schema(description = "头像URL")
     private String avatarUrl;

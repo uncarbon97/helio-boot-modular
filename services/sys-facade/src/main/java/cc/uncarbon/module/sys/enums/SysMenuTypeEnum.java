@@ -48,14 +48,14 @@ public enum SysMenuTypeEnum implements HelioBaseEnum<Integer> {
     }
 
     /**
-     * 用于后台管理-侧边菜单的几种菜单类型
+     * 用于平台管理-侧边菜单的几种菜单类型
      */
     public static List<SysMenuTypeEnum> forAdminSide() {
         return Arrays.asList(DIR, MENU, EXTERNAL_LINK);
     }
 
     /**
-     * 用于后台管理-绑定角色与菜单关联关系
+     * 用于平台管理-绑定角色与菜单关联关系
      */
     public static List<SysMenuTypeEnum> forAdminBindMenus() {
         return Arrays.asList(DIR, MENU, BUTTON, EXTERNAL_LINK);

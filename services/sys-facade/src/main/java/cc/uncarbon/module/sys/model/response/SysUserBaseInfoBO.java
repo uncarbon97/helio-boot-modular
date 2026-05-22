@@ -13,7 +13,7 @@ import java.io.Serializable;
 
 
 /**
- * 后台用户BO
+ * 系统用户BO
  * 仅保留基本信息
  */
 @Accessors(chain = true)
@@ -24,7 +24,7 @@ import java.io.Serializable;
 public class SysUserBaseInfoBO implements Serializable {
 
     @Schema(description = "账号")
-    private String username;
+    private String pin;
 
     @Schema(description = "昵称")
     private String nickname;

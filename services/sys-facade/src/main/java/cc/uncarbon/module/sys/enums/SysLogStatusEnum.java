@@ -7,7 +7,8 @@ import lombok.Getter;
 
 
 /**
- * 预置系统日志状态枚举类
+ * 预置系统日志结果状态枚举类
+ * 适用于操作日志、登录日志
  */
 @AllArgsConstructor
 @Getter

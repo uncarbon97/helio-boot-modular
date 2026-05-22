@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 
-@Tag(name = "后台管理-鉴权接口")
+@Tag(name = "平台管理-鉴权接口")
 @RequestMapping(value = AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
 @RequiredArgsConstructor
 @RestController

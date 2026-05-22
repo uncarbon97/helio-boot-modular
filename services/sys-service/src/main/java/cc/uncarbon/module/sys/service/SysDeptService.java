@@ -38,7 +38,7 @@ public class SysDeptService {
 
 
     /**
-     * 后台管理-列表
+     * 平台管理-列表
      */
     public List<SysDeptBO> adminList() {
         return entityList2BOs(sysDeptMapper.sortedList());
@@ -71,11 +71,11 @@ public class SysDeptService {
     }
 
     /**
-     * 后台管理-新增
+     * 平台管理-新增
      */
     @Transactional(rollbackFor = Exception.class)
     public Long adminInsert(AdminInsertOrUpdateSysDeptDTO dto) {
-        log.info("[后台管理-新增部门] >> 入参={}", dto);
+        log.info("[平台管理-新增部门] >> 入参={}", dto);
         this.checkExistence(dto);
 
         if (ObjectUtil.isNull(dto.getParentId())) {
@@ -92,11 +92,11 @@ public class SysDeptService {
     }
 
     /**
-     * 后台管理-编辑
+     * 平台管理-编辑
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdate(AdminInsertOrUpdateSysDeptDTO dto) {
-        log.info("[后台管理-编辑部门] >> 入参={}", dto);
+        log.info("[平台管理-编辑部门] >> 入参={}", dto);
         this.checkExistence(dto);
 
         if (ObjectUtil.isNull(dto.getParentId())) {
@@ -110,16 +110,16 @@ public class SysDeptService {
     }
 
     /**
-     * 后台管理-删除
+     * 平台管理-删除
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminDelete(Collection<Long> ids) {
-        log.info("[后台管理-删除部门] >> 入参={}", ids);
+        log.info("[平台管理-删除部门] >> 入参={}", ids);
         sysDeptMapper.deleteByIds(ids);
     }
 
     /**
-     * 后台管理-下拉框数据
+     * 平台管理-下拉框数据
      * @param inferiorsOnly 只能看到本部门及以下
      */
     public List<SysDeptBO> adminSelectOptions(boolean inferiorsOnly) {

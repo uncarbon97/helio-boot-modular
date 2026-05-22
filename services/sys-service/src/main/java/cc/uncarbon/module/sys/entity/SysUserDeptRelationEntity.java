@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.entity;
 
-import cc.uncarbon.framework.crud.entity.HelioNoTenantBaseEntity;
+import cc.uncarbon.framework.crud.entity.HelioBaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 
 
 /**
- * 后台用户-部门关联
+ * 系统用户-部门关联关系
  */
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
@@ -21,7 +21,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_user_dept_relation")
-public class SysUserDeptRelationEntity extends HelioNoTenantBaseEntity<Long> {
+public class SysUserDeptRelationEntity extends HelioBaseEntity<Long> {
 
 	@Schema(description = "用户ID")
 	@TableField(value = "user_id")

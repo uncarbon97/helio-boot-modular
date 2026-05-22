@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 
 /**
- * 后台管理-分页列表上传文件信息 DTO
+ * 平台管理-分页列表上传文件信息 DTO
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -25,8 +25,8 @@ public class AdminFileInfoQuery implements Serializable {
     @Schema(description = "扩展名")
     private String extendName;
 
-    @Schema(description = "文件类别")
-    private String classified;
+    @Schema(description = "文件主分类")
+    private String category;
 
     @Schema(description = "时间区间起")
     private LocalDateTime beginAt;

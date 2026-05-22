@@ -1,23 +1,20 @@
 package cc.uncarbon.module.sys.model.response;
 
-import cc.uncarbon.framework.core.constant.HelioConstant;
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 
 /**
- * 后台菜单BO
+ * 系统菜单BO
  */
 @Accessors(chain = true)
 @Builder
@@ -36,16 +33,19 @@ public class SysMenuBO implements Serializable {
     private LocalDateTime updatedAt;
 
     @Schema(description = "名称")
-    private String title;
+    private String name;
 
-    @Schema(description = "上级菜单ID")
+    @Schema(description = "上级菜单ID(根菜单设置为0)")
     private Long parentId;
 
     @Schema(description = "菜单类型")
-    private SysMenuTypeEnum type;
+    private SysMenuTypeEnum menuType;
 
-    @Schema(description = "权限标识")
+    @Schema(description = "菜单权限标识")
     private String permission;
+
+    @Schema(description = "状态")
+    private EnabledStatusEnum status;
 
     @Schema(description = "图标")
     private String icon;
@@ -53,10 +53,7 @@ public class SysMenuBO implements Serializable {
     @Schema(description = "排序")
     private Integer sort;
 
-    @Schema(description = "状态")
-    private EnabledStatusEnum status;
-
-    @Schema(description = "组件")
+    @Schema(description = "前端组件名称")
     private String component;
 
     @Schema(description = "外链地址")
@@ -66,7 +63,7 @@ public class SysMenuBO implements Serializable {
     private String path;
 
     @Schema(description = "【用于Vben Admin】菜单名(全局唯一, 不能重复)", hidden = true)
-    private String name;
+    private String menuName;
 
     @Schema(description = "【用于Vben Admin】菜单详情", hidden = true)
     private VbenAdminMenuMetaVO meta;

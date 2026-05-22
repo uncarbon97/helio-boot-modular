@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * 后台管理-下拉框数据单项 VO
+ * 平台管理-下拉框数据单项 VO
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Accessors(chain = true)

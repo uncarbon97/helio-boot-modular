@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 
 /**
- * 后台用户 for VbenAdmin
+ * 系统用户 for VbenAdmin
  */
 @Accessors(chain = true)
 @Builder
@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 public class VbenAdminUserInfoVO implements Serializable {
 
     @Schema(description = "账号")
-    private String username;
+    private String pin;
 
     @Schema(description = "昵称")
     private String nickname;

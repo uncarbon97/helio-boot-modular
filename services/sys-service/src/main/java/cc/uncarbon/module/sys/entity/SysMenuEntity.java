@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 
 
 /**
- * 后台菜单
+ * 系统菜单
  */
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
@@ -26,20 +26,24 @@ import lombok.experimental.SuperBuilder;
 public class SysMenuEntity extends HelioBaseEntity<Long> {
 
 	@Schema(description = "名称")
-	@TableField(value = "title")
-	private String title;
+	@TableField(value = "name")
+	private String name;
 
-	@Schema(description = "上级菜单ID")
+	@Schema(description = "上级菜单ID(根菜单设置为0)")
 	@TableField(value = "parent_id")
 	private Long parentId;
 
 	@Schema(description = "菜单类型")
-	@TableField(value = "type")
-	private SysMenuTypeEnum type;
+	@TableField(value = "menu_type")
+	private SysMenuTypeEnum menuType;
 
-	@Schema(description = "权限标识")
+	@Schema(description = "菜单权限标识")
 	@TableField(value = "permission")
 	private String permission;
+
+	@Schema(description = "状态")
+	@TableField(value = "status")
+	private EnabledStatusEnum status;
 
 	@Schema(description = "图标")
 	@TableField(value = "icon")
@@ -49,11 +53,7 @@ public class SysMenuEntity extends HelioBaseEntity<Long> {
 	@TableField(value = "sort")
 	private Integer sort;
 
-	@Schema(description = "状态")
-	@TableField(value = "status")
-	private EnabledStatusEnum status;
-
-	@Schema(description = "组件(Vue项目中`/@/views/`后的路径部分; 填`LAYOUT`为空页面)")
+	@Schema(description = "前端组件名称")
 	@TableField(value = "component")
 	private String component;
 

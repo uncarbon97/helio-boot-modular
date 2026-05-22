@@ -14,7 +14,7 @@ import cn.dev33.satoken.stp.parameter.SaLogoutParameter;
 import java.util.List;
 
 /**
- * 后台管理专用 StpUtil
+ * 平台管理专用 StpUtil
  * 文档见 SA-Token -> 多账户认证：https://sa-token.cc/doc.html#/up/many-account
  *
  * @author Uncarbon

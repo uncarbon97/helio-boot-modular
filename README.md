@@ -18,7 +18,7 @@ JDK compatibility: 17 - 21
 
 基础支撑构件 [helio-starters](https://github.com/uncarbon97/helio-starters) 已推送至Maven中央仓库，加载时会自动拉取
 
-## 配套代码生成器 & 后台管理前端模板 & 移动端模板
+## 配套代码生成器 & 平台管理前端模板 & 移动端模板
 | 项目名                   | 简介                                                                          | Gitee                                                       | GitHub                                                        |
 |-----------------------|-----------------------------------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------------------|
 | helio-generator       | 可一键生成单体or微服务版的前、后端代码，减少无谓的重复劳动                                              | [Gitee](https://gitee.com/uncarbon97/helio-generator)       | [GitHub](https://github.com/uncarbon97/helio-generator)       |
@@ -28,7 +28,7 @@ JDK compatibility: 17 - 21
 ## 源码包结构
 ```
 ├───web
-│   ├───admin  【Maven模块】admin，用于后台管理的HTTP控制器
+│   ├───admin  【Maven模块】admin，用于平台管理的HTTP控制器
 │   │   └───src
 │   │       └───main
 │   │           └───java

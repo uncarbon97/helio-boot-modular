@@ -45,7 +45,7 @@ public class OssFileInfoService {
 
 
     /**
-     * 后台管理-分页列表
+     * 平台管理-分页列表
      */
     public PageResult<OssFileInfoBO> adminList(PageParam pageParam, AdminFileInfoQuery dto) {
         Page<OssFileInfoEntity> entityPage = ossFileInfoMapper.selectPage(
@@ -94,11 +94,11 @@ public class OssFileInfoService {
     }
 
     /**
-     * 后台管理-删除
+     * 平台管理-删除
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminDelete(Collection<Long> ids) {
-        log.info("[后台管理-删除上传文件信息] >> ids={}", ids);
+        log.info("[平台管理-删除上传文件信息] >> ids={}", ids);
 
         // 1. 删除原始文件
         List<OssFileInfoEntity> entityList = ossFileInfoMapper.selectBatchIds(ids);

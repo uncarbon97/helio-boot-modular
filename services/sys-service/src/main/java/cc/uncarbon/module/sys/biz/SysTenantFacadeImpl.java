@@ -44,7 +44,7 @@ public class SysTenantFacadeImpl implements SysTenantFacade {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long adminInsert(AdminInsertSysTenantDTO dto) {
-        log.info("[后台管理-新增系统租户] >> 入参={}", dto);
+        log.info("[平台管理-新增系统租户] >> 入参={}", dto);
         sysTenantService.checkExistence(dto);
 
         /*

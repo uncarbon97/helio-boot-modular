@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @SaCheckLogin(type = AdminStpUtil.TYPE)
-@Tag(name = "后台管理-上传文件信息管理接口")
+@Tag(name = "平台管理-上传文件信息管理接口")
 @RequestMapping(value = AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
 @RequiredArgsConstructor
 @RestController

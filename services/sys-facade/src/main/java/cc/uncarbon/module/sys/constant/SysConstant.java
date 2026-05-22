@@ -14,7 +14,7 @@ public final class SysConstant {
     public static final Long ROOT_PARENT_ID = 0L;
 
     /**
-     * Vben Admin后台管理-空页面
+     * Vben Admin平台管理-空页面
      */
     public static final String VBEN_ADMIN_BLANK_VIEW = "LAYOUT";
 
@@ -24,14 +24,14 @@ public final class SysConstant {
     public static final Long SUPER_ADMIN_ROLE_ID = 1L;
 
     /**
-     * 超级管理员角色值（固定）
+     * 超级管理员角色编码（固定）
      */
-    public static final String SUPER_ADMIN_ROLE_VALUE = "SuperAdmin";
+    public static final String SUPER_ADMIN_ROLE_CODE = "SuperAdmin";
 
     /**
-     * 租户管理员角色值
+     * 租户管理员角色编码
      * 为了外显美观没有在前面增加Tenant字样
      */
-    public static final String TENANT_ADMIN_ROLE_VALUE = "Admin";
+    public static final String TENANT_ADMIN_ROLE_CODE = "Admin";
 
 }

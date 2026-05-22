@@ -13,7 +13,7 @@ import java.io.Serializable;
 
 
 /**
- * 后台管理-更新当前后台用户头像
+ * 平台管理-更新当前后台用户头像
  */
 @Accessors(chain = true)
 @AllArgsConstructor

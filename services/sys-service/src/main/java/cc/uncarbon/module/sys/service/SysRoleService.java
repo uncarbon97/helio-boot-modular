@@ -44,7 +44,7 @@ public class SysRoleService {
 
 
     /**
-     * 后台管理-分页列表
+     * 平台管理-分页列表
      */
     public PageResult<SysRoleBO> adminList(PageParam pageParam, AdminListSysRoleDTO dto) {
         Set<Long> invisibleRoleIds = determineInvisibleRoleIds();
@@ -92,13 +92,13 @@ public class SysRoleService {
     }
 
     /**
-     * 后台管理-新增
+     * 平台管理-新增
      *
      * @return 主键ID
      */
     @Transactional(rollbackFor = Exception.class)
     public Long adminInsert(AdminInsertOrUpdateSysRoleDTO dto) {
-        log.info("[后台管理-新增后台角色] >> 入参={}", dto);
+        log.info("[平台管理-新增后台角色] >> 入参={}", dto);
         preInsertOrUpdateCheck(dto);
         this.checkExistence(dto);
 
@@ -112,11 +112,11 @@ public class SysRoleService {
     }
 
     /**
-     * 后台管理-编辑
+     * 平台管理-编辑
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdate(AdminInsertOrUpdateSysRoleDTO dto) {
-        log.info("[后台管理-编辑后台角色] >> 入参={}", dto);
+        log.info("[平台管理-编辑后台角色] >> 入参={}", dto);
         preInsertOrUpdateCheck(dto);
         this.checkExistence(dto);
 
@@ -129,17 +129,17 @@ public class SysRoleService {
     }
 
     /**
-     * 后台管理-删除
+     * 平台管理-删除
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminDelete(Collection<Long> ids) {
-        log.info("[后台管理-删除后台角色] >> 入参={}", ids);
+        log.info("[平台管理-删除后台角色] >> 入参={}", ids);
         preDeleteCheck(ids);
         sysRoleMapper.deleteByIds(ids);
     }
 
     /**
-     * 后台管理-绑定角色与菜单关联关系
+     * 平台管理-绑定角色与菜单关联关系
      *
      * @return 新菜单ID集合对应的权限名
      */
@@ -153,7 +153,7 @@ public class SysRoleService {
     }
 
     /**
-     * 后台管理-下拉框数据
+     * 平台管理-下拉框数据
      */
     public List<SysRoleBO> adminSelectOptions() {
         Set<Long> invisibleRoleIds = determineInvisibleRoleIds();
@@ -172,7 +172,7 @@ public class SysRoleService {
     }
 
     /**
-     * 后台管理-删除指定租户的特定角色
+     * 平台管理-删除指定租户的特定角色
      * @param tenantIds 租户IDs，非主键ID，必填
      * @param roleValues 角色值集合，可以为空
      */

@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 
 /**
- * 从请求头解析并赋值到用户上下文，用于后台管理用户的鉴权
+ * 从请求头解析并赋值到用户上下文，用于平台管理用户的鉴权
  * 其实就是"DefaultSaTokenParseInterceptor"改个名, 工具类换成"AdminStpUtil"
  * @author Uncarbon
  */

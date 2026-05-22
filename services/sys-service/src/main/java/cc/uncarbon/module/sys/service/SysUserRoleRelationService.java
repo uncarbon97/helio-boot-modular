@@ -27,7 +27,7 @@ public class SysUserRoleRelationService {
 
 
     /**
-     * 后台管理-新增
+     * 平台管理-新增
      * 注：本方法较为特殊，仅供SysTenantFacadeImpl调用
      */
     @Transactional(rollbackFor = Exception.class)

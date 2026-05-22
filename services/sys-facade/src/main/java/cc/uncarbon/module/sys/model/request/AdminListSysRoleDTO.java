@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 
 /**
- * 后台管理-分页列表后台角色
+ * 平台管理-分页列表系统角色
  */
 @Accessors(chain = true)
 @Builder
@@ -20,10 +20,10 @@ import java.io.Serializable;
 @Data
 public class AdminListSysRoleDTO implements Serializable {
 
-    @Schema(description = "角色名(关键词)")
-    private String title;
+    @Schema(description = "角色名称(关键词)")
+    private String name;
 
     @Schema(description = "角色编码(关键词)")
-    private String value;
+    private String code;
 
 }

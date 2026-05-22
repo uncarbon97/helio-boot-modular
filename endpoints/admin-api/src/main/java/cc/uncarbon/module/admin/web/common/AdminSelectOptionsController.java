@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-// 约束：登录后才能使用   👇 后台管理对应的鉴权工具类
+// 约束：登录后才能使用   👇 平台管理对应的鉴权工具类
 @SaCheckLogin(type = AdminStpUtil.TYPE)
-@Tag(name = "后台管理-下拉框数据源接口")
+@Tag(name = "平台管理-下拉框数据源接口")
 @RequestMapping(AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
 @RequiredArgsConstructor
 @RestController
@@ -33,7 +33,7 @@ public class AdminSelectOptionsController {
 
 
     /*
-    这里统一存放所有用于后台管理的下拉框数据源接口
+    这里统一存放所有用于平台管理的下拉框数据源接口
     避免多人协作时，不知道原来是否已经有了，或者写在某个边边角角里，造成重复开发
     */
 

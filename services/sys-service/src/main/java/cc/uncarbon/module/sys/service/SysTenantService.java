@@ -43,7 +43,7 @@ public class SysTenantService {
 
 
     /**
-     * 后台管理-分页列表
+     * 平台管理-分页列表
      */
     public PageResult<SysTenantBO> adminList(PageParam pageParam, AdminListSysTenantDTO dto) {
         Page<SysTenantEntity> entityPage = sysTenantMapper.selectPage(
@@ -90,7 +90,7 @@ public class SysTenantService {
     }
 
     /**
-     * 后台管理-新增
+     * 平台管理-新增
      * 注：本方法较为特殊，仅供SysTenantFacadeImpl调用
      */
     @Transactional(rollbackFor = Exception.class)
@@ -105,11 +105,11 @@ public class SysTenantService {
     }
 
     /**
-     * 后台管理-编辑
+     * 平台管理-编辑
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdate(AdminUpdateSysTenantDTO dto) {
-        log.info("[后台管理-编辑系统租户] >> 入参={}", dto);
+        log.info("[平台管理-编辑系统租户] >> 入参={}", dto);
 
         SysTenantEntity entity = new SysTenantEntity();
         BeanUtil.copyProperties(dto, entity);
@@ -118,7 +118,7 @@ public class SysTenantService {
     }
 
     /**
-     * 后台管理-编辑
+     * 平台管理-编辑
      * 注：本方法较为特殊，仅供SysTenantFacadeImpl调用
      */
     @Transactional(rollbackFor = Exception.class)
@@ -127,11 +127,11 @@ public class SysTenantService {
     }
 
     /**
-     * 后台管理-删除
+     * 平台管理-删除
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminDelete(Collection<Long> ids) {
-        log.info("[后台管理-删除系统租户] >> 入参={}", ids);
+        log.info("[平台管理-删除系统租户] >> 入参={}", ids);
         sysTenantMapper.deleteByIds(ids);
     }
 

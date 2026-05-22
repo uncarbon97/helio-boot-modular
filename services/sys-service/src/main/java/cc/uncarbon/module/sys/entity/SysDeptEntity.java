@@ -24,19 +24,11 @@ import lombok.experimental.SuperBuilder;
 @TableName(value = "sys_dept")
 public class SysDeptEntity extends HelioBaseEntity<Long> {
 
-	/**
-	 * 乐观锁
-	 * 需自行加@Version注解才有效
-	 */
-	@Schema(description = "乐观锁", title = "需再次复制本字段，并自行加 @Version 注解才有效")
-	@TableField(value = "revision", exist = false)
-	private Long revision;
+	@Schema(description = "部门名称")
+	@TableField(value = "name")
+	private String name;
 
-	@Schema(description = "名称")
-	@TableField(value = "title")
-	private String title;
-
-	@Schema(description = "上级ID(无上级节点设置为0)")
+	@Schema(description = "上级部门ID(根部门设置为0)")
 	@TableField(value = "parent_id")
 	private Long parentId;
 

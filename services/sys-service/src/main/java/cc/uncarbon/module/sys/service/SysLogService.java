@@ -42,7 +42,7 @@ public class SysLogService {
 
 
     /**
-     * 后台管理-分页列表
+     * 平台管理-分页列表
      */
     public PageResult<SysLogBO> adminList(PageParam pageParam, AdminListSysLogDTO dto) {
         Page<SysLogEntity> entityPage = sysLogMapper.selectPage(
@@ -96,11 +96,11 @@ public class SysLogService {
     }
 
     /**
-     * 后台管理-新增
+     * 平台管理-新增
      */
     @Transactional(rollbackFor = Exception.class)
     public Long adminInsert(AdminInsertSysLogDTO dto) {
-        log.info("[后台管理-新增操作日志] >> 入参={}", dto);
+        log.info("[平台管理-新增操作日志] >> 入参={}", dto);
 
         SysLogEntity entity = new SysLogEntity();
         BeanUtil.copyProperties(dto, entity);

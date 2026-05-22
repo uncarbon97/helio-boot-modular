@@ -7,7 +7,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 /**
- * 后台管理-验证码 VO
+ * 平台管理-验证码 VO
  */
 @Getter
 public class AdminCaptchaVO {

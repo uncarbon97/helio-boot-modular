@@ -5,7 +5,6 @@ import cc.uncarbon.framework.crud.entity.HelioBaseEntity;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserAvatarDTO;
 import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserInfoDTO;
-import cn.hutool.core.annotation.Alias;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,7 +19,7 @@ import java.time.LocalDateTime;
 
 
 /**
- * 后台用户
+ * 系统用户
  */
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
@@ -31,7 +30,6 @@ import java.time.LocalDateTime;
 public class SysUserEntity extends HelioBaseEntity<Long> {
 
 	@Schema(description = "账号")
-	@Alias(value = "username")
 	@TableField(value = "pin")
 	private String pin;
 
@@ -39,9 +37,9 @@ public class SysUserEntity extends HelioBaseEntity<Long> {
 	@TableField(value = "pwd")
 	private String pwd;
 
-	@Schema(description = "盐")
-	@TableField(value = "salt")
-	private String salt;
+	@Schema(description = "密码加盐")
+	@TableField(value = "pwd_salt")
+	private String pwdSalt;
 
 	@Schema(description = "昵称")
 	@TableField(value = "nickname")
@@ -50,6 +48,10 @@ public class SysUserEntity extends HelioBaseEntity<Long> {
 	@Schema(description = "状态")
 	@TableField(value = "status")
 	private SysUserStatusEnum status;
+
+	@Schema(description = "最后登录时刻")
+	@TableField(value = "last_login_at")
+	private LocalDateTime lastLoginAt;
 
 	@Schema(description = "性别")
 	@TableField(value = "gender")
@@ -62,10 +64,6 @@ public class SysUserEntity extends HelioBaseEntity<Long> {
 	@Schema(description = "手机号")
 	@TableField(value = "phone_no")
 	private String phoneNo;
-
-	@Schema(description = "最后登录时刻")
-	@TableField(value = "last_login_at")
-	private LocalDateTime lastLoginAt;
 
 	@Schema(description = "头像URL")
 	@TableField(value = "avatar_url")

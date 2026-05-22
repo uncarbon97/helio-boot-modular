@@ -38,28 +38,17 @@ public class DefaultSysLogAspectExtension implements SysLogAspectExtension {
         try (HttpResponse httpResponse = httpRequest.execute()) {
             String repStr = httpResponse.body();
             if (JSONUtil.isTypeJSONObject(repStr)) {
-                /*
-                返回文本是JSON对象
-                example1:
-                {"ip":"39.156.66.10","pro":"北京市","proCode":"110000","city":"北京市","cityCode":"110000","region":"","regionCode":"0","addr":"北京市 移通","regionNames":"","err":""}
-
-                example2:
-                {"ip":"1.1.1.1","pro":"","proCode":"999999","city":"","cityCode":"0","region":"","regionCode":"0","addr":" 美国APNIC&CloudFlare公共DNS服务器","regionNames":"","err":"noprovince"}
-
-                example3:
-                {"ip":"8.8.8.8","pro":"","proCode":"999999","city":"","cityCode":"0","region":"","regionCode":"0","addr":" 美国","regionNames":"","err":"noprovince"}
-                 */
                 JSONObject repJson = JSONUtil.parseObj(repStr);
                 String pro = repJson.getStr("pro");
                 String err = repJson.getStr("err");
                 if (CharSequenceUtil.isEmpty(pro) || "noprovince".equals(err)) {
                     // 可能是非中国内地IP
-                    String regionName = repJson.getStr("addr");
-                    return IPLocationBO.unknown().setRegionName(regionName);
+                    String addr = repJson.getStr("addr");
+                    return new IPLocationBO(addr);
                 }
-                return IPLocationBO.inChina()
-                        .setProvinceName(pro)
-                        .setCityName(repJson.getStr("city"));
+                // 拼接省份+城市
+                String location = pro + repJson.getStr("city");
+                return new IPLocationBO(location);
             }
         } catch (Exception e) {
             log.error("[SysLog切面][查询IP地址属地异常] >> ip={}  \n", ip, e);

@@ -50,7 +50,7 @@ public class SysMenuService {
 
 
     /**
-     * 后台管理-列表
+     * 平台管理-列表
      */
     public List<SysMenuBO> adminList() {
         List<SysMenuEntity> entityList = sysMenuMapper.selectList(
@@ -90,13 +90,13 @@ public class SysMenuService {
     }
 
     /**
-     * 后台管理-新增
+     * 平台管理-新增
      *
      * @return 主键ID
      */
     @Transactional(rollbackFor = Exception.class)
     public Long adminInsert(AdminInsertOrUpdateSysMenuDTO dto) {
-        log.info("[后台管理-新增后台菜单] >> 入参={}", dto);
+        log.info("[平台管理-新增后台菜单] >> 入参={}", dto);
         this.checkExistence(dto);
 
         if (ObjectUtil.isNull(dto.getParentId())) {
@@ -114,11 +114,11 @@ public class SysMenuService {
     }
 
     /**
-     * 后台管理-编辑
+     * 平台管理-编辑
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdate(AdminInsertOrUpdateSysMenuDTO dto) {
-        log.info("[后台管理-编辑后台菜单] >> 入参={}", dto);
+        log.info("[平台管理-编辑后台菜单] >> 入参={}", dto);
         this.checkExistence(dto);
 
         if (ObjectUtil.isNull(dto.getParentId())) {
@@ -132,16 +132,16 @@ public class SysMenuService {
     }
 
     /**
-     * 后台管理-删除
+     * 平台管理-删除
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminDelete(Collection<Long> ids) {
-        log.info("[后台管理-删除后台菜单] >> 入参={}", ids);
+        log.info("[平台管理-删除后台菜单] >> 入参={}", ids);
         sysMenuMapper.deleteByIds(ids);
     }
 
     /**
-     * 后台管理-取侧边菜单
+     * 平台管理-取侧边菜单
      */
     public List<SysMenuBO> adminListSideMenu() {
         Set<Long> visibleMenuIds = this.listCurrentUserVisibleMenuIds();
@@ -149,7 +149,7 @@ public class SysMenuService {
     }
 
     /**
-     * 后台管理-取所有可见菜单
+     * 平台管理-取所有可见菜单
      */
     public List<SysMenuBO> adminListVisibleMenu() {
         Set<Long> visibleMenuIds = this.listCurrentUserVisibleMenuIds();

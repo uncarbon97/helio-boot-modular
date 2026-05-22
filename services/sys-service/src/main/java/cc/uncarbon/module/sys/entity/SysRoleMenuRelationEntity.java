@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.entity;
 
-import cc.uncarbon.framework.crud.entity.HelioNoTenantBaseEntity;
+import cc.uncarbon.framework.crud.entity.HelioBaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 
 
 /**
- * 后台角色-可见菜单关联
+ * 系统角色-菜单关联关系
  */
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
@@ -21,7 +21,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_role_menu_relation")
-public class SysRoleMenuRelationEntity extends HelioNoTenantBaseEntity<Long> {
+public class SysRoleMenuRelationEntity extends HelioBaseEntity<Long> {
 
 	@Schema(description = "角色ID")
 	@TableField(value = "role_id")

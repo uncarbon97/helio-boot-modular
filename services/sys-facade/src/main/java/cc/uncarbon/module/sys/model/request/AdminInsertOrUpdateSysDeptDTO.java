@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 
 /**
- * 后台管理-新增/编辑部门
+ * 平台管理-新增/编辑部门
  */
 @Accessors(chain = true)
 @Builder
@@ -29,9 +29,9 @@ public class AdminInsertOrUpdateSysDeptDTO implements Serializable {
     @Schema(description = "部门名称", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 50, message = "【部门名称】最长50位")
     @NotBlank(message = "部门名称必填")
-    private String title;
+    private String name;
 
-    @Schema(description = "上级ID(无上级节点设置为0)")
+    @Schema(description = "上级部门ID(根部门设置为0)")
     private Long parentId;
 
     @Schema(description = "排序")

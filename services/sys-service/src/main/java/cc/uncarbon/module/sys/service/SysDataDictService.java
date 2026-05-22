@@ -42,7 +42,7 @@ public class SysDataDictService {
 
 
     /**
-     * 后台管理-分页列表数据字典分类
+     * 平台管理-分页列表数据字典分类
      */
     public PageResult<SysDataDictClassifiedBO> adminListClassified(PageParam pageParam, AdminSysDataDictClassifiedListDTO dto) {
         Page<SysDataDictClassifiedEntity> entityPage = sysDataDictClassifiedMapper.selectPage(
@@ -59,13 +59,13 @@ public class SysDataDictService {
     }
 
     /**
-     * 后台管理-新增数据字典分类
+     * 平台管理-新增数据字典分类
      *
      * @return 主键ID
      */
     @Transactional(rollbackFor = Exception.class)
     public Long adminInsertClassified(AdminSysDataDictClassifiedInsertOrUpdateDTO dto) {
-        log.info("[后台管理-新增数据字典分类] >> 入参={}", dto);
+        log.info("[平台管理-新增数据字典分类] >> 入参={}", dto);
         this.checkExistence(dto);
 
         dto.setId(null);
@@ -78,11 +78,11 @@ public class SysDataDictService {
     }
 
     /**
-     * 后台管理-编辑数据字典分类
+     * 平台管理-编辑数据字典分类
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdateClassified(AdminSysDataDictClassifiedInsertOrUpdateDTO dto) {
-        log.info("[后台管理-编辑数据字典分类] >> 入参={}", dto);
+        log.info("[平台管理-编辑数据字典分类] >> 入参={}", dto);
         this.checkExistence(dto);
 
         SysDataDictClassifiedEntity entity = new SysDataDictClassifiedEntity();
@@ -92,16 +92,16 @@ public class SysDataDictService {
     }
 
     /**
-     * 后台管理-删除数据字典分类
+     * 平台管理-删除数据字典分类
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminDeleteClassified(Collection<Long> ids) {
-        log.info("[后台管理-删除数据字典分类] >> 入参={}", ids);
+        log.info("[平台管理-删除数据字典分类] >> 入参={}", ids);
         sysDataDictClassifiedMapper.deleteByIds(ids);
     }
 
     /**
-     * 后台管理-分页列表数据字典分类下的字典项
+     * 平台管理-分页列表数据字典分类下的字典项
      */
     public PageResult<SysDataDictItemBO> adminListItem(PageParam pageParam, AdminSysDataDictItemListDTO dto) {
         Page<SysDataDictItemEntity> entityPage = sysDataDictItemMapper.selectPage(
@@ -118,13 +118,13 @@ public class SysDataDictService {
     }
 
     /**
-     * 后台管理-新增数据字典项
+     * 平台管理-新增数据字典项
      *
      * @return 主键ID
      */
     @Transactional(rollbackFor = Exception.class)
     public Long adminInsertItem(AdminSysDataDictItemInsertOrUpdateDTO dto) {
-        log.info("[后台管理-新增数据字典项] >> 入参={}", dto);
+        log.info("[平台管理-新增数据字典项] >> 入参={}", dto);
         this.checkExistence(dto);
 
         dto.setId(null);
@@ -137,11 +137,11 @@ public class SysDataDictService {
     }
 
     /**
-     * 后台管理-编辑数据字典项
+     * 平台管理-编辑数据字典项
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdateItem(AdminSysDataDictItemInsertOrUpdateDTO dto) {
-        log.info("[后台管理-编辑数据字典项] >> 入参={}", dto);
+        log.info("[平台管理-编辑数据字典项] >> 入参={}", dto);
         this.checkExistence(dto);
 
         SysDataDictItemEntity entity = new SysDataDictItemEntity();
@@ -151,11 +151,11 @@ public class SysDataDictService {
     }
 
     /**
-     * 后台管理-删除数据字典项
+     * 平台管理-删除数据字典项
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminDeleteItem(Collection<Long> ids, Long classifiedId) {
-        log.info("[后台管理-删除数据字典项] >> 分类ID={}  入参={}", classifiedId, ids);
+        log.info("[平台管理-删除数据字典项] >> 分类ID={}  入参={}", classifiedId, ids);
         sysDataDictItemMapper.delete(
                 new QueryWrapper<SysDataDictItemEntity>()
                         .lambda()

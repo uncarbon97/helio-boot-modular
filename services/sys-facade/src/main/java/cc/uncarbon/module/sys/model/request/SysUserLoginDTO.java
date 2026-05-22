@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 
 /**
- * 后台管理-后台用户登录
+ * 平台管理-后台用户登录
  */
 @Accessors(chain = true)
 @Builder
@@ -26,7 +26,7 @@ public class SysUserLoginDTO implements Serializable {
     @Schema(description = "账号", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(min = 5, max = 16, message = "【账号】最短5位，最长16位")
     @NotBlank(message = "账号必填")
-    private String username;
+    private String pin;
 
     @Schema(description = "密码", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(min = 5, max = 20, message = "【密码】最短5位，最长20位")

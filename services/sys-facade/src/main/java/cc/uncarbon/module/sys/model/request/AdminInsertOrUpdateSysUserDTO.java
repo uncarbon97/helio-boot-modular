@@ -21,7 +21,7 @@ import java.util.Objects;
 
 
 /**
- * 后台管理-新增/编辑后台用户
+ * 平台管理-新增/编辑系统用户
  */
 @Accessors(chain = true)
 @Builder
@@ -39,7 +39,7 @@ public class AdminInsertOrUpdateSysUserDTO implements Serializable {
     @Schema(description = "账号", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(min = 6, max = 16, message = "【账号】最短6位，最长16位")
     @NotBlank(message = "账号必填")
-    private String username;
+    private String pin;
 
     @Schema(description = "密码字符串(仅注册时有效)")
     private String passwordOfNewUser;
