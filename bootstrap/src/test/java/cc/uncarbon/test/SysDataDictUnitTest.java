@@ -5,7 +5,7 @@ import cc.uncarbon.framework.core.context.UserContextHolder;
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.framework.core.page.PageResult;
-import cc.uncarbon.module.HelioBootApplication;
+import cc.uncarbon.module.Bootstrap;
 import cc.uncarbon.module.sys.model.request.AdminSysDataDictClassifiedInsertOrUpdateDTO;
 import cc.uncarbon.module.sys.model.request.AdminSysDataDictClassifiedListDTO;
 import cc.uncarbon.module.sys.model.request.AdminSysDataDictItemInsertOrUpdateDTO;
@@ -28,7 +28,7 @@ import java.util.Locale;
 // 控制单元测试方法执行顺序
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 //                      👇 这里需要改成相应启动类 👇
-@SpringBootTest(classes = HelioBootApplication.class)
+@SpringBootTest(classes = Bootstrap.class)
 @Slf4j
 class SysDataDictUnitTest {
 

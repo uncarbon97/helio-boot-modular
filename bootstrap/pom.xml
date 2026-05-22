@@ -22,15 +22,15 @@
         <!-- 制品文件名 -->
         <products.filename>helio-boot</products.filename>
 
-        <!-- 引入 HTTP-API 模块 -->
-        <!-- 后台管理 HTTP-API -->
+        <!-- 引用 Web 模块 -->
+        <!-- B端 API -->
         <admin-api.version>${revision}</admin-api.version>
-        <!-- C端 HTTP-API -->
+        <!-- C端 API -->
         <app-api.version>${revision}</app-api.version>
     </properties>
 
     <dependencies>
-        <!-- 引入 HTTP-API 模块 -->
+        <!-- 引用 Web 模块 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>admin-api</artifactId>
@@ -42,13 +42,6 @@
             <artifactId>app-api</artifactId>
             <version>${app-api.version}</version>
         </dependency>
-
-        <!-- 引入单元测试支持 -->
-        <dependency>
-            <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helio-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -57,7 +50,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
                 <executions>
                     <execution>
                         <goals>

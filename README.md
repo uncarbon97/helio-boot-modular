@@ -27,15 +27,15 @@ JDK compatibility: 17 - 21
 
 ## 源码包结构
 ```
-├───api
-│   ├───admin-api  【Maven模块】admin-api，用于后台管理的HTTP-API
+├───web
+│   ├───admin  【Maven模块】admin，用于后台管理的HTTP控制器
 │   │   └───src
 │   │       └───main
 │   │           └───java
 │   │               └───cc
 │   │                   └───uncarbon
 │   │                       └───module
-│   │                           └───adminapi
+│   │                           └───admin
 │   │                               ├───aspect         自定义切面
 │   │                               │   └───extension  自定义切面扩展类
 │   │                               ├───constant       常量
@@ -48,14 +48,14 @@ JDK compatibility: 17 - 21
 │   │                                   ├───common     常用通用接口
 │   │                                   ├───oss        对象存储接口
 │   │                                   └───sys        预置系统管理接口（如：后台用户、后台角色、后台菜单等）
-│   └───app-api 【Maven模块】app-api，用于C端的HTTP-API【只是一个骨架，并没有业务实现】
+│   └───app 【Maven模块】app，用于C端的HTTP控制器【只是一个骨架，并没有业务实现】
 │       └───src
 │           └───main
 │               └───java
 │                   └───cc
 │                       └───uncarbon
 │                           └───module
-│                               └───appapi
+│                               └───app
 │                                   ├───constant  常量
 │                                   └───web       即：Controller
 ├───attachments  附件
@@ -64,7 +64,7 @@ JDK compatibility: 17 - 21
 │       │   └───upgrade  Helio升级时MySQL变更脚本
 │       └───PostgreSQL
 │           └───upgrade  Helio升级时PostgreSQL变更脚本
-├───bootstrap  【Maven模块】项目主入口，负责启动SpringBoot
+├───launcher  【Maven模块】项目主入口，负责启动SpringBoot
 │   └───src
 │       ├───main
 │       │   ├───java
@@ -74,7 +74,7 @@ JDK compatibility: 17 - 21
 │       │   │           └───interceptor  Web拦截器
 │       │   └───resources  资源，包含符合Spring Boot标准的YAML配置文件、Logback配置文件等
 │       │       └───i18n  国际化文案定义
-├───service-module
+├───service
 │   ├───oss  【Maven模块】对象存储服务
 │   │   ├───oss-facade  【Maven模块】对象存储服务门面
 │   │   │   └───src
@@ -135,6 +135,5 @@ JDK compatibility: 17 - 21
 │                                       │   └───xml  Mybatis Mapper XML
 │                                       ├───service  服务类
 │                                       └───util     静态工具类
-├───middleware
-│   └───biz-common  【Maven模块】业务开发公共包
+├───common  【Maven模块】业务开发公共包
 ```

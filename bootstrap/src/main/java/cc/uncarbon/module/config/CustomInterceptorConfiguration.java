@@ -1,8 +1,8 @@
 package cc.uncarbon.module.config;
 
 import cc.uncarbon.framework.core.props.HelioProperties;
-import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
-import cc.uncarbon.module.appapi.constant.AppApiConstant;
+import cc.uncarbon.module.admin.constant.AdminApiConstant;
+import cc.uncarbon.module.app.constant.AppApiConstant;
 import cc.uncarbon.module.interceptor.AdminSaTokenParseInterceptor;
 import cc.uncarbon.module.interceptor.DefaultSaTokenParseInterceptor;
 import cn.dev33.satoken.interceptor.SaInterceptor;
