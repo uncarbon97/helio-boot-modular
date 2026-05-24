@@ -1,6 +1,5 @@
 package cc.uncarbon.module.sys.model.request;
 
-import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

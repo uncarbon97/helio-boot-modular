@@ -1,7 +1,7 @@
 package cc.uncarbon.module.config;
 
 import cc.uncarbon.framework.core.context.UserContextHolder;
-import cc.uncarbon.module.admin.helper.RolePermissionCacheHelper;
+import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cn.dev33.satoken.stp.StpInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
