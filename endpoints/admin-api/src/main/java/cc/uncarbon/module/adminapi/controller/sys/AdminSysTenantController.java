@@ -4,7 +4,7 @@ import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.framework.core.page.PageResult;
 import cc.uncarbon.framework.web.model.request.IdsDTO;
-import cc.uncarbon.framework.web.model.response.ApiResult;
+import cc.uncarbon.framework.web.model.reponse.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
@@ -15,7 +15,7 @@ import cc.uncarbon.module.sys.model.request.AdminListSysTenantDTO;
 import cc.uncarbon.module.sys.model.request.AdminUpdateSysTenantDTO;
 import cc.uncarbon.module.sys.model.response.SysTenantBO;
 import cc.uncarbon.module.sys.model.response.SysTenantKickOutUsersBO;
-import cc.uncarbon.module.sys.service.impl.SysTenantService;
+import cc.uncarbon.module.sys.service.SysTenantService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.extra.spring.SpringUtil;
@@ -46,7 +46,7 @@ public class AdminSysTenantController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "分页列表")
     @GetMapping(value = "/sys/tenants")
-    public ApiResult<PageResult<SysTenantBO>> list(PageParam pageParam, AdminListSysTenantDTO dto) {
+    public ApiResult<PageResult<SysTenantBO>> list(AdminListSysTenantDTO dto) {
         return ApiResult.success(sysTenantService.adminList(pageParam, dto));
     }
 

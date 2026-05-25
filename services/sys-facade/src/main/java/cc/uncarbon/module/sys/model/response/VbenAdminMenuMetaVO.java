@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 
 /**
- * 后台菜单子项详情 for VbenAdmin
+ * 系统菜单子项详情 for VbenAdmin
  */
 @AllArgsConstructor
 @Data

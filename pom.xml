@@ -12,8 +12,8 @@
     </parent>
 
     <groupId>cc.uncarbon.module</groupId>
-    <artifactId>helium-boot-modular</artifactId>
-    <description>Helium 多模块版单体脚手架</description>
+    <artifactId>helium-monolith</artifactId>
+    <description>Helium 快速开发平台脚手架 Monolith-style</description>
     <version>${revision}</version>
 
     <properties>
@@ -34,10 +34,12 @@
         <module>commons</module>
         <module>endpoints/admin-api</module>
         <module>endpoints/app-api</module>
-        <module>services/sys-facade</module>
-        <module>services/sys-service</module>
         <module>services/file-facade</module>
         <module>services/file-service</module>
+        <module>services/sys-facade</module>
+        <module>services/sys-service</module>
+        <module>services/tenant-facade</module>
+        <module>services/tenant-service</module>
     </modules>
 
     <dependencyManagement>

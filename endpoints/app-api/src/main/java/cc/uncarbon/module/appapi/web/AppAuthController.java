@@ -1,7 +1,7 @@
 package cc.uncarbon.module.appapi.web;
 
 
-import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.framework.helium.web.model.reponse.ApiResult;
 import cc.uncarbon.module.appapi.constant.AppApiConstant;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;

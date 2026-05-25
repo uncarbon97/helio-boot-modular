@@ -15,7 +15,6 @@ import java.util.Set;
  * 系统管理-绑定角色与菜单关联关系
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

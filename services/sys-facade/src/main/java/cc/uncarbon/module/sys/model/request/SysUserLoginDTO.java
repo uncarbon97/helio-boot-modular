@@ -17,7 +17,6 @@ import java.io.Serializable;
  * 系统管理-后台用户登录
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

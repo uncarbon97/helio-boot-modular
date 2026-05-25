@@ -2,7 +2,6 @@ package cc.uncarbon.module.sys.model.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -16,7 +15,6 @@ import java.util.Collection;
  * 系统角色BO
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

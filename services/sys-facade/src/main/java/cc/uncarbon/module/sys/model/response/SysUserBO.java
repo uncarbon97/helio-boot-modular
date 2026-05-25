@@ -4,7 +4,6 @@ import cc.uncarbon.framework.core.enums.GenderEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -17,7 +16,6 @@ import java.time.LocalDateTime;
  * 系统用户BO
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

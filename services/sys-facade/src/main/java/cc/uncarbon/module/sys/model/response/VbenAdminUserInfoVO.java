@@ -3,7 +3,6 @@ package cc.uncarbon.module.sys.model.response;
 import cc.uncarbon.framework.core.enums.GenderEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -16,7 +15,6 @@ import java.time.LocalDateTime;
  * 系统用户 for VbenAdmin
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

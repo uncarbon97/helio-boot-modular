@@ -7,7 +7,7 @@ import cc.uncarbon.framework.core.context.UserContext;
 import cc.uncarbon.framework.core.context.UserContextHolder;
 import cc.uncarbon.module.Bootstrap;
 import cc.uncarbon.module.sys.model.response.SysRoleBO;
-import cc.uncarbon.module.sys.service.impl.SysRoleService;
+import cc.uncarbon.module.sys.service.SysRoleService;
 import cn.hutool.core.collection.CollUtil;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;

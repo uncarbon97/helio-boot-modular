@@ -1,4 +1,4 @@
-# helium-boot-modular
+# helium-monolith
 
 ## 项目介绍
 基于 Spring Boot 3.x，是一款预置SaaS、RBAC能力的单体项目脚手架，适合初学者学习 JavaWeb 开发的良好实践  
@@ -47,7 +47,7 @@ JDK compatibility: 17 - 21
 │   │                                   ├───auth       登录登出接口
 │   │                                   ├───common     常用通用接口
 │   │                                   ├───oss        对象存储接口
-│   │                                   └───sys        预置系统管理接口（如：后台用户、后台角色、后台菜单等）
+│   │                                   └───sys        预置系统管理接口（如：后台用户、系统角色、系统菜单等）
 │   └───app 【Maven模块】app，用于C端的HTTP控制器【只是一个骨架，并没有业务实现】
 │       └───src
 │           └───main

@@ -21,7 +21,7 @@ public enum SysErrorEnum implements BaseEnum<Integer> {
     NO_ROLE_AVAILABLE_FOR_CURRENT_USER(400, "当前用户没有可用角色"),
     NO_MENU_AVAILABLE_FOR_CURRENT_ROLE(400, "当前角色没有可用菜单"),
 
-    // 以下8个枚举用于后台角色管理的越权检查
+    // 以下8个枚举用于系统角色管理的越权检查
     ROLE_VALUE_CANNOT_BE(403, "角色值 {} 不能用于新增或编辑，请选用其他值"),
     CANNOT_DELETE_SUPER_ADMIN_ROLE(403, "不能删除超级管理员角色"),
     CANNOT_DELETE_TENANT_ADMIN_ROLE(403, "为减少脏数据，不建议直接删除租户管理员角色，需通过【删除租户】关联删除"),

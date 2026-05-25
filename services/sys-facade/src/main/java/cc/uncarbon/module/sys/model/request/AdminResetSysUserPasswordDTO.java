@@ -16,7 +16,6 @@ import java.io.Serializable;
  * 系统管理-重置某用户密码
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

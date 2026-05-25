@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.interior;
 
-import cc.uncarbon.module.sys.entity.SysDeptEntity;
+import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cn.hutool.core.collection.CollUtil;
 import lombok.Getter;
 

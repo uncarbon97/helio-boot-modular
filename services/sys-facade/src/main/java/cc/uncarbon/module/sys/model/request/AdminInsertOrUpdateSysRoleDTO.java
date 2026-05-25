@@ -15,16 +15,15 @@ import java.util.Objects;
 
 
 /**
- * 系统管理-新增/编辑系统角色
+ * 系统管理-新增/修改系统角色
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class AdminInsertOrUpdateSysRoleDTO implements Serializable {
 
-    @Schema(description = "主键ID", hidden = true, title = "仅更新时使用")
+    @Schema(description = "主键ID", hidden = true, title = "仅修改时使用")
     private Long id;
 
     @Schema(description = "所属租户ID", hidden = true, title = "仅新增时使用")

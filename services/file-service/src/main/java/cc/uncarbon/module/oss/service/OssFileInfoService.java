@@ -47,9 +47,9 @@ public class OssFileInfoService {
     /**
      * 系统管理-分页列表
      */
-    public PageResult<OssFileInfoBO> adminList(PageParam pageParam, AdminFileInfoQuery dto) {
+    public PageResult<OssFileInfoBO> adminList(AdminFileInfoQuery dto) {
         Page<OssFileInfoEntity> entityPage = ossFileInfoMapper.selectPage(
-                new Page<>(pageParam.getPageNum(), pageParam.getPageSize()),
+                new Page<>(query.getPageNum(), query.getPageSize()),
                 new QueryWrapper<OssFileInfoEntity>()
                         .lambda()
                         // 原始文件名
@@ -61,7 +61,7 @@ public class OssFileInfoService {
                         // 时间区间
                         .between(ObjectUtil.isNotNull(dto.getBeginAt()) && ObjectUtil.isNotNull(dto.getEndAt()), OssFileInfoEntity::getCreatedAt, dto.getBeginAt(), dto.getEndAt())
                         // 排序
-                        .orderByDesc(OssFileInfoEntity::getCreatedAt)
+                        .orderByDesc(OssFileInfoEntity::getId)
         );
 
         return this.entityPage2BOPage(entityPage);
@@ -71,7 +71,7 @@ public class OssFileInfoService {
      * 根据 ID 取详情
      *
      * @param id 主键ID
-     * @return null or BO
+     * @return null or 详情
      */
     public OssFileInfoBO getOneById(Long id) {
         return this.getOneById(id, false);
@@ -81,8 +81,8 @@ public class OssFileInfoService {
      * 根据 ID 取详情
      *
      * @param id               主键ID
-     * @param throwIfInvalidId 是否在 ID 无效时抛出异常
-     * @return null or BO
+     * @param throwIfInvalidId 未找到时是否抛出异常
+     * @return null or 详情
      */
     public OssFileInfoBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException {
         OssFileInfoEntity entity = ossFileInfoMapper.selectById(id);
@@ -118,7 +118,7 @@ public class OssFileInfoService {
                 new QueryWrapper<OssFileInfoEntity>()
                         .lambda()
                         .eq(OssFileInfoEntity::getMd5, md5)
-                        .last(HeliumConstant.CRUD.SQL_LIMIT_1)
+                        .last(SQLSegment.LIMIT_1)
         );
 
         return this.entity2BO(entity);
@@ -195,10 +195,7 @@ public class OssFileInfoService {
      */
 
     /**
-     * 实体转 BO
-     *
-     * @param entity 实体
-     * @return BO
+     * 实体转响应模型
      */
     private OssFileInfoBO entity2BO(OssFileInfoEntity entity) {
         if (entity == null) {
@@ -208,20 +205,17 @@ public class OssFileInfoService {
         OssFileInfoBO bo = new OssFileInfoBO();
         BeanUtil.copyProperties(entity, bo);
 
-        // 可以在此处为BO填充字段
+        // 按需改写字段
 
         return bo;
     }
 
     /**
-     * 实体 List 转 BO List
-     *
-     * @param entityList 实体 List
-     * @return BO List
+     * 实体转响应模型
      */
     private List<OssFileInfoBO> entityList2BOs(List<OssFileInfoEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         // 深拷贝
@@ -234,10 +228,7 @@ public class OssFileInfoService {
     }
 
     /**
-     * 实体分页转 BO 分页
-     *
-     * @param entityPage 实体分页
-     * @return BO 分页
+     * 实体转响应模型
      */
     private PageResult<OssFileInfoBO> entityPage2BOPage(Page<OssFileInfoEntity> entityPage) {
         return new PageResult<OssFileInfoBO>()

@@ -1,7 +1,7 @@
 package cc.uncarbon.module.adminapi.controller.file;
 
 import cc.uncarbon.framework.core.exception.BusinessException;
-import cc.uncarbon.framework.web.model.response.ApiResult;
+import cc.uncarbon.framework.web.model.reponse.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.enums.AdminApiErrorEnum;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;

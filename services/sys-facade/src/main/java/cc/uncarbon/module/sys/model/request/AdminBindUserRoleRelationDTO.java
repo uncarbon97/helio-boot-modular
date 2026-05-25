@@ -15,7 +15,6 @@ import java.util.Set;
  * 系统管理-绑定用户与角色关联关系
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

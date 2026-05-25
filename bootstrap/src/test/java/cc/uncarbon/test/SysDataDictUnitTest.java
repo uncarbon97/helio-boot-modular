@@ -12,7 +12,7 @@ import cc.uncarbon.module.sys.model.request.AdminSysDataDictItemInsertOrUpdateDT
 import cc.uncarbon.module.sys.model.request.AdminSysDataDictItemListDTO;
 import cc.uncarbon.module.sys.model.response.SysDataDictClassifiedBO;
 import cc.uncarbon.module.sys.model.response.SysDataDictItemBO;
-import cc.uncarbon.module.sys.service.impl.SysDataDictService;
+import cc.uncarbon.module.sys.service.SysDictService;
 import cn.hutool.core.collection.CollUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -33,13 +33,13 @@ import java.util.Locale;
 class SysDataDictUnitTest {
 
     @Resource
-    private SysDataDictService sysDataDictService;
+    private SysDictService sysDictService;
 
     Long classifiedId;
     List<SysDataDictItemBO> items;
 
     /**
-     * 用于比较的数据字典项条数
+     * 用于比较的字典项条数
      */
     int compareAllItemSize = EnabledStatusEnum.class.getEnumConstants().length;
     int compareEnabledItemSize = 0;
@@ -67,12 +67,12 @@ class SysDataDictUnitTest {
     }
 
     /**
-     * 单元测试-后台新增数据字典分类
+     * 单元测试-后台新增字典分类
      */
     @Order(0)
     @Test
     void testAdminInsertClassified() {
-        Long entityId = sysDataDictService.adminInsertClassified(
+        Long entityId = sysDictService.adminInsertCategory(
                 AdminSysDataDictClassifiedInsertOrUpdateDTO.builder()
                         // 分类编码
                         .code("enabled-status1")
@@ -90,7 +90,7 @@ class SysDataDictUnitTest {
     }
 
     /**
-     * 单元测试-后台更新数据字典分类
+     * 单元测试-后台更新字典分类
      */
     @Order(100)
     @Test
@@ -107,18 +107,18 @@ class SysDataDictUnitTest {
                 // 分类描述
                 .description("这下有描述了")
                 .build();
-        sysDataDictService.adminUpdateClassified(dto);
+        sysDictService.adminUpdateCategory(dto);
 
         log.info("\n\n\n更新完成 >> dto={}", dto);
     }
 
     /**
-     * 单元测试-分页列表数据字典分类
+     * 单元测试-分页列表字典分类
      */
     @Order(200)
     @Test
     void testAdminListClassified() {
-        PageResult<SysDataDictClassifiedBO> pageResult = sysDataDictService.adminListClassified(
+        PageResult<SysDataDictClassifiedBO> pageResult = sysDictService.adminListCategory(
                 new PageParam(1, 10),
                 AdminSysDataDictClassifiedListDTO.builder()
 
@@ -130,13 +130,13 @@ class SysDataDictUnitTest {
     }
 
     /**
-     * 单元测试-后台新增数据字典项
+     * 单元测试-后台新增字典项
      */
     @Order(300)
     @Test
     void testAdminInsert() {
         for (EnabledStatusEnum enumConstant : EnabledStatusEnum.class.getEnumConstants()) {
-            Long entityId = sysDataDictService.adminInsertItem(
+            Long entityId = sysDictService.adminInsertItem(
                     AdminSysDataDictItemInsertOrUpdateDTO.builder()
                             // 所属分类ID
                             .classifiedId(classifiedId)
@@ -160,12 +160,12 @@ class SysDataDictUnitTest {
     }
 
     /**
-     * 单元测试-分页列表数据字典项
+     * 单元测试-分页列表字典项
      */
     @Order(400)
     @Test
     void testAdminListItem() {
-        PageResult<SysDataDictItemBO> pageResult = sysDataDictService.adminListItem(
+        PageResult<SysDataDictItemBO> pageResult = sysDictService.adminListItem(
                 new PageParam(1, 10),
                 AdminSysDataDictItemListDTO.builder()
                         .classifiedId(classifiedId)
@@ -175,12 +175,12 @@ class SysDataDictUnitTest {
         log.info("\n\n\n分页列表成功 >> 结果={}", pageResult);
         // 数据条数与枚举条数一致
         Assertions.assertEquals(compareAllItemSize, CollUtil.size(pageResult.getRecords()));
-        Assertions.assertEquals(compareEnabledItemSize, sysDataDictService.listEnabledItemsByClassifiedCode("enabled-status").size());
+        Assertions.assertEquals(compareEnabledItemSize, sysDictService.listItemsByCategory("enabled-status", ).size());
         items = pageResult.getRecords();
     }
 
     /**
-     * 单元测试-后台更新数据字典项
+     * 单元测试-后台更新字典项
      */
     @Order(500)
     @Test
@@ -204,41 +204,41 @@ class SysDataDictUnitTest {
                     // 描述
                     .description(item.getDescription())
                     .build();
-            sysDataDictService.adminUpdateItem(dto);
+            sysDictService.adminUpdateItem(dto);
 
             log.info("\n\n\n更新完成 >> dto={}", dto);
         }
 
-        // 再次查询列表，比较剩余数据字典项数量
+        // 再次查询列表，比较剩余字典项数量
         compareEnabledItemSize = EnabledStatusEnum.class.getEnumConstants().length;
         testAdminListItem();
     }
 
     /**
-     * 单元测试-后台删除 classifiedId 下所有数据字典项
+     * 单元测试-后台删除 classifiedId 下所有字典项
      */
     @Order(600)
     @Test
     void testAdminDeleteItem() {
         List<Long> ids = items.stream().map(SysDataDictItemBO::getId).toList();
-        sysDataDictService.adminDeleteItem(ids, classifiedId);
+        sysDictService.adminDeleteItem(ids, classifiedId);
         log.info("\n\n\n删除完成 >> ids={}", ids);
 
-        // 再次查询列表，比较剩余数据字典项数量
+        // 再次查询列表，比较剩余字典项数量
         compareAllItemSize = 0;
         compareEnabledItemSize = 0;
         testAdminListItem();
     }
 
     /**
-     * 单元测试-后台删除数据字典分类
+     * 单元测试-后台删除字典分类
      */
     @Order(700)
     @Test
     void testAdminDelete() {
         // 主键ID列表
         List<Long> ids = Collections.singletonList(classifiedId);
-        sysDataDictService.adminDeleteClassified(ids);
+        sysDictService.adminDeleteCategory(ids);
         log.info("\n\n\n删除完成 >> ids={}", ids);
     }
 }

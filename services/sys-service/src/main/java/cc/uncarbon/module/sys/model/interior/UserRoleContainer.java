@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.interior;
 
-import cc.uncarbon.module.sys.entity.SysRoleEntity;
+import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import lombok.Getter;
 
 import java.util.List;

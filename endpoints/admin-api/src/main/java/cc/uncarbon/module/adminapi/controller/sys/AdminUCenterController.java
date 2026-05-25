@@ -1,7 +1,7 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
 import cc.uncarbon.framework.core.exception.BusinessException;
-import cc.uncarbon.framework.web.model.response.ApiResult;
+import cc.uncarbon.framework.web.model.reponse.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
@@ -11,7 +11,7 @@ import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserAvatarDTO;
 import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserInfoDTO;
 import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserPasswordDTO;
 import cc.uncarbon.module.sys.model.response.VbenAdminUserInfoVO;
-import cc.uncarbon.module.sys.service.impl.SysUserService;
+import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class AdminUCenterController {
 
-    private final SysUserService sysUserService;
+    private final SysUserServiceImpl sysUserService;
 
 
     @Operation(summary = "取当前用户信息资料")

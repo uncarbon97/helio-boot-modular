@@ -2,12 +2,12 @@ package cc.uncarbon.module.adminapi.controller.sys;
 
 import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.web.model.request.IdsDTO;
-import cc.uncarbon.framework.web.model.response.ApiResult;
+import cc.uncarbon.framework.web.model.reponse.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.sys.annotation.SysOperateLog;
 import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysMenuDTO;
 import cc.uncarbon.module.sys.model.response.SysMenuBO;
-import cc.uncarbon.module.sys.service.impl.SysMenuService;
+import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
@@ -22,7 +22,7 @@ import java.util.List;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "后台菜单管理接口")
+@Tag(name = "系统菜单管理接口")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/")
 @RequiredArgsConstructor
 @RestController
@@ -48,7 +48,7 @@ public class AdminSysMenuController {
         return ApiResult.success(sysMenuService.getOneById(id, true));
     }
 
-    @SysOperateLog(value = "新增后台菜单")
+    @SysOperateLog(value = "新增系统菜单")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/sys/menus")
@@ -58,7 +58,7 @@ public class AdminSysMenuController {
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "编辑后台菜单")
+    @SysOperateLog(value = "编辑系统菜单")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "编辑")
     @PutMapping(value = "/sys/menus/{id}")
@@ -69,7 +69,7 @@ public class AdminSysMenuController {
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "删除后台菜单")
+    @SysOperateLog(value = "删除系统菜单")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @DeleteMapping(value = "/sys/menus")

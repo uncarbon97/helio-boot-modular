@@ -16,7 +16,6 @@ import java.util.Objects;
  * 系统管理-分页列表后台用户
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data

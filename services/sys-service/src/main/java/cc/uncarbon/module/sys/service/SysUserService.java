@@ -6,7 +6,7 @@ import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.constant.SysConstant;
-import cc.uncarbon.module.sys.entity.SysUserEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.enums.SysErrorEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
@@ -18,9 +18,7 @@ import cc.uncarbon.module.sys.model.response.VbenAdminUserInfoVO;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import jakarta.annotation.PostConstruct;
 import org.springframework.lang.Nullable;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -31,13 +29,13 @@ public interface SysUserService {
     /**
      * 系统管理-分页列表
      */
-    PageResult<SysUserBO> adminList(PageParam pageParam, AdminListSysUserDTO dto);
+    PageResult<SysUserBO> adminList(AdminListSysUserDTO dto);
 
     /**
      * 根据 ID 取详情
      *
      * @param id 主键ID
-     * @return null or BO
+     * @return null or 详情
      */
     SysUserBO getOneById(Long id);
 
@@ -45,8 +43,8 @@ public interface SysUserService {
      * 根据 ID 取详情
      *
      * @param id               主键ID
-     * @param throwIfInvalidId 是否在 ID 无效时抛出异常
-     * @return null or BO
+     * @param throwIfInvalidId 未找到时是否抛出异常
+     * @return null or 详情
      */
     SysUserBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException;
 
@@ -58,7 +56,7 @@ public interface SysUserService {
     Long adminInsert(AdminInsertOrUpdateSysUserDTO dto);
 
     /**
-     * 系统管理-编辑
+     * 系统管理-修改
      */
     void adminUpdate(AdminInsertOrUpdateSysUserDTO dto);
 
@@ -124,11 +122,10 @@ public interface SysUserService {
     void adminUpdateCurrentUserAvatar(AdminUpdateCurrentSysUserAvatarDTO dto);
 
     /**
-     * 实体转 BO
+     * 实体转响应模型
      *
      * @param entity       实体
      * @param fillDeptInfo 是否根据实体部门ID，查询关联部门信息并填充到BO
-     * @return BO
      */
     default SysUserBO entity2BO(SysUserEntity entity, boolean fillDeptInfo) {
         if (entity == null) {
@@ -138,7 +135,7 @@ public interface SysUserService {
         SysUserBO bo = new SysUserBO();
         BeanUtil.copyProperties(entity, bo);
 
-        // 可以在此处为BO填充字段
+        // 按需改写字段
         bo.setUsername(entity.getPin());
         if (fillDeptInfo) {
             Optional.ofNullable(sysDeptService.getSpecifiedUserDeptContainer(bo.getId(), false))
@@ -149,15 +146,14 @@ public interface SysUserService {
     }
 
     /**
-     * 实体 List 转 BO List
+     * 实体转响应模型
      *
      * @param entityList   实体 List
-     * @param fillDeptInfo 是否根据实体部门ID，查询关联部门信息并填充到BO
-     * @return BO List
+     * @param fillDeptInfo 是否根据实体部门ID，查询关联部门信息并填充到BO List
      */
     default List<SysUserBO> entityList2BOs(List<SysUserEntity> entityList, boolean fillDeptInfo) {
         if (CollUtil.isEmpty(entityList)) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         // 深拷贝
@@ -170,11 +166,10 @@ public interface SysUserService {
     }
 
     /**
-     * 实体分页转 BO 分页
+     * 实体转响应模型
      *
      * @param entityPage   实体分页
-     * @param fillDeptInfo 是否根据实体部门ID，查询关联部门信息并填充到BO
-     * @return BO 分页
+     * @param fillDeptInfo 是否根据实体部门ID，查询关联部门信息并填充到BO 分页
      */
     default PageResult<SysUserBO> entityPage2BOPage(Page<SysUserEntity> entityPage, boolean fillDeptInfo) {
         return new PageResult<SysUserBO>()
@@ -185,11 +180,11 @@ public interface SysUserService {
     }
 
     /**
-     * 检查是否已存在相同数据
+     * 检查是否存在重复
      *
      * @param dto DTO
      */
-    default void checkExistence(AdminInsertOrUpdateSysUserDTO dto) {
+    default void checkRepeat(AdminInsertOrUpdateSysUserDTO dto) {
         SysUserEntity existingEntity = this.getUserByPin(dto.getUsername());
 
         if (existingEntity != null && !existingEntity.getId().equals(dto.getId())) {

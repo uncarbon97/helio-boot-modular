@@ -155,7 +155,7 @@ public class AdminSelectOptionItemVO implements Serializable {
             BiConsumer<T, AdminSelectOptionItemVO> postConversionProcessing
     ) {
         if (CollUtil.isEmpty(source)) {
-            return Collections.emptyList();
+            return List.of();
         }
         Stream<T> stream = source.stream();
         if (sourceItemFilter != null) {
@@ -196,7 +196,7 @@ public class AdminSelectOptionItemVO implements Serializable {
             Predicate<E> enumConstantFilter
     ) {
         if (BaseEnum == null) {
-            return Collections.emptyList();
+            return List.of();
         }
         Stream<E> stream = Arrays.stream(BaseEnum.getEnumConstants());
         if (enumConstantFilter != null) {

@@ -1,18 +1,18 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
-import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.framework.core.page.PageResult;
-import cc.uncarbon.framework.web.model.response.ApiResult;
-import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
+import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
+import cc.uncarbon.framework.web.model.reponse.ApiResult;
+import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.request.AdminListSysLogDTO;
 import cc.uncarbon.module.sys.model.response.SysLogBO;
-import cc.uncarbon.module.sys.service.impl.SysLogService;
-import cc.uncarbon.module.adminapi.util.AdminStpUtil;
+import cc.uncarbon.module.sys.service.SysLogService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +37,7 @@ public class AdminSysLogController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "分页列表")
     @GetMapping(value = "/sys/logs")
-    public ApiResult<PageResult<SysLogBO>> list(PageParam pageParam, AdminListSysLogDTO dto) {
+    public ApiResult<PageResult<SysLogBO>> list(AdminListSysLogDTO dto) {
         return ApiResult.success(sysLogService.adminList(pageParam, dto));
     }
 

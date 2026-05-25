@@ -15,16 +15,15 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-新增/编辑系统菜单
+ * 系统管理-新增/修改系统菜单
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class AdminInsertOrUpdateSysMenuDTO implements Serializable {
 
-    @Schema(description = "主键ID", hidden = true, title = "仅更新时使用")
+    @Schema(description = "主键ID", hidden = true, title = "仅修改时使用")
     private Long id;
 
     @Schema(description = "菜单名称", requiredMode = Schema.RequiredMode.REQUIRED)

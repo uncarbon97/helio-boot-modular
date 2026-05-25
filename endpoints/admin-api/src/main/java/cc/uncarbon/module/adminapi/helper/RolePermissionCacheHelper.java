@@ -31,7 +31,7 @@ public class RolePermissionCacheHelper {
     public List<String> getUserPermissions() {
         Set<Long> rolesIds = UserContextHolder.getUserContext().getRolesIds();
         if (CollUtil.isEmpty(rolesIds)) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         // 批量查询缓存
@@ -40,7 +40,7 @@ public class RolePermissionCacheHelper {
                 .toList();
         List<Collection<String>> cacheValues = stringSetRedisTemplate.opsForValue().multiGet(cacheKeys);
         if (CollUtil.isEmpty(cacheValues)) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         return cacheValues.stream().flatMap(Collection::stream).toList();

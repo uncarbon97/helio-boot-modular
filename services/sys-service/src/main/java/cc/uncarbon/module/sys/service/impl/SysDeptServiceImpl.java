@@ -1,0 +1,237 @@
+package cc.uncarbon.module.sys.service.impl;
+
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.sys.constant.SysConstant;
+import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
+import cc.uncarbon.module.sys.enums.SysErrorEnum;
+import cc.uncarbon.module.sys.dal.mapper.SysDeptMapper;
+import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
+import cc.uncarbon.module.sys.model.interior.UserRoleContainer;
+import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
+import cc.uncarbon.module.sys.model.response.SysDeptDTO;
+import cc.uncarbon.module.sys.service.SysDeptService;
+import cc.uncarbon.module.sys.service.SysRoleService;
+import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+
+/**
+ * 部门
+ */
+@RequiredArgsConstructor
+@Service
+@Slf4j
+public class SysDeptServiceImpl implements SysDeptService {
+
+    private static final String LOG_PREFIX = "[系统管理][部门]";
+
+    private final SysDeptMapper sysDeptMapper;
+    private final SysUserDeptRelationService sysUserDeptRelationService;
+    private final SysRoleService sysRoleService;
+
+
+    @Override
+    public List<SysDeptDTO> adminList() {
+        return entityList2BOs(sysDeptMapper.selectSortedList());
+    }
+
+    @Override
+    public SysDeptDTO getById(Long id) {
+        return this.getById(id, false);
+    }
+
+    @Override
+    public SysDeptDTO getById(Long id, boolean throwIfNotFound) throws BusinessException {
+        SysDeptEntity entity = sysDeptMapper.selectById(id);
+        if (throwIfNotFound) {
+            SysErrorEnum.INVALID_ID.assertNotNull(entity);
+        }
+
+        return this.entity2BO(entity);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Long adminInsert(AdminSysDeptUpsertRequest request) {
+        log.info(LOG_PREFIX + "新增 >> {}", request);
+        checkRepeat(request);
+
+        if (ObjectUtil.isNull(request.getParentId())) {
+            request.setParentId(SysConstant.ROOT_PARENT_ID);
+        }
+
+        request.setId(null);
+        SysDeptEntity entity = new SysDeptEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        sysDeptMapper.insert(entity);
+
+        return entity.getId();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminUpdate(AdminSysDeptUpsertRequest request) {
+        log.info(LOG_PREFIX + "编辑 >> {}", request);
+        checkRepeat(request);
+
+        if (ObjectUtil.isNull(request.getParentId())) {
+            request.setParentId(SysConstant.ROOT_PARENT_ID);
+        }
+
+        SysDeptEntity entity = new SysDeptEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        sysDeptMapper.updateById(entity);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminDelete(Collection<Long> ids) {
+        log.info(LOG_PREFIX + "删除 >> {}", ids);
+        sysDeptMapper.deleteByIds(ids);
+    }
+
+    @Override
+    public List<SysDeptDTO> adminSelectOptions(boolean inferiorsOnly) {
+        if (inferiorsOnly) {
+            UserRoleContainer currentUser = sysRoleService.getCurrentUserRoleContainer();
+            if (currentUser.isNotAnyAdmin()) {
+                // 非管理员才会限制，只能看到本部门及以下
+                UserDeptContainer deptContainer = getCurrentUserDeptContainer(true);
+                return entityList2BOs(deptContainer.getVisibleDepts());
+            }
+        }
+        // 能看所有
+        return adminList();
+    }
+
+    @Override
+    public UserDeptContainer getCurrentUserDeptContainer(boolean queryVisibleDept) {
+        return getSpecifiedUserDeptContainer(UserContextHolder.getUserId(), queryVisibleDept);
+    }
+
+    @Override
+    public UserDeptContainer getSpecifiedUserDeptContainer(Long specifiedUserId, boolean queryVisibleDept) {
+        List<Long> userDeptIds = sysUserDeptRelationService.getUserDeptIds(specifiedUserId);
+        List<SysDeptEntity> userDepts = null;
+        if (CollUtil.isNotEmpty(userDeptIds)) {
+            userDepts = sysDeptMapper.selectBatchIds(userDeptIds);
+        }
+        if (CollUtil.isEmpty(userDepts)) {
+            userDepts = Collections.emptyList();
+        }
+        UserDeptContainer container = new UserDeptContainer(userDeptIds, userDepts);
+
+        if (queryVisibleDept && container.hasRelatedDepts()) {
+            List<SysDeptEntity> allDepts = sysDeptMapper.selectSortedList();
+            List<SysDeptEntity> inferiors = determineAllInferiors(allDepts, container.primaryRelatedDept());
+            container.updateVisibleDepts(inferiors);
+        }
+        return container;
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法 private methods
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 实体转响应模型
+     */
+    private SysDeptDTO entity2BO(SysDeptEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        SysDeptDTO bo = new SysDeptDTO();
+        BeanUtil.copyProperties(entity, bo);
+
+        // 按需改写字段
+        if (SysConstant.ROOT_PARENT_ID.equals(bo.getParentId())) {
+            // 返回前端时，不显示 parentId = 0
+            bo.setParentId(null);
+        }
+
+        return bo;
+    }
+
+    /**
+     * 实体转响应模型
+     */
+    private List<SysDeptDTO> entityList2BOs(List<SysDeptEntity> entityList) {
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+
+        // 深拷贝
+        List<SysDeptDTO> ret = new ArrayList<>(entityList.size());
+        entityList.forEach(
+                entity -> ret.add(this.entity2BO(entity))
+        );
+
+        return ret;
+    }
+
+    /**
+     * 检查是否存在重复
+     */
+    private void checkRepeat(AdminSysDeptUpsertRequest request) {
+        SysDeptEntity ent = sysDeptMapper.selectOne(
+                new QueryWrapper<SysDeptEntity>()
+                        .lambda()
+                        // 仅取主键ID
+                        .select(SysDeptEntity::getId)
+                        // 名称相同
+                        .eq(SysDeptEntity::getTitle, request.getTitle())
+                        .last(SQLSegment.LIMIT_1)
+        );
+
+        if (ent != null && !ent.getId().equals(request.getId())) {
+            throw new BusinessException(400, "已存在相同部门，请重新输入");
+        }
+    }
+
+    /**
+     * 找出本部门及所有下级部门
+     *
+     * @param start 本部门
+     * @return 本部门 + 所有下级部门
+     */
+    private List<SysDeptEntity> determineAllInferiors(List<SysDeptEntity> entityList, SysDeptEntity start) {
+        // 结果集合
+        List<SysDeptEntity> ret = new ArrayList<>(entityList.size());
+        Deque<SysDeptEntity> deque = new ArrayDeque<>();
+
+        // 转map提高效率
+        Map<Long, List<SysDeptEntity>> groupByParentId = entityList.stream().collect(Collectors.groupingBy(SysDeptEntity::getParentId));
+
+        // 起点
+        ret.add(start);
+        deque.add(start);
+
+        // 循环填充下级部门实例
+        while (CollUtil.isNotEmpty(deque)) {
+            SysDeptEntity parent = deque.pop();
+            List<SysDeptEntity> children = groupByParentId.get(parent.getId());
+            if (CollUtil.isNotEmpty(children)) {
+                ret.addAll(children);
+                deque.addAll(children);
+            }
+        }
+        return ret;
+    }
+}

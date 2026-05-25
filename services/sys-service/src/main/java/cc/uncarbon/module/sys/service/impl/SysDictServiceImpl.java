@@ -1,0 +1,312 @@
+package cc.uncarbon.module.sys.service.impl;
+
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
+import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysDictCategoryMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysDictItemMapper;
+import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
+import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysDictItemUpsertRequest;
+import cc.uncarbon.module.sys.model.response.SysDictCategoryDTO;
+import cc.uncarbon.module.sys.model.response.SysDictItemDTO;
+import cc.uncarbon.module.sys.service.SysDictService;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.text.CharSequenceUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+
+
+/**
+ * 字典
+ */
+@RequiredArgsConstructor
+@Service
+@Slf4j
+public class SysDictServiceImpl implements SysDictService {
+
+    private static final String LOG_PREFIX = "[系统管理][字典]";
+
+    private final SysDictCategoryMapper sysDictCategoryMapper;
+    private final SysDictItemMapper sysDictItemMapper;
+
+
+    @Override
+    public PageResult<SysDictCategoryDTO> adminListCategory(AdminSysDictCategoryListQuery query) {
+        Page<SysDictCategoryEntity> entityPage = sysDictCategoryMapper.selectPage(
+                new Page<>(query.getPageNum(), query.getPageSize()),
+                new QueryWrapper<SysDictCategoryEntity>()
+                        .lambda()
+                        // 分类编码
+                        .eq(CharSequenceUtil.isNotBlank(query.getCode()), SysDictCategoryEntity::getCode, CharSequenceUtil.cleanBlank(dto.getCode()))
+                        // 排序
+                        .orderByDesc(SysDictCategoryEntity::getId)
+        );
+
+        return convertPage(entityPage);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long adminInsertCategory(AdminSysDictCategoryUpsertRequest request) {
+        log.info(LOG_PREFIX + "新增分类 >> {}", request);
+        checkRepeat(request);
+
+        request.setId(null);
+        SysDictCategoryEntity entity = new SysDictCategoryEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        sysDictCategoryMapper.insert(entity);
+        return entity.getId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void adminUpdateCategory(AdminSysDictCategoryUpsertRequest request) {
+        log.info(LOG_PREFIX + "修改分类 >> {}", request);
+        checkRepeat(request);
+
+        SysDictCategoryEntity entity = new SysDictCategoryEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        sysDictCategoryMapper.updateById(entity);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void adminDeleteCategory(Collection<Long> ids) {
+        log.info(LOG_PREFIX + "删除分类 >> {}", ids);
+        sysDictCategoryMapper.deleteByIds(ids);
+    }
+
+    /**
+     * 系统管理-分页列表字典分类下的字典项
+     */
+    @Override
+    public PageResult<SysDictItemDTO> adminListItem(AdminSysDictItemListQuery query) {
+        Page<SysDictItemEntity> entityPage = sysDictItemMapper.selectPage(
+                new Page<>(query.getPageNum(), query.getPageSize()),
+                new QueryWrapper<SysDictItemEntity>()
+                        .lambda()
+                        // 分类ID
+                        .eq(SysDictItemEntity::getCategoryId, query.getCategoryId())
+                        // 排序
+                        .orderByAsc(SysDictItemEntity::getSort)
+        );
+
+        return convertPage(entityPage);
+    }
+
+    /**
+     * 系统管理-新增字典项
+     *
+     * @return 主键ID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long adminInsertItem(AdminSysDictItemUpsertRequest request) {
+        log.info(LOG_PREFIX + "新增字典项 >> {}", request);
+        checkRepeat(request);
+
+        request.setId(null);
+        SysDictItemEntity entity = new SysDictItemEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        sysDictItemMapper.insert(entity);
+        return entity.getId();
+    }
+
+    /**
+     * 系统管理-修改字典项
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void adminUpdateItem(AdminSysDictItemUpsertRequest request) {
+        log.info(LOG_PREFIX + "修改字典项 >> {}", request);
+        checkRepeat(request);
+
+        SysDictItemEntity entity = new SysDictItemEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        sysDictItemMapper.updateById(entity);
+    }
+
+    /**
+     * 系统管理-删除字典项
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void adminDeleteItem(Collection<Long> ids, Long classifiedId) {
+        log.info(LOG_PREFIX + "删除字典项 >> {}", ids);
+        sysDictItemMapper.delete(
+                new QueryWrapper<SysDictItemEntity>()
+                        .lambda()
+                        .eq(SysDictItemEntity::getCategoryId, classifiedId)
+                        .in(SysDictItemEntity::getId, ids)
+        );
+    }
+
+    /**
+     * 列举指定分类编码下的所有启用的字典项
+     *
+     * @return 存在则返回字典项列表；不存在或没有符合的字典项，均返回空列表
+     */
+    @Override
+    public List<SysDictItemDTO> listItemsByCategory(@Nonnull String categoryCode, @Nullable EnabledStatusEnum status) {
+        SysDictCategoryEntity category =
+                sysDictCategoryMapper.selectByCodeAndStatus(categoryCode, EnabledStatusEnum.ENABLED);
+        if (Objects.isNull(category)) {
+            return List.of();
+        }
+        return convertList(
+                sysDictItemMapper.selectList(
+                        new QueryWrapper<SysDictItemEntity>()
+                                .lambda()
+                                // 分类ID
+                                .eq(SysDictItemEntity::getCategoryId, category.getId())
+                                // 状态
+                                .eq(SysDictItemEntity::getStatus, EnabledStatusEnum.ENABLED)
+                                // 排序
+                                .orderByAsc(SysDictItemEntity::getSort)
+                )
+        );
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法 private methods
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 实体转响应模型
+     */
+    private SysDictCategoryDTO convertSingle(SysDictCategoryEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        SysDictCategoryDTO ret = new SysDictCategoryDTO();
+        BeanUtil.copyProperties(entity, ret);
+
+        return ret;
+    }
+
+    /**
+     * 实体转响应模型
+     */
+    private SysDictItemDTO convertSingle(SysDictItemEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        SysDictItemDTO ret = new SysDictItemDTO();
+        BeanUtil.copyProperties(entity, ret);
+
+        return ret;
+    }
+
+    /**
+     * 实体转响应模型
+     */
+    private List<SysDictCategoryDTO> convertList(List<SysDictCategoryEntity> entityList, SysDictCategoryEntity... ignored) {
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+
+        // 深拷贝
+        return entityList.stream().map(this::convertSingle).toList();
+    }
+
+    /**
+     * 实体转响应模型
+     */
+    private List<SysDictItemDTO> convertList(List<SysDictItemEntity> entityList, SysDictItemEntity... ignored) {
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+
+        // 深拷贝
+        return entityList.stream().map(this::convertSingle).toList();
+    }
+
+    /**
+     * 实体转响应模型
+     */
+    private PageResult<SysDictCategoryDTO> convertPage(Page<SysDictCategoryEntity> entityPage, SysDictCategoryEntity... ignored) {
+        return new PageResult<SysDictCategoryDTO>()
+                .setCurrent(entityPage.getCurrent())
+                .setSize(entityPage.getSize())
+                .setTotal(entityPage.getTotal())
+                .setRecords(convertList(entityPage.getRecords()));
+    }
+
+    /**
+     * 实体转响应模型
+     */
+    private PageResult<SysDictItemDTO> convertPage(Page<SysDictItemEntity> entityPage, SysDictItemEntity... ignored) {
+        return new PageResult<SysDictItemDTO>()
+                .setCurrent(entityPage.getCurrent())
+                .setSize(entityPage.getSize())
+                .setTotal(entityPage.getTotal())
+                .setRecords(convertList(entityPage.getRecords()));
+    }
+
+    /**
+     * 检查是否存在重复
+     */
+    private void checkRepeat(AdminSysDictCategoryUpsertRequest request) throws BusinessException {
+        SysDictCategoryEntity ent = sysDictCategoryMapper.selectOne(
+                new QueryWrapper<SysDictCategoryEntity>()
+                        .lambda()
+                        // 仅取主键ID
+                        .select(SysDictCategoryEntity::getId)
+                        // 并非原地更新
+                        .ne(Objects.nonNull(request.getId()), SysDictCategoryEntity::getId, request.getId())
+                        // 分类编码相同
+                        .eq(SysDictCategoryEntity::getCode, request.getCode())
+                        .last(SQLSegment.LIMIT_1)
+        );
+
+        if (ent != null) {
+            throw new BusinessException(400, "已存在相同字典分类，请重新输入");
+        }
+    }
+
+    /**
+     * 检查是否存在重复
+     */
+    private void checkRepeat(AdminSysDictItemUpsertRequest request) throws BusinessException {
+        SysDictItemEntity ent = sysDictItemMapper.selectOne(
+                new QueryWrapper<SysDictItemEntity>()
+                        .lambda()
+                        // 仅取主键ID
+                        .select(SysDictItemEntity::getId)
+                        // 并非原地更新
+                        .ne(Objects.nonNull(request.getId()), SysDictItemEntity::getId, request.getId())
+                        // 分类ID相同
+                        .eq(SysDictItemEntity::getCategoryId, request.getCategoryId())
+                        // 分类编码相同
+                        .eq(SysDictItemEntity::getCode, request.getCode())
+                        .last(SQLSegment.LIMIT_1)
+        );
+
+        if (ent != null) {
+            throw new BusinessException(400, "已存在相同字典项，请重新输入");
+        }
+    }
+
+}

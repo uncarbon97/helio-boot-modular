@@ -4,7 +4,7 @@ import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.framework.core.page.PageResult;
 import cc.uncarbon.framework.web.model.request.IdsDTO;
-import cc.uncarbon.framework.web.model.response.ApiResult;
+import cc.uncarbon.framework.web.model.reponse.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.sys.annotation.SysOperateLog;
@@ -12,7 +12,7 @@ import cc.uncarbon.module.sys.model.request.AdminBindRoleMenuRelationDTO;
 import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysRoleDTO;
 import cc.uncarbon.module.sys.model.request.AdminListSysRoleDTO;
 import cc.uncarbon.module.sys.model.response.SysRoleBO;
-import cc.uncarbon.module.sys.service.impl.SysRoleService;
+import cc.uncarbon.module.sys.service.SysRoleService;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
@@ -27,7 +27,7 @@ import java.util.Set;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "后台角色管理接口")
+@Tag(name = "系统角色管理接口")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/")
 @RequiredArgsConstructor
 @RestController
@@ -44,7 +44,7 @@ public class AdminSysRoleController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "分页列表")
     @GetMapping(value = "/sys/roles")
-    public ApiResult<PageResult<SysRoleBO>> list(PageParam pageParam, AdminListSysRoleDTO dto) {
+    public ApiResult<PageResult<SysRoleBO>> list(AdminListSysRoleDTO dto) {
         return ApiResult.success(sysRoleService.adminList(pageParam, dto));
     }
 
@@ -55,7 +55,7 @@ public class AdminSysRoleController {
         return ApiResult.success(sysRoleService.getOneById(id, true));
     }
 
-    @SysOperateLog(value = "新增后台角色")
+    @SysOperateLog(value = "新增系统角色")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/sys/roles")
@@ -66,7 +66,7 @@ public class AdminSysRoleController {
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "编辑后台角色")
+    @SysOperateLog(value = "编辑系统角色")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "编辑")
     @PutMapping(value = "/sys/roles/{id}")
@@ -79,7 +79,7 @@ public class AdminSysRoleController {
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "删除后台角色")
+    @SysOperateLog(value = "删除系统角色")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @DeleteMapping(value = "/sys/roles")

@@ -3,7 +3,7 @@ package cc.uncarbon.module.adminapi.controller.auth;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
-import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.framework.helium.web.model.reponse.ApiResult;
 import cc.uncarbon.module.adminapi.helper.CaptchaHelper;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.adminapi.model.internal.AdminCaptchaContainer;
@@ -13,7 +13,7 @@ import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.sys.model.request.SysUserLoginDTO;
 import cc.uncarbon.module.sys.model.response.SysUserLoginBO;
 import cc.uncarbon.module.sys.model.response.SysUserLoginVO;
-import cc.uncarbon.module.sys.service.impl.SysUserService;
+import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpLogic;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class AdminAuthController {
 
-    private final SysUserService sysUserService;
+    private final SysUserServiceImpl sysUserService;
     private final RolePermissionCacheHelper rolePermissionCacheHelper;
     private final CaptchaHelper captchaHelper;
 

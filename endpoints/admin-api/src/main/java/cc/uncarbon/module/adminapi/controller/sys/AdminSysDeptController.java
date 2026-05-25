@@ -2,13 +2,13 @@ package cc.uncarbon.module.adminapi.controller.sys;
 
 
 import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
-import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.framework.helium.web.model.reponse.ApiResult;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.annotation.SysOperateLog;
-import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysDeptDTO;
-import cc.uncarbon.module.sys.model.response.SysDeptBO;
-import cc.uncarbon.module.sys.service.impl.SysDeptService;
+import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
+import cc.uncarbon.module.sys.model.response.SysDeptDTO;
+import cc.uncarbon.module.sys.service.impl.SysDeptServiceImpl;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,29 +31,29 @@ public class AdminSysDeptController {
 
     private static final String PERMISSION_PREFIX = "SysDept:";
 
-    private final SysDeptService sysDeptService;
+    private final SysDeptServiceImpl sysDeptService;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "列表")
     @GetMapping(value = "/list")
-    public ApiResult<List<SysDeptBO>> list() {
+    public ApiResult<List<SysDeptDTO>> list() {
         return ApiResult.success(sysDeptService.adminList());
     }
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @GetMapping(value = "/detail")
-    public ApiResult<SysDeptBO> detail(Long id) {
-        return ApiResult.success(sysDeptService.getOneById(id, true));
+    public ApiResult<SysDeptDTO> detail(Long id) {
+        return ApiResult.success(sysDeptService.getById(id, true));
     }
 
     @SysOperateLog(value = "新增部门")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/sys/depts")
-    public ApiResult<Void> insert(@RequestBody @Valid AdminInsertOrUpdateSysDeptDTO dto) {
-        sysDeptService.adminInsert(dto);
+    public ApiResult<Void> insert(@RequestBody @Valid AdminSysDeptUpsertRequest request) {
+        sysDeptService.adminInsert(request);
 
         return ApiResult.success();
     }
@@ -62,7 +62,7 @@ public class AdminSysDeptController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "编辑")
     @PutMapping(value = "/sys/depts/{id}")
-    public ApiResult<Void> update(@PathVariable Long id, @RequestBody @Valid AdminInsertOrUpdateSysDeptDTO dto) {
+    public ApiResult<Void> update(@PathVariable Long id, @RequestBody @Valid AdminSysDeptUpsertRequest dto) {
         dto.setId(id);
         sysDeptService.adminUpdate(dto);
 

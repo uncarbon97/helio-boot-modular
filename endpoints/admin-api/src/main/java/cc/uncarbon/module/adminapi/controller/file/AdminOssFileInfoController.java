@@ -4,7 +4,7 @@ import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.framework.core.page.PageResult;
 import cc.uncarbon.framework.web.model.request.IdsDTO;
-import cc.uncarbon.framework.web.model.response.ApiResult;
+import cc.uncarbon.framework.web.model.reponse.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cc.uncarbon.module.oss.model.query.AdminFileInfoQuery;
@@ -37,7 +37,7 @@ public class AdminOssFileInfoController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "分页列表")
     @GetMapping(value = "/oss/file/infos")
-    public ApiResult<PageResult<OssFileInfoBO>> list(PageParam pageParam, AdminFileInfoQuery dto) {
+    public ApiResult<PageResult<OssFileInfoBO>> list(AdminFileInfoQuery dto) {
         return ApiResult.success(ossFileInfoService.adminList(pageParam, dto));
     }
 

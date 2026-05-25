@@ -5,7 +5,7 @@ import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.framework.core.page.PageResult;
 import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.web.model.request.IdsDTO;
-import cc.uncarbon.framework.web.model.response.ApiResult;
+import cc.uncarbon.framework.web.model.reponse.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
@@ -18,7 +18,7 @@ import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysUserDTO;
 import cc.uncarbon.module.sys.model.request.AdminListSysUserDTO;
 import cc.uncarbon.module.sys.model.request.AdminResetSysUserPasswordDTO;
 import cc.uncarbon.module.sys.model.response.SysUserBO;
-import cc.uncarbon.module.sys.service.impl.SysUserService;
+import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.extra.spring.SpringUtil;
@@ -43,13 +43,13 @@ public class AdminSysUserController {
 
     private static final String PERMISSION_PREFIX = "SysUser:";
 
-    private final SysUserService sysUserService;
+    private final SysUserServiceImpl sysUserService;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "分页列表")
     @GetMapping(value = "/sys/users")
-    public ApiResult<PageResult<SysUserBO>> list(PageParam pageParam, AdminListSysUserDTO dto) {
+    public ApiResult<PageResult<SysUserBO>> list(AdminListSysUserDTO dto) {
         return ApiResult.success(sysUserService.adminList(pageParam, dto));
     }
 

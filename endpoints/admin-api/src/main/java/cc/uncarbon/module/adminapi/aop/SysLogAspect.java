@@ -9,7 +9,7 @@ import cc.uncarbon.module.sys.extension.SysLogAspectExtension;
 import cc.uncarbon.module.sys.extension.impl.DefaultSysLogAspectExtension;
 import cc.uncarbon.module.sys.model.request.AdminInsertSysLogDTO;
 import cc.uncarbon.module.sys.model.response.IPLocationBO;
-import cc.uncarbon.module.sys.service.impl.SysLogService;
+import cc.uncarbon.module.sys.service.SysLogService;
 import cn.dev33.satoken.spring.SpringMVCUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;

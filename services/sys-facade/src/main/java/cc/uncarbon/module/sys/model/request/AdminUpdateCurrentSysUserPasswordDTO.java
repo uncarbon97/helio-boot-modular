@@ -16,7 +16,6 @@ import java.io.Serializable;
  * 系统管理-修改当前用户密码
  */
 @Accessors(chain = true)
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
