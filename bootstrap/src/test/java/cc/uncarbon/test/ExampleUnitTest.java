@@ -1,13 +1,13 @@
 package cc.uncarbon.test;
 
-import cc.uncarbon.framework.core.constant.HelioConstant;
+import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.context.TenantContext;
 import cc.uncarbon.framework.core.context.TenantContextHolder;
 import cc.uncarbon.framework.core.context.UserContext;
 import cc.uncarbon.framework.core.context.UserContextHolder;
 import cc.uncarbon.module.Bootstrap;
 import cc.uncarbon.module.sys.model.response.SysRoleBO;
-import cc.uncarbon.module.sys.service.SysRoleService;
+import cc.uncarbon.module.sys.service.impl.SysRoleService;
 import cn.hutool.core.collection.CollUtil;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
@@ -43,7 +43,7 @@ class ExampleUnitTest {
         // 设置租户上下文
         TenantContext tenantContext = new TenantContext();
         tenantContext
-                .setTenantId(HelioConstant.Tenant.DEFAULT_PRIVILEGED_TENANT_ID)
+                .setTenantId(HeliumConstant.Tenant.DEFAULT_PRIVILEGED_TENANT_ID)
                 .setTenantName("超级租户");
         TenantContextHolder.setTenantContext(tenantContext);
     }

@@ -15,7 +15,7 @@ public class PwdUtil {
             return "";
         }
 
-        // 第一步: 2次MD5, 这一步可以放前端完成
+        // 第一步: 2次MD5
         String step1 = SecureUtil.md5(SecureUtil.md5(str));
 
         // 第二步: 拼接salt

@@ -1,6 +1,6 @@
 package cc.uncarbon.module.config;
 
-import cc.uncarbon.framework.core.props.HelioProperties;
+import cc.uncarbon.framework.core.props.HeliumProperties;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.appapi.constant.AppApiConstant;
 import cc.uncarbon.module.interceptor.AdminSaTokenParseInterceptor;
@@ -22,7 +22,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class CustomInterceptorConfiguration implements WebMvcConfigurer {
 
-    private final HelioProperties helioProperties;
+    private final HeliumProperties heliumProperties;
 
 
     @Override
@@ -48,7 +48,7 @@ public class CustomInterceptorConfiguration implements WebMvcConfigurer {
 
         /*
         3. /app/** 路由拦截器, 使几乎所有接口都需要登录
-        放行接口请在配置文件的 helio.security.exclude-routes 中设置
+        放行接口请在配置文件的 helium.security.exclude-routes 中设置
 
         @see https://sa-token.cc/doc.html#/use/route-check
          */
@@ -57,6 +57,6 @@ public class CustomInterceptorConfiguration implements WebMvcConfigurer {
                         handler -> StpUtil.checkLogin()
                 ))
                 .addPathPatterns(AppApiConstant.HTTP_API_URL_PREFIX + "/**")
-                .excludePathPatterns(helioProperties.getSecurity().getExcludeRoutes());
+                .excludePathPatterns(heliumProperties.getSecurity().getExcludeRoutes());
     }
 }

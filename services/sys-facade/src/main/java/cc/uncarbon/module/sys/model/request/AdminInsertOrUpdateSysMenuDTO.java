@@ -15,7 +15,7 @@ import java.io.Serializable;
 
 
 /**
- * 平台管理-新增/编辑系统菜单
+ * 系统管理-新增/编辑系统菜单
  */
 @Accessors(chain = true)
 @Builder

@@ -1,7 +1,7 @@
 package cc.uncarbon.module.appapi.web;
 
 
-import cc.uncarbon.framework.helio.web.model.response.ApiResult;
+import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.appapi.constant.AppApiConstant;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AppAuthController {
 
     /*
-    /app/** 开头的C端接口默认为都需要登录，放行接口请在配置文件的 helio.security.exclude-routes 中设置
+    /app/** 开头的C端接口默认为都需要登录，放行接口请在配置文件的 helium.security.exclude-routes 中设置
     相关拦截器代码请见 CustomInterceptorConfiguration.java
      */
 

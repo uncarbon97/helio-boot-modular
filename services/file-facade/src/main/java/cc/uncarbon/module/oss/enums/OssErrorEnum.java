@@ -1,6 +1,6 @@
 package cc.uncarbon.module.oss.enums;
 
-import cc.uncarbon.framework.core.enums.HelioBaseEnum;
+import cc.uncarbon.framework.core.enums.BaseEnum;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum OssErrorEnum implements HelioBaseEnum<Integer> {
+public enum OssErrorEnum implements BaseEnum<Integer> {
 
     INVALID_ID(400, "无效ID"),
     FILE_UPLOAD_FAILED(500, "文件上传失败，请联系管理员"),

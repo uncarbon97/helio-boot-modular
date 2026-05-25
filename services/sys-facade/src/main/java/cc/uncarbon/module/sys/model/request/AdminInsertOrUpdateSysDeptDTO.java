@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 
 /**
- * 平台管理-新增/编辑部门
+ * 系统管理-新增/编辑部门
  */
 @Accessors(chain = true)
 @Builder

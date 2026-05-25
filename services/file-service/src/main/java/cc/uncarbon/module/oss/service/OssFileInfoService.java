@@ -1,6 +1,6 @@
 package cc.uncarbon.module.oss.service;
 
-import cc.uncarbon.framework.core.constant.HelioConstant;
+import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.exception.BusinessException;
 import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.framework.core.page.PageResult;
@@ -45,7 +45,7 @@ public class OssFileInfoService {
 
 
     /**
-     * 平台管理-分页列表
+     * 系统管理-分页列表
      */
     public PageResult<OssFileInfoBO> adminList(PageParam pageParam, AdminFileInfoQuery dto) {
         Page<OssFileInfoEntity> entityPage = ossFileInfoMapper.selectPage(
@@ -94,11 +94,11 @@ public class OssFileInfoService {
     }
 
     /**
-     * 平台管理-删除
+     * 系统管理-删除
      */
     @Transactional(rollbackFor = Exception.class)
     public void adminDelete(Collection<Long> ids) {
-        log.info("[平台管理-删除上传文件信息] >> ids={}", ids);
+        log.info("[系统管理-删除上传文件信息] >> ids={}", ids);
 
         // 1. 删除原始文件
         List<OssFileInfoEntity> entityList = ossFileInfoMapper.selectBatchIds(ids);
@@ -118,7 +118,7 @@ public class OssFileInfoService {
                 new QueryWrapper<OssFileInfoEntity>()
                         .lambda()
                         .eq(OssFileInfoEntity::getMd5, md5)
-                        .last(HelioConstant.CRUD.SQL_LIMIT_1)
+                        .last(HeliumConstant.CRUD.SQL_LIMIT_1)
         );
 
         return this.entity2BO(entity);

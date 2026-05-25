@@ -12,7 +12,7 @@ import cc.uncarbon.module.sys.model.request.AdminSysDataDictItemInsertOrUpdateDT
 import cc.uncarbon.module.sys.model.request.AdminSysDataDictItemListDTO;
 import cc.uncarbon.module.sys.model.response.SysDataDictClassifiedBO;
 import cc.uncarbon.module.sys.model.response.SysDataDictItemBO;
-import cc.uncarbon.module.sys.service.SysDataDictService;
+import cc.uncarbon.module.sys.service.impl.SysDataDictService;
 import cn.hutool.core.collection.CollUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;

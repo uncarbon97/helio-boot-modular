@@ -1,15 +1,14 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
 
-import cc.uncarbon.framework.core.constant.HelioConstant;
-import cc.uncarbon.framework.web.model.request.IdsDTO;
-import cc.uncarbon.framework.web.model.response.ApiResult;
-import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
-import cc.uncarbon.module.sys.annotation.SysLog;
+import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
+import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.sys.annotation.SysOperateLog;
 import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysDeptDTO;
 import cc.uncarbon.module.sys.model.response.SysDeptBO;
-import cc.uncarbon.module.sys.service.SysDeptService;
-import cc.uncarbon.module.adminapi.util.AdminStpUtil;
+import cc.uncarbon.module.sys.service.impl.SysDeptService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,9 +21,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 
-@SaCheckLogin(type = AdminStpUtil.TYPE)
-@Tag(name = "部门管理接口")
-@RequestMapping(value = AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
+@SaCheckLogin(type = StpLoginType.ADMIN)
+@Tag(name = "系统管理-部门管理")
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/dept")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -35,22 +34,22 @@ public class AdminSysDeptController {
     private final SysDeptService sysDeptService;
 
 
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "列表")
-    @GetMapping(value = "/sys/depts")
+    @GetMapping(value = "/list")
     public ApiResult<List<SysDeptBO>> list() {
-        return ApiResult.data(sysDeptService.adminList());
+        return ApiResult.success(sysDeptService.adminList());
     }
 
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
-    @GetMapping(value = "/sys/depts/{id}")
-    public ApiResult<SysDeptBO> getById(@PathVariable Long id) {
-        return ApiResult.data(sysDeptService.getOneById(id, true));
+    @GetMapping(value = "/detail")
+    public ApiResult<SysDeptBO> detail(Long id) {
+        return ApiResult.success(sysDeptService.getOneById(id, true));
     }
 
-    @SysLog(value = "新增部门")
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.CREATE)
+    @SysOperateLog(value = "新增部门")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/sys/depts")
     public ApiResult<Void> insert(@RequestBody @Valid AdminInsertOrUpdateSysDeptDTO dto) {
@@ -59,8 +58,8 @@ public class AdminSysDeptController {
         return ApiResult.success();
     }
 
-    @SysLog(value = "编辑部门")
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.UPDATE)
+    @SysOperateLog(value = "编辑部门")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "编辑")
     @PutMapping(value = "/sys/depts/{id}")
     public ApiResult<Void> update(@PathVariable Long id, @RequestBody @Valid AdminInsertOrUpdateSysDeptDTO dto) {
@@ -70,8 +69,8 @@ public class AdminSysDeptController {
         return ApiResult.success();
     }
 
-    @SysLog(value = "删除部门")
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.DELETE)
+    @SysOperateLog(value = "删除部门")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @DeleteMapping(value = "/sys/depts")
     public ApiResult<Void> delete(@RequestBody @Valid IdsDTO<Long> dto) {

@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.entity;
 
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
-import cc.uncarbon.framework.crud.entity.HelioBaseEntity;
+import cc.uncarbon.framework.crud.entity.HeliumBaseEntity;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -23,7 +23,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_role")
-public class SysRoleEntity extends HelioBaseEntity<Long> {
+public class SysRoleEntity extends HeliumBaseEntity<Long> {
 
 	@Schema(description = "角色编码")
 	@TableField(value = "code")

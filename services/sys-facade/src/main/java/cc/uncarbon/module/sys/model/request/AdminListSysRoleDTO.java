@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 
 /**
- * 平台管理-分页列表系统角色
+ * 系统管理-分页列表系统角色
  */
 @Accessors(chain = true)
 @Builder

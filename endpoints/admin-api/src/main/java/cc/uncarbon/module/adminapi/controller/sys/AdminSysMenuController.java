@@ -1,13 +1,13 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
-import cc.uncarbon.framework.core.constant.HelioConstant;
+import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.web.model.request.IdsDTO;
 import cc.uncarbon.framework.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
-import cc.uncarbon.module.sys.annotation.SysLog;
+import cc.uncarbon.module.sys.annotation.SysOperateLog;
 import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysMenuDTO;
 import cc.uncarbon.module.sys.model.response.SysMenuBO;
-import cc.uncarbon.module.sys.service.SysMenuService;
+import cc.uncarbon.module.sys.service.impl.SysMenuService;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
@@ -21,9 +21,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 
-@SaCheckLogin(type = AdminStpUtil.TYPE)
+@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "后台菜单管理接口")
-@RequestMapping(value = AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -34,22 +34,22 @@ public class AdminSysMenuController {
     private final SysMenuService sysMenuService;
 
 
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "列表")
     @GetMapping(value = "/sys/menus")
     public ApiResult<List<SysMenuBO>> list() {
-        return ApiResult.data(sysMenuService.adminList());
+        return ApiResult.success(sysMenuService.adminList());
     }
 
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.RETRIEVE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @GetMapping(value = "/sys/menus/{id}")
     public ApiResult<SysMenuBO> getById(@PathVariable Long id) {
-        return ApiResult.data(sysMenuService.getOneById(id, true));
+        return ApiResult.success(sysMenuService.getOneById(id, true));
     }
 
-    @SysLog(value = "新增后台菜单")
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.CREATE)
+    @SysOperateLog(value = "新增后台菜单")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/sys/menus")
     public ApiResult<Void> insert(@RequestBody @Valid AdminInsertOrUpdateSysMenuDTO dto) {
@@ -58,8 +58,8 @@ public class AdminSysMenuController {
         return ApiResult.success();
     }
 
-    @SysLog(value = "编辑后台菜单")
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.UPDATE)
+    @SysOperateLog(value = "编辑后台菜单")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "编辑")
     @PutMapping(value = "/sys/menus/{id}")
     public ApiResult<Void> update(@PathVariable Long id, @RequestBody @Valid AdminInsertOrUpdateSysMenuDTO dto) {
@@ -69,8 +69,8 @@ public class AdminSysMenuController {
         return ApiResult.success();
     }
 
-    @SysLog(value = "删除后台菜单")
-    @SaCheckPermission(type = AdminStpUtil.TYPE, value = PERMISSION_PREFIX + HelioConstant.Permission.DELETE)
+    @SysOperateLog(value = "删除后台菜单")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @DeleteMapping(value = "/sys/menus")
     public ApiResult<Void> delete(@RequestBody @Valid IdsDTO<Long> dto) {
@@ -82,13 +82,13 @@ public class AdminSysMenuController {
     @Operation(summary = "取侧边菜单")
     @GetMapping("/sys/menus/side")
     public ApiResult<List<SysMenuBO>> adminListSideMenu() {
-        return ApiResult.data(sysMenuService.adminListSideMenu());
+        return ApiResult.success(sysMenuService.adminListSideMenu());
     }
 
     @Operation(summary = "取所有可见菜单")
     @GetMapping("/sys/menus/all")
     public ApiResult<List<SysMenuBO>> adminListVisibleMenu() {
-        return ApiResult.data(sysMenuService.adminListVisibleMenu());
+        return ApiResult.success(sysMenuService.adminListVisibleMenu());
     }
 
 }

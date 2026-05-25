@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.biz;
 
-import cc.uncarbon.framework.core.constant.HelioConstant;
+import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.core.function.StreamFunction;
 import cc.uncarbon.module.sys.constant.SysConstant;
@@ -14,10 +14,10 @@ import cc.uncarbon.module.sys.model.request.AdminInsertSysTenantDTO;
 import cc.uncarbon.module.sys.model.request.AdminUpdateSysTenantDTO;
 import cc.uncarbon.module.sys.model.response.SysTenantBO;
 import cc.uncarbon.module.sys.model.response.SysTenantKickOutUsersBO;
-import cc.uncarbon.module.sys.service.SysRoleService;
-import cc.uncarbon.module.sys.service.SysTenantService;
-import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
-import cc.uncarbon.module.sys.service.SysUserService;
+import cc.uncarbon.module.sys.service.impl.SysRoleService;
+import cc.uncarbon.module.sys.service.impl.SysTenantService;
+import cc.uncarbon.module.sys.service.impl.SysUserRoleRelationService;
+import cc.uncarbon.module.sys.service.impl.SysUserService;
 import cn.hutool.core.collection.CollUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class SysTenantFacadeImpl implements SysTenantFacade {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long adminInsert(AdminInsertSysTenantDTO dto) {
-        log.info("[平台管理-新增系统租户] >> 入参={}", dto);
+        log.info("[系统管理-新增系统租户] >> 入参={}", dto);
         sysTenantService.checkExistence(dto);
 
         /*
@@ -114,7 +114,7 @@ public class SysTenantFacadeImpl implements SysTenantFacade {
         Collection<Long> tenantIds = determineTenantIdsByPrimaryKeys(ids).values();
         if (CollUtil.isNotEmpty(tenantIds)) {
             // 不能删除「超级租户」（租户ID=0）
-            SysErrorEnum.CANNOT_DELETE_PRIVILEGED_TENANT.assertNotContains(tenantIds, HelioConstant.Tenant.DEFAULT_PRIVILEGED_TENANT_ID);
+            SysErrorEnum.CANNOT_DELETE_PRIVILEGED_TENANT.assertNotContains(tenantIds, HeliumConstant.Tenant.DEFAULT_PRIVILEGED_TENANT_ID);
 
             // 删除租户管理员角色、租户
             sysRoleService.adminDeleteTenantRoles(tenantIds, Collections.singleton(SysConstant.TENANT_ADMIN_ROLE_VALUE));

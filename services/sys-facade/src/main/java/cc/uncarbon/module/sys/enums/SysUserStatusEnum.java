@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.enums;
 
-import cc.uncarbon.framework.core.enums.HelioBaseEnum;
+import cc.uncarbon.framework.core.enums.BaseEnum;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum SysUserStatusEnum implements HelioBaseEnum<Integer> {
+public enum SysUserStatusEnum implements BaseEnum<Integer> {
 
     BANNED(0, "封禁"),
     ENABLED(1, "正常"),;

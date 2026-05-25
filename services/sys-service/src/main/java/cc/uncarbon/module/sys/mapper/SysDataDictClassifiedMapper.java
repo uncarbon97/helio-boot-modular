@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.mapper;
 
-import cc.uncarbon.framework.core.constant.HelioConstant;
+import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -25,7 +25,7 @@ public interface SysDataDictClassifiedMapper extends BaseMapper<SysDataDictClass
                         .lambda()
                         .eq(SysDataDictClassifiedEntity::getCode, code)
                         .eq(Objects.nonNull(status), SysDataDictClassifiedEntity::getStatus, status)
-                        .last(HelioConstant.CRUD.SQL_LIMIT_1)
+                        .last(HeliumConstant.CRUD.SQL_LIMIT_1)
         );
     }
 

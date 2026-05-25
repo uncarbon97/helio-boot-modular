@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * 自定义权限验证接口扩展
- * 用于平台管理
+ * 用于系统管理
  *
  * @author Uncarbon
  */

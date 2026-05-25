@@ -12,7 +12,7 @@ import java.util.Set;
 
 
 /**
- * 平台管理-绑定用户与角色关联关系
+ * 系统管理-绑定用户与角色关联关系
  */
 @Accessors(chain = true)
 @Builder

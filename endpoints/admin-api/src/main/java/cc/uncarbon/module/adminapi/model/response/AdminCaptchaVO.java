@@ -1,13 +1,13 @@
 package cc.uncarbon.module.adminapi.model.response;
 
-import cc.uncarbon.module.adminapi.model.interior.AdminCaptchaContainer;
+import cc.uncarbon.module.adminapi.model.internal.AdminCaptchaContainer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 /**
- * 平台管理-验证码 VO
+ * 系统管理-验证码 VO
  */
 @Getter
 public class AdminCaptchaVO {

@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.request;
 
-import cc.uncarbon.framework.core.constant.HelioConstant;
+import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.enums.GenderEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -16,7 +16,7 @@ import java.io.Serializable;
 
 
 /**
- * 平台管理-更新当前后台用户信息资料
+ * 系统管理-更新当前后台用户信息资料
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -35,13 +35,13 @@ public class AdminUpdateCurrentSysUserInfoDTO implements Serializable {
     private GenderEnum gender;
 
     @Schema(description = "邮箱", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Pattern(message = "邮箱格式有误", regexp = HelioConstant.Regex.EMAIL)
+    @Pattern(message = "邮箱格式有误", regexp = HeliumConstant.Regex.EMAIL)
     @Size(max = 255, message = "【邮箱】最长255位")
     @NotBlank(message = "邮箱必填")
     private String email;
 
     @Schema(description = "手机号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Pattern(message = "手机号格式有误", regexp = HelioConstant.Regex.CHINA_MAINLAND_PHONE_NO)
+    @Pattern(message = "手机号格式有误", regexp = HeliumConstant.Regex.CHINA_MAINLAND_PHONE_NO)
     @Size(max = 20, message = "【手机号】最长20位")
     @NotBlank(message = "手机号必填")
     private String phoneNo;

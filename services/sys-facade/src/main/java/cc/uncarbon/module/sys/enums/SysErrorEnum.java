@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.enums;
 
-import cc.uncarbon.framework.core.enums.HelioBaseEnum;
+import cc.uncarbon.framework.core.enums.BaseEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -10,7 +10,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum SysErrorEnum implements HelioBaseEnum<Integer> {
+public enum SysErrorEnum implements BaseEnum<Integer> {
 
     INVALID_ID(400, "无效ID"),
     INCORRECT_PIN_OR_PWD(400, "账号或密码不正确"),

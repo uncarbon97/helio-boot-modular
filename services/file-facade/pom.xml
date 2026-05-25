@@ -7,7 +7,7 @@
 
     <parent>
         <groupId>cc.uncarbon.module</groupId>
-        <artifactId>helio-boot-modular</artifactId>
+        <artifactId>helium-boot-modular</artifactId>
         <version>${revision}</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
@@ -25,7 +25,7 @@
         <!-- 引用框架基础包/启动包 -->
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helio-starter-base</artifactId>
+            <artifactId>helium-starter-base</artifactId>
         </dependency>
 
 

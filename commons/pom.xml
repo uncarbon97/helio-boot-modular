@@ -7,12 +7,12 @@
 
     <parent>
         <groupId>cc.uncarbon.module</groupId>
-        <artifactId>helio-boot-modular</artifactId>
+        <artifactId>helium-boot-modular</artifactId>
         <version>${revision}</version>
     </parent>
 
     <artifactId>commons</artifactId>
-    <description>业务开发公共包</description>
+    <description>跨模块共享代码</description>
     <version>${revision}</version>
 
     <properties>
@@ -22,10 +22,20 @@
         <!-- 引用框架基础包/启动包 -->
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helio-starter-base</artifactId>
+            <artifactId>helium-core-base</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-core-web</artifactId>
         </dependency>
 
 
         <!-- 引用其他第三方依赖 -->
+        <!-- SA-Token 基础包 -->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-core</artifactId>
+        </dependency>
     </dependencies>
 </project>

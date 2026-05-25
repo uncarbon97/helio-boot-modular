@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.entity;
 
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
-import cc.uncarbon.framework.crud.entity.HelioBaseEntity;
+import cc.uncarbon.framework.crud.entity.HeliumBaseEntity;
 import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -23,7 +23,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_menu")
-public class SysMenuEntity extends HelioBaseEntity<Long> {
+public class SysMenuEntity extends HeliumBaseEntity<Long> {
 
 	@Schema(description = "名称")
 	@TableField(value = "name")

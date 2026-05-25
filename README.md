@@ -1,34 +1,34 @@
-# helio-boot-modular
+# helium-boot-modular
 
 ## 项目介绍
 基于 Spring Boot 3.x，是一款预置SaaS、RBAC能力的单体项目脚手架，适合初学者学习 JavaWeb 开发的良好实践  
-按职责拆分为多Maven模块，依然是大单体，但命名及用途对标`helio-cloud`；适合多人协作、但不打算使用微服务架构的团队  
-单模块版请移步至[helio-boot](https://github.com/uncarbon97/helio-boot)项目
+按职责拆分为多Maven模块，依然是大单体，但命名及用途对标`helium-cloud`；适合多人协作、但不打算使用微服务架构的团队  
+单模块版请移步至[helium-boot](https://github.com/uncarbon97/helium-boot)项目
 
 JDK compatibility: 17 - 21
 
-【[前端演示站](https://helio-demo.uncarbon.cc/)】
-【[官方文档](https://helio.uncarbon.cc/)】 
-【[主要技术栈依赖](https://helio.uncarbon.cc/#/i18n/zh-CN/helio-starters/dependencies)】
-【[快速启动步骤](https://helio.uncarbon.cc/#/i18n/zh-CN/helio-boot/quick-start)】
-【[更新记录](https://helio.uncarbon.cc/#/i18n/zh-CN/appendix/change-log)】
-【[编码良好实践](https://helio.uncarbon.cc/#/i18n/zh-CN/experience/good-practices)】
+【[前端演示站](https://helium-demo.uncarbon.cc/)】
+【[官方文档](https://helium.uncarbon.cc/)】 
+【[主要技术栈依赖](https://helium.uncarbon.cc/#/i18n/zh-CN/helium-starters/dependencies)】
+【[快速启动步骤](https://helium.uncarbon.cc/#/i18n/zh-CN/helium-boot/quick-start)】
+【[更新记录](https://helium.uncarbon.cc/#/i18n/zh-CN/appendix/change-log)】
+【[编码良好实践](https://helium.uncarbon.cc/#/i18n/zh-CN/experience/good-practices)】
 
 需要先安装 `MySQL`、`Redis` 等必需中间件
 
-基础支撑构件 [helio-starters](https://github.com/uncarbon97/helio-starters) 已推送至Maven中央仓库，加载时会自动拉取
+基础支撑构件 [helium-starters](https://github.com/uncarbon97/helium-starters) 已推送至Maven中央仓库，加载时会自动拉取
 
-## 配套代码生成器 & 平台管理前端模板 & 移动端模板
+## 配套代码生成器 & 系统管理前端模板 & 移动端模板
 | 项目名                   | 简介                                                                          | Gitee                                                       | GitHub                                                        |
 |-----------------------|-----------------------------------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------------------|
-| helio-generator       | 可一键生成单体or微服务版的前、后端代码，减少无谓的重复劳动                                              | [Gitee](https://gitee.com/uncarbon97/helio-generator)       | [GitHub](https://github.com/uncarbon97/helio-generator)       |
-| helio-admin-vue-vben  | 基于[Vue vben admin](https://github.com/anncwb/vue-vben-admin) 改造适配的前端框架，开箱即用 | [Gitee](https://gitee.com/uncarbon97/helio-admin-vue-vben)  | [GitHub](https://github.com/uncarbon97/helio-admin-vue-vben)  |
-| helio-app-vue-unibest | 基于[unibest](https://github.com/feige996/unibest) 改造适配的移动端模板                 | [Gitee](https://gitee.com/uncarbon97/helio-app-vue-unibest) | [GitHub](https://github.com/uncarbon97/helio-app-vue-unibest) |
+| helium-generator       | 可一键生成单体or微服务版的前、后端代码，减少无谓的重复劳动                                              | [Gitee](https://gitee.com/uncarbon97/helium-generator)       | [GitHub](https://github.com/uncarbon97/helium-generator)       |
+| helium-admin-vue-vben  | 基于[Vue vben admin](https://github.com/anncwb/vue-vben-admin) 改造适配的前端框架，开箱即用 | [Gitee](https://gitee.com/uncarbon97/helium-admin-vue-vben)  | [GitHub](https://github.com/uncarbon97/helium-admin-vue-vben)  |
+| helium-app-vue-unibest | 基于[unibest](https://github.com/feige996/unibest) 改造适配的移动端模板                 | [Gitee](https://gitee.com/uncarbon97/helium-app-vue-unibest) | [GitHub](https://github.com/uncarbon97/helium-app-vue-unibest) |
 
 ## 源码包结构
 ```
 ├───web
-│   ├───admin  【Maven模块】admin，用于平台管理的HTTP控制器
+│   ├───admin  【Maven模块】admin，用于系统管理的HTTP控制器
 │   │   └───src
 │   │       └───main
 │   │           └───java
@@ -61,9 +61,9 @@ JDK compatibility: 17 - 21
 ├───attachments  附件
 │   └───db  数据库变更脚本
 │       ├───MySQL
-│       │   └───upgrade  Helio升级时MySQL变更脚本
+│       │   └───upgrade  Helium升级时MySQL变更脚本
 │       └───PostgreSQL
-│           └───upgrade  Helio升级时PostgreSQL变更脚本
+│           └───upgrade  Helium升级时PostgreSQL变更脚本
 ├───launcher  【Maven模块】项目主入口，负责启动SpringBoot
 │   └───src
 │       ├───main

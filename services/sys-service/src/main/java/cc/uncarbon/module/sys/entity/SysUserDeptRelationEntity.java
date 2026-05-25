@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.entity;
 
-import cc.uncarbon.framework.crud.entity.HelioBaseEntity;
+import cc.uncarbon.framework.crud.entity.HeliumBaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,7 +21,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_user_dept_relation")
-public class SysUserDeptRelationEntity extends HelioBaseEntity<Long> {
+public class SysUserDeptRelationEntity extends HeliumBaseEntity<Long> {
 
 	@Schema(description = "用户ID")
 	@TableField(value = "user_id")

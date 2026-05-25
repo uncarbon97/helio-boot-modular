@@ -1,6 +1,6 @@
 package cc.uncarbon.module.oss.enums;
 
-import cc.uncarbon.framework.core.enums.HelioBaseEnum;
+import cc.uncarbon.framework.core.enums.BaseEnum;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum UploadFileCheckResultEnum implements HelioBaseEnum<Integer> {
+public enum UploadFileCheckResultEnum implements BaseEnum<Integer> {
 
     OK(200, "正常"),
     NO_FILE(401, "缺少欲上传的文件"),

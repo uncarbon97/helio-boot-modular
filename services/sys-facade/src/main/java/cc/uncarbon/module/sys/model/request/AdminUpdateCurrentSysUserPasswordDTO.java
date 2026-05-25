@@ -13,7 +13,7 @@ import java.io.Serializable;
 
 
 /**
- * 平台管理-修改当前用户密码
+ * 系统管理-修改当前用户密码
  */
 @Accessors(chain = true)
 @Builder

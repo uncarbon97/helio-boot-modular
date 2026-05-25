@@ -12,17 +12,17 @@ import java.util.Collection;
 public interface SysTenantFacade {
 
     /**
-     * 平台管理-新增
+     * 系统管理-新增
      */
     Long adminInsert(AdminInsertTenantMetaDTO dto);
 
     /**
-     * 平台管理-编辑
+     * 系统管理-编辑
      */
     TenantMetaKickOutUsersBO adminUpdate(AdminUpdateTenantMetaDTO dto);
 
     /**
-     * 平台管理-删除
+     * 系统管理-删除
      */
     TenantMetaKickOutUsersBO adminDelete(Collection<Long> ids);
 

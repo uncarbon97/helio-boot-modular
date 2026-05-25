@@ -34,8 +34,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 
-@Tag(name = "平台管理-上传、下载文件接口")
-@RequestMapping(value = AdminApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
+@Tag(name = "系统管理-上传、下载文件接口")
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -46,8 +46,8 @@ public class AdminOssUploadDownloadController {
 
     @Operation(summary = "上传文件", tags = "")
     @PostMapping(value = "/oss/files")
-    // 约束：登录后才能上传   👇 平台管理对应的鉴权工具类
-    @SaCheckLogin(type = AdminStpUtil.TYPE)
+    // 约束：登录后才能上传   👇 系统管理对应的鉴权工具类
+    @SaCheckLogin(type = StpLoginType.ADMIN)
     public ApiResult<OssFileUploadResult> upload(
             @RequestPart MultipartFile file, @RequestPart(required = false) @Valid UploadFileAttributeDTO attr,
             HttpServletRequest request
@@ -82,13 +82,13 @@ public class AdminOssUploadDownloadController {
             bo = ossUploadDownloadFacade.upload(file.getBytes(), attr);
         }
 
-        return ApiResult.data(this.toUploadResult(bo, request.getRequestURL().toString(), file.getOriginalFilename()));
+        return ApiResult.success(this.toUploadResult(bo, request.getRequestURL().toString(), file.getOriginalFilename()));
     }
 
     @Operation(summary = "下载文件(根据文件ID)")
     @GetMapping(value = "/oss/files/{id}")
-    // 如果需要登录后才能下载，请解禁下方注解；注意是👇 平台管理对应的鉴权工具类
-    // @SaCheckLogin(type = AdminStpUtil.TYPE)
+    // 如果需要登录后才能下载，请解禁下方注解；注意是👇 系统管理对应的鉴权工具类
+    // @SaCheckLogin(type = StpLoginType.ADMIN)
     public void download(@PathVariable Long id, HttpServletResponse response) throws IOException {
         OssFileDownloadReplyBO reply = ossUploadDownloadFacade.downloadById(id);
 

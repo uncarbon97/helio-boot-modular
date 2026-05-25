@@ -7,7 +7,7 @@
 
     <parent>
         <groupId>cc.uncarbon.module</groupId>
-        <artifactId>helio-boot-modular</artifactId>
+        <artifactId>helium-boot-modular</artifactId>
         <version>${revision}</version>
     </parent>
 
@@ -20,7 +20,7 @@
         <products.version>${revision}</products.version>
 
         <!-- 制品文件名 -->
-        <products.filename>helio-boot</products.filename>
+        <products.filename>helium-boot</products.filename>
 
         <!-- 引用 Web 模块 -->
         <!-- B端 API -->

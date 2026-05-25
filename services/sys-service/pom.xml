@@ -7,14 +7,14 @@
 
     <parent>
         <groupId>cc.uncarbon.module</groupId>
-        <artifactId>helio-boot-modular</artifactId>
+        <artifactId>helium-boot-modular</artifactId>
         <version>${revision}</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>sys-service</artifactId>
     <description>
-        平台管理服务
+        系统管理服务
     </description>
     <version>${revision}</version>
 
@@ -37,12 +37,12 @@
         <!-- 引用框架基础包/启动包 -->
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helio-starter-base</artifactId>
+            <artifactId>helium-starter-base</artifactId>
         </dependency>
 
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helio-starter-db-mybatis-plus</artifactId>
+            <artifactId>helium-starter-db-mybatis-plus</artifactId>
         </dependency>
 
 

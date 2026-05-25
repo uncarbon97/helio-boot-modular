@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.entity;
 
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
-import cc.uncarbon.framework.crud.entity.HelioBaseEntity;
+import cc.uncarbon.framework.crud.entity.HeliumBaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_dept")
-public class SysDeptEntity extends HelioBaseEntity<Long> {
+public class SysDeptEntity extends HeliumBaseEntity<Long> {
 
 	@Schema(description = "部门名称")
 	@TableField(value = "name")

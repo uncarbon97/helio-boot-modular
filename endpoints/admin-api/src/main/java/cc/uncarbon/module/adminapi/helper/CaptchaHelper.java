@@ -2,7 +2,7 @@ package cc.uncarbon.module.adminapi.helper;
 
 import cc.uncarbon.framework.core.exception.BusinessException;
 import cc.uncarbon.module.adminapi.enums.AdminApiErrorEnum;
-import cc.uncarbon.module.adminapi.model.interior.AdminCaptchaContainer;
+import cc.uncarbon.module.adminapi.model.internal.AdminCaptchaContainer;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.ShearCaptcha;
 import cn.hutool.core.date.LocalDateTimeUtil;

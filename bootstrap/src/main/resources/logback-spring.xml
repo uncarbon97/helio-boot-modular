@@ -9,7 +9,7 @@
             converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
 
     <!-- 常量-项目名称 -->
-    <property name="APP_NAME" value="helio-boot"/>
+    <property name="APP_NAME" value="helium-boot"/>
     <!-- 常量-日志文件存储路径 -->
     <property name="LOG_HOME" value="logs/${APP_NAME}"/>
     <!-- 常量-日志文件保留天数 -->

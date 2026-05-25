@@ -3,13 +3,13 @@ package cc.uncarbon.module.adminapi.aop;
 import cc.uncarbon.framework.core.context.UserContext;
 import cc.uncarbon.framework.core.context.UserContextHolder;
 import cc.uncarbon.framework.web.util.IPUtil;
-import cc.uncarbon.module.sys.annotation.SysLog;
+import cc.uncarbon.module.sys.annotation.SysOperateLog;
 import cc.uncarbon.module.sys.enums.SysLogStatusEnum;
 import cc.uncarbon.module.sys.extension.SysLogAspectExtension;
 import cc.uncarbon.module.sys.extension.impl.DefaultSysLogAspectExtension;
 import cc.uncarbon.module.sys.model.request.AdminInsertSysLogDTO;
 import cc.uncarbon.module.sys.model.response.IPLocationBO;
-import cc.uncarbon.module.sys.service.SysLogService;
+import cc.uncarbon.module.sys.service.impl.SysLogService;
 import cn.dev33.satoken.spring.SpringMVCUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
@@ -91,8 +91,8 @@ public class SysLogAspect {
      * 顺利运行
      */
     @AfterReturning(pointcut = "@annotation(annotation)", returning = "ret")
-    public void returning(JoinPoint joinPoint, SysLog annotation, Object ret) {
-        if (!ArrayUtil.contains(annotation.when(), SysLog.When.SUCCESS)) {
+    public void returning(JoinPoint joinPoint, SysOperateLog annotation, Object ret) {
+        if (!ArrayUtil.contains(annotation.when(), SysOperateLog.When.SUCCESS)) {
             // 系统日志保存时机不包含“成功时”
             return;
         }
@@ -113,8 +113,8 @@ public class SysLogAspect {
      * 出现异常
      */
     @AfterThrowing(value = "@annotation(annotation)", throwing = "e")
-    public void throwing(JoinPoint joinPoint, SysLog annotation, Throwable e) {
-        if (!ArrayUtil.contains(annotation.when(), SysLog.When.FAILED)) {
+    public void throwing(JoinPoint joinPoint, SysOperateLog annotation, Throwable e) {
+        if (!ArrayUtil.contains(annotation.when(), SysOperateLog.When.FAILED)) {
             // 系统日志保存时机不包含“失败时”
             return;
         }
@@ -139,7 +139,7 @@ public class SysLogAspect {
      * @param e 异常实例，可以为null
      * @param ret 返回值，可以为null
      */
-    private void saveSysLog(final JoinPoint joinPoint, SysLog annotation, final AspectContext aspectContext,
+    private void saveSysLog(final JoinPoint joinPoint, SysOperateLog annotation, final AspectContext aspectContext,
                             final Throwable e, Object ret) {
         try {
             // 指定本线程用户态
@@ -219,7 +219,7 @@ public class SysLogAspect {
             this.userContext = UserContextHolder.getUserContext();
             /*
             记录IP地址
-            https://gitee.com/uncarbon97/helio-boot/issues/I5KN1X
+            https://gitee.com/uncarbon97/helium-boot/issues/I5KN1X
              */
             String ip = UserContextHolder.getClientIP();
             if (CharSequenceUtil.isEmpty(ip)) {
@@ -235,7 +235,7 @@ public class SysLogAspect {
     /**
      * 异步保存系统日志
      */
-    private void saveSysLogAsync(final JoinPoint joinPoint, SysLog annotation, final AspectContext aspectContext,
+    private void saveSysLogAsync(final JoinPoint joinPoint, SysOperateLog annotation, final AspectContext aspectContext,
                                  final Throwable e, Object ret) {
         taskExecutor.submit(
                 () -> this.saveSysLog(joinPoint, annotation, aspectContext, e, ret)
@@ -245,7 +245,7 @@ public class SysLogAspect {
     /**
      * 构造新增DTO
      */
-    private static AdminInsertSysLogDTO buildInsertDTO(JoinPoint joinPoint, SysLog annotation, AspectContext aspectContext) {
+    private static AdminInsertSysLogDTO buildInsertDTO(JoinPoint joinPoint, SysOperateLog annotation, AspectContext aspectContext) {
         return new AdminInsertSysLogDTO()
                 // 记录操作人
                 .setUserId(UserContextHolder.getUserId())

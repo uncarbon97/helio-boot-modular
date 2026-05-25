@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.entity;
 
 import cc.uncarbon.framework.core.enums.GenderEnum;
-import cc.uncarbon.framework.crud.entity.HelioBaseEntity;
+import cc.uncarbon.framework.crud.entity.HeliumBaseEntity;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserAvatarDTO;
 import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserInfoDTO;
@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_user")
-public class SysUserEntity extends HelioBaseEntity<Long> {
+public class SysUserEntity extends HeliumBaseEntity<Long> {
 
 	@Schema(description = "账号")
 	@TableField(value = "pin")

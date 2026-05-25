@@ -14,7 +14,7 @@ public final class SysConstant {
     public static final Long ROOT_PARENT_ID = 0L;
 
     /**
-     * Vben Admin平台管理-空页面
+     * Vben Admin系统管理-空页面
      */
     public static final String VBEN_ADMIN_BLANK_VIEW = "LAYOUT";
 

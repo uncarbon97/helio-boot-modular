@@ -7,13 +7,13 @@
 
     <parent>
         <groupId>cc.uncarbon.framework</groupId>
-        <artifactId>helio-starters-parent</artifactId>
+        <artifactId>helium-starters-parent</artifactId>
         <version>4.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>cc.uncarbon.module</groupId>
-    <artifactId>helio-boot-modular</artifactId>
-    <description>Helio 多模块版单体脚手架</description>
+    <artifactId>helium-boot-modular</artifactId>
+    <description>Helium 多模块版单体脚手架</description>
     <version>${revision}</version>
 
     <properties>

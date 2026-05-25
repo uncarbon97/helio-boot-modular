@@ -1,6 +1,6 @@
 package cc.uncarbon.module.adminapi.model.response;
 
-import cc.uncarbon.framework.core.enums.HelioBaseEnum;
+import cc.uncarbon.framework.core.enums.BaseEnum;
 import cn.hutool.core.collection.CollUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
- * 平台管理-下拉框数据单项 VO
+ * 系统管理-下拉框数据单项 VO
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Accessors(chain = true)
@@ -58,9 +58,9 @@ public class AdminSelectOptionItemVO implements Serializable {
     @Schema(description = "标签")
     private String label;
 
-    public AdminSelectOptionItemVO(HelioBaseEnum<? extends Number> helioBaseEnum) {
-        this.value = helioBaseEnum.getValue();
-        this.label = helioBaseEnum.getLabel();
+    public AdminSelectOptionItemVO(BaseEnum<? extends Number> BaseEnum) {
+        this.value = BaseEnum.getValue();
+        this.label = BaseEnum.getLabel();
     }
 
     /*
@@ -178,27 +178,27 @@ public class AdminSelectOptionItemVO implements Serializable {
      * 构造List<AdminSelectOptionItemVO>
      * 将转换枚举类中所有枚举常量
      *
-     * @param helioBaseEnum 实现了HelioBaseEnum的枚举类
+     * @param BaseEnum 实现了BaseEnum的枚举类
      */
-    public static <E extends Enum<?> & HelioBaseEnum<? extends Number>> List<AdminSelectOptionItemVO> listOf(Class<E> helioBaseEnum) {
-        return listOf(helioBaseEnum, null);
+    public static <E extends Enum<?> & BaseEnum<? extends Number>> List<AdminSelectOptionItemVO> listOf(Class<E> BaseEnum) {
+        return listOf(BaseEnum, null);
     }
 
     /**
      * 构造List<AdminSelectOptionItemVO>
      * 支持自定义过滤器，仅转换需要的枚举常量
      *
-     * @param helioBaseEnum      实现了HelioBaseEnum的枚举类
+     * @param BaseEnum      实现了BaseEnum的枚举类
      * @param enumConstantFilter （可选）枚举类中枚举常量过滤器
      */
-    public static <E extends Enum<?> & HelioBaseEnum<? extends Number>> List<AdminSelectOptionItemVO> listOf(
-            Class<E> helioBaseEnum,
+    public static <E extends Enum<?> & BaseEnum<? extends Number>> List<AdminSelectOptionItemVO> listOf(
+            Class<E> BaseEnum,
             Predicate<E> enumConstantFilter
     ) {
-        if (helioBaseEnum == null) {
+        if (BaseEnum == null) {
             return Collections.emptyList();
         }
-        Stream<E> stream = Arrays.stream(helioBaseEnum.getEnumConstants());
+        Stream<E> stream = Arrays.stream(BaseEnum.getEnumConstants());
         if (enumConstantFilter != null) {
             stream = stream.filter(enumConstantFilter);
         }

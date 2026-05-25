@@ -1,4 +1,4 @@
-helio:
+helium:
   crud:
     # JDBC驱动类名，根据数据库类型自行修改
     db-driver-class: com.mysql.cj.jdbc.Driver
@@ -13,7 +13,7 @@ helio:
     # 数据库登录密码
     db-password: root
     # 数据库名
-    db-name: helio_boot
+    db-name: helium_boot
   web:
     logging:
       # 是否启用 Web 访问日志切面；开发、测试环境可以开启，生产环境不开启
@@ -61,6 +61,6 @@ dromara:
         access-key: （MinIO AK）
         secret-key: （MinIO SK）
         end-point: http://127.0.0.1:9000
-        bucket-name: helio
-        domain: http://127.0.0.1:9000/helio/ # 访问域名，注意“/”结尾，例如：http://minio.abc.com/abc/
+        bucket-name: helium
+        domain: http://127.0.0.1:9000/helium/ # 访问域名，注意“/”结尾，例如：http://minio.abc.com/abc/
         base-path: / # 基础路径
