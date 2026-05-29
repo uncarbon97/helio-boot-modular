@@ -4,6 +4,7 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDictCategoryMapper;
@@ -27,7 +28,9 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -282,7 +285,7 @@ public class SysDictServiceImpl implements SysDictService {
         );
 
         if (ent != null) {
-            throw new BusinessException(400, "已存在相同字典分类，请重新输入");
+            throw new HasRepeatRecordException("已存在相同的【字典分类编码】");
         }
     }
 
@@ -299,13 +302,13 @@ public class SysDictServiceImpl implements SysDictService {
                         .ne(Objects.nonNull(request.getId()), SysDictItemEntity::getId, request.getId())
                         // 分类ID相同
                         .eq(SysDictItemEntity::getCategoryId, request.getCategoryId())
-                        // 分类编码相同
+                        // 字典项编码相同
                         .eq(SysDictItemEntity::getCode, request.getCode())
                         .last(SQLSegment.LIMIT_1)
         );
 
         if (ent != null) {
-            throw new BusinessException(400, "已存在相同字典项，请重新输入");
+            throw new HasRepeatRecordException("同一分类下，已存在相同的【字典项编码】");
         }
     }
 
