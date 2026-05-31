@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.service.impl;
 
-import cc.uncarbon.framework.core.constant.HeliumConstant;
+import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.module.sys.dal.entity.SysUserDeptRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserDeptRelationMapper;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
@@ -12,7 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -61,12 +64,7 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
 
         if (ObjectUtil.isNotNull(deptId)) {
             // 需要绑定部门
-            sysUserDeptRelationMapper.insert(
-                    SysUserDeptRelationEntity.builder()
-                            .userId(userId)
-                            .deptId(deptId)
-                            .build()
-            );
+            sysUserDeptRelationMapper.insert(SysUserDeptRelationEntity.of(userId, deptId));
         }
 
     }

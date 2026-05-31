@@ -13,8 +13,8 @@ import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysDictItemUpsertRequest;
-import cc.uncarbon.module.sys.model.response.SysDictCategoryDTO;
-import cc.uncarbon.module.sys.model.response.SysDictItemDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysDictCategoryDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
 import cc.uncarbon.module.sys.service.SysDictService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -54,7 +54,7 @@ public class SysDictServiceImpl implements SysDictService {
                 new QueryWrapper<SysDictCategoryEntity>()
                         .lambda()
                         // 分类编码
-                        .eq(CharSequenceUtil.isNotBlank(query.getCode()), SysDictCategoryEntity::getCode, CharSequenceUtil.cleanBlank(dto.getCode()))
+                        .eq(CharSequenceUtil.isNotBlank(query.getCode()), SysDictCategoryEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
                         // 排序
                         .orderByDesc(SysDictCategoryEntity::getId)
         );
@@ -64,7 +64,7 @@ public class SysDictServiceImpl implements SysDictService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long adminInsertCategory(AdminSysDictCategoryUpsertRequest request) {
+    public Long adminCreateCategory(AdminSysDictCategoryUpsertRequest request) {
         log.info(LOG_PREFIX + "新增分类 >> {}", request);
         checkRepeat(request);
 
@@ -96,7 +96,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 系统管理-分页列表字典分类下的字典项
+     * 系统管理-分页查询字典分类下的字典项
      */
     @Override
     public PageResult<SysDictItemDTO> adminListItem(AdminSysDictItemListQuery query) {
@@ -120,7 +120,7 @@ public class SysDictServiceImpl implements SysDictService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long adminInsertItem(AdminSysDictItemUpsertRequest request) {
+    public Long adminCreateItem(AdminSysDictItemUpsertRequest request) {
         log.info(LOG_PREFIX + "新增字典项 >> {}", request);
         checkRepeat(request);
 
@@ -152,12 +152,11 @@ public class SysDictServiceImpl implements SysDictService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void adminDeleteItem(Collection<Long> ids, Long classifiedId) {
+    public void adminDeleteItem(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除字典项 >> {}", ids);
         sysDictItemMapper.delete(
                 new QueryWrapper<SysDictItemEntity>()
                         .lambda()
-                        .eq(SysDictItemEntity::getCategoryId, classifiedId)
                         .in(SysDictItemEntity::getId, ids)
         );
     }
@@ -168,7 +167,7 @@ public class SysDictServiceImpl implements SysDictService {
      * @return 存在则返回字典项列表；不存在或没有符合的字典项，均返回空列表
      */
     @Override
-    public List<SysDictItemDTO> listItemsByCategory(@Nonnull String categoryCode, @Nullable EnabledStatusEnum status) {
+    public List<SysDictItemDTO> listItemsByCategory(@Nonnull String categoryCode, @Nullable EnabledStatusEnum itemStatus) {
         SysDictCategoryEntity category =
                 sysDictCategoryMapper.selectByCodeAndStatus(categoryCode, EnabledStatusEnum.ENABLED);
         if (Objects.isNull(category)) {
@@ -195,7 +194,7 @@ public class SysDictServiceImpl implements SysDictService {
      */
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private SysDictCategoryDTO convertSingle(SysDictCategoryEntity entity) {
         if (entity == null) {
@@ -209,7 +208,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private SysDictItemDTO convertSingle(SysDictItemEntity entity) {
         if (entity == null) {
@@ -223,7 +222,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private List<SysDictCategoryDTO> convertList(List<SysDictCategoryEntity> entityList, SysDictCategoryEntity... ignored) {
         if (CollUtil.isEmpty(entityList)) {
@@ -235,7 +234,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private List<SysDictItemDTO> convertList(List<SysDictItemEntity> entityList, SysDictItemEntity... ignored) {
         if (CollUtil.isEmpty(entityList)) {
@@ -247,7 +246,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private PageResult<SysDictCategoryDTO> convertPage(Page<SysDictCategoryEntity> entityPage, SysDictCategoryEntity... ignored) {
         return new PageResult<SysDictCategoryDTO>()
@@ -258,7 +257,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private PageResult<SysDictItemDTO> convertPage(Page<SysDictItemEntity> entityPage, SysDictItemEntity... ignored) {
         return new PageResult<SysDictItemDTO>()

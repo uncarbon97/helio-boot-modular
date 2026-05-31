@@ -10,7 +10,7 @@
         LIMIT 1
     </select>
 
-    <select id="getBaseInfoByUserId" resultType="cc.uncarbon.module.sys.model.response.SysUserBaseInfoBO">
+    <select id="getBaseInfoByUserId" resultType="cc.uncarbon.module.sys.model.valueobj.SysUserBaseInfoBO">
         SELECT pin AS username
              , nickname
              , status

@@ -35,7 +35,7 @@ public class AdminOssFileInfoController {
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
-    @Operation(summary = "分页列表")
+    @Operation(summary = "分页查询")
     @GetMapping(value = "/oss/file/infos")
     public ApiResult<PageResult<OssFileInfoBO>> list(AdminFileInfoQuery dto) {
         return ApiResult.success(ossFileInfoService.adminList(pageParam, dto));

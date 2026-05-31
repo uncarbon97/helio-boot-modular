@@ -1,7 +1,7 @@
 package cc.uncarbon.module.oss.service;
 
 import cc.uncarbon.framework.core.constant.HeliumConstant;
-import cc.uncarbon.framework.core.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.framework.core.page.PageResult;
 import cc.uncarbon.module.oss.constant.OssConstant;
@@ -45,7 +45,7 @@ public class OssFileInfoService {
 
 
     /**
-     * 系统管理-分页列表
+     * 系统管理-分页查询
      */
     public PageResult<OssFileInfoBO> adminList(AdminFileInfoQuery dto) {
         Page<OssFileInfoEntity> entityPage = ossFileInfoMapper.selectPage(
@@ -195,7 +195,7 @@ public class OssFileInfoService {
      */
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private OssFileInfoBO entity2BO(OssFileInfoEntity entity) {
         if (entity == null) {
@@ -211,7 +211,7 @@ public class OssFileInfoService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private List<OssFileInfoBO> entityList2BOs(List<OssFileInfoEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {
@@ -228,7 +228,7 @@ public class OssFileInfoService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private PageResult<OssFileInfoBO> entityPage2BOPage(Page<OssFileInfoEntity> entityPage) {
         return new PageResult<OssFileInfoBO>()

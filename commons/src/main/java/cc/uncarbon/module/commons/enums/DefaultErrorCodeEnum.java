@@ -14,12 +14,12 @@ public enum DefaultErrorCodeEnum implements ErrorCodeEnum {
 
     /*
     错误码格式 [A][BB][CCC]
-    [A] 固定为 A，表示框架内置错误
-    [BB] 固定为 00
+    [BB] 本枚举内固定为 00
     [CCC] 按具体错误区分
      */
 
-    A00000("A00000", "{}"),
+    // A 开头错误码，表示一般性错误，如用户输入有误
+    A00001("A00001", "重复数据：{}"),
 
     ;private final String errorCode;
     private final String errorMsgFriendly;

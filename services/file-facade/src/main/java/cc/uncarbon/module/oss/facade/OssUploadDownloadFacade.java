@@ -1,6 +1,6 @@
 package cc.uncarbon.module.oss.facade;
 
-import cc.uncarbon.framework.core.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.module.oss.model.request.UploadFileAttributeDTO;
 import cc.uncarbon.module.oss.model.response.FileMetaBO;
 import cc.uncarbon.module.oss.model.response.OssFileDownloadReplyBO;

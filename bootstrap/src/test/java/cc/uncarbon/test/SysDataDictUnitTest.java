@@ -1,23 +1,15 @@
 package cc.uncarbon.test;
 
-import cc.uncarbon.framework.core.context.UserContext;
-import cc.uncarbon.framework.core.context.UserContextHolder;
-import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
-import cc.uncarbon.framework.core.page.PageParam;
-import cc.uncarbon.framework.core.page.PageResult;
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.page.PageParam;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.Bootstrap;
-import cc.uncarbon.module.sys.model.request.AdminSysDataDictClassifiedInsertOrUpdateDTO;
-import cc.uncarbon.module.sys.model.request.AdminSysDataDictClassifiedListDTO;
-import cc.uncarbon.module.sys.model.request.AdminSysDataDictItemInsertOrUpdateDTO;
-import cc.uncarbon.module.sys.model.request.AdminSysDataDictItemListDTO;
-import cc.uncarbon.module.sys.model.response.SysDataDictClassifiedBO;
-import cc.uncarbon.module.sys.model.response.SysDataDictItemBO;
 import cc.uncarbon.module.sys.service.SysDictService;
 import cn.hutool.core.collection.CollUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.annotation.Order;
 
 import java.util.Collections;
 import java.util.List;
@@ -72,7 +64,7 @@ class SysDataDictUnitTest {
     @Order(0)
     @Test
     void testAdminInsertClassified() {
-        Long entityId = sysDictService.adminInsertCategory(
+        Long entityId = sysDictService.adminCreateCategory(
                 AdminSysDataDictClassifiedInsertOrUpdateDTO.builder()
                         // 分类编码
                         .code("enabled-status1")
@@ -113,7 +105,7 @@ class SysDataDictUnitTest {
     }
 
     /**
-     * 单元测试-分页列表字典分类
+     * 单元测试-分页查询字典分类
      */
     @Order(200)
     @Test
@@ -125,7 +117,7 @@ class SysDataDictUnitTest {
                         .build()
         );
 
-        log.info("\n\n\n分页列表成功 >> 结果={}", pageResult);
+        log.info("\n\n\n分页查询成功 >> 结果={}", pageResult);
         Assertions.assertTrue(CollUtil.isNotEmpty(pageResult.getRecords()));
     }
 
@@ -136,7 +128,7 @@ class SysDataDictUnitTest {
     @Test
     void testAdminInsert() {
         for (EnabledStatusEnum enumConstant : EnabledStatusEnum.class.getEnumConstants()) {
-            Long entityId = sysDictService.adminInsertItem(
+            Long entityId = sysDictService.adminCreateItem(
                     AdminSysDataDictItemInsertOrUpdateDTO.builder()
                             // 所属分类ID
                             .classifiedId(classifiedId)
@@ -160,7 +152,7 @@ class SysDataDictUnitTest {
     }
 
     /**
-     * 单元测试-分页列表字典项
+     * 单元测试-分页查询字典项
      */
     @Order(400)
     @Test
@@ -172,7 +164,7 @@ class SysDataDictUnitTest {
                         .build()
         );
 
-        log.info("\n\n\n分页列表成功 >> 结果={}", pageResult);
+        log.info("\n\n\n分页查询成功 >> 结果={}", pageResult);
         // 数据条数与枚举条数一致
         Assertions.assertEquals(compareAllItemSize, CollUtil.size(pageResult.getRecords()));
         Assertions.assertEquals(compareEnabledItemSize, sysDictService.listItemsByCategory("enabled-status", ).size());
@@ -221,7 +213,7 @@ class SysDataDictUnitTest {
     @Test
     void testAdminDeleteItem() {
         List<Long> ids = items.stream().map(SysDataDictItemBO::getId).toList();
-        sysDictService.adminDeleteItem(ids, classifiedId);
+        sysDictService.adminDeleteItem(ids);
         log.info("\n\n\n删除完成 >> ids={}", ids);
 
         // 再次查询列表，比较剩余字典项数量

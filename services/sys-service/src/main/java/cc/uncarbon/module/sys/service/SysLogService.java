@@ -1,11 +1,10 @@
 package cc.uncarbon.module.sys.service;
 
-import cc.uncarbon.framework.core.exception.BusinessException;
-import cc.uncarbon.framework.core.page.PageParam;
-import cc.uncarbon.framework.core.page.PageResult;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.module.sys.model.query.AdminSysLogListQuery;
 import cc.uncarbon.module.sys.model.request.AdminInsertSysLogDTO;
-import cc.uncarbon.module.sys.model.request.AdminListSysLogDTO;
-import cc.uncarbon.module.sys.model.response.SysLogBO;
+import cc.uncarbon.module.sys.model.valueobj.SysLogBO;
 
 /**
  * 系统日志
@@ -13,14 +12,14 @@ import cc.uncarbon.module.sys.model.response.SysLogBO;
 public interface SysLogService {
 
     /**
-     * 系统管理-分页列表
+     * 系统管理-分页查询
      */
-    PageResult<SysLogBO> adminList(AdminListSysLogDTO dto);
+    PageResult<SysLogBO> adminList(AdminSysLogListQuery query);
 
     /**
      * 系统管理-新增
      */
-    Long adminInsert(AdminInsertSysLogDTO dto);
+    Long adminCreate(AdminInsertSysLogDTO dto);
 
     /**
      * 根据 ID 取详情

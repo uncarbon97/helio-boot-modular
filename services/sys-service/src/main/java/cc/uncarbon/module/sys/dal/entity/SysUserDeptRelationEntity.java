@@ -42,4 +42,10 @@ public class SysUserDeptRelationEntity extends AbstractTenantRelationEntity {
 	@TableField(value = "dept_id")
 	private Long deptId;
 
+	public static SysUserDeptRelationEntity of(Long userId, Long deptId) {
+		SysUserDeptRelationEntity ret = new SysUserDeptRelationEntity();
+		ret.userId = userId;
+		ret.deptId = deptId;
+		return ret;
+	}
 }

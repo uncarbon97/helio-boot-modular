@@ -1,25 +1,34 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
 import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
-import cc.uncarbon.framework.helium.base.page.PageParam;
-import cc.uncarbon.framework.helium.web.model.reponse.ApiResult;
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.model.request.IdsRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
-import cc.uncarbon.module.sys.annotation.SysOperateLog;
+import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
+import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysDictItemUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysDictCategoryDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
 import cc.uncarbon.module.sys.service.SysDictService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "字典管理接口")
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/")
+@Tag(name = "系统管理-字典管理")
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/dict")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -31,81 +40,75 @@ public class AdminSysDictController {
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
-    @Operation(summary = "分页列表字典分类")
-    @GetMapping(value = "/sys/data-dict/classifieds")
-    public ApiResult<PageResult<SysDataDictClassifiedBO>> list(AdminSysDataDictClassifiedListDTO dto) {
-        return ApiResult.success(sysDictService.adminListCategory(pageParam, dto));
+    @Operation(summary = "分页查询字典分类")
+    @PostMapping(value = "/category/list")
+    public ApiResult<PageResult<SysDictCategoryDTO>> list(AdminSysDictCategoryListQuery query) {
+        return ApiResult.success(sysDictService.adminListCategory(query));
     }
 
-    @SysOperateLog(value = "新增字典分类")
+    // @SysOperateLog(value = "新增字典分类")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增字典分类")
-    @PostMapping(value = "/sys/data-dict/classifieds")
-    public ApiResult<Void> insert(@RequestBody @Valid AdminSysDataDictClassifiedInsertOrUpdateDTO dto) {
-        sysDictService.adminInsertCategory(dto);
+    @PostMapping(value = "/category/create")
+    public ApiResult<Void> insert(@RequestBody @Valid AdminSysDictCategoryUpsertRequest request) {
+        sysDictService.adminCreateCategory(request);
 
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "编辑字典分类")
+    // @SysOperateLog(value = "编辑字典分类")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
-    @Operation(summary = "编辑字典分类")
-    @PutMapping(value = "/sys/data-dict/classifieds/{id}")
-    public ApiResult<Void> update(@PathVariable Long id, @RequestBody @Valid AdminSysDataDictClassifiedInsertOrUpdateDTO dto) {
-        dto.setId(id);
-        sysDictService.adminUpdateCategory(dto);
+    @Operation(summary = "修改字典分类")
+    @PostMapping(value = "/category/update")
+    public ApiResult<Void> update(@RequestBody @Valid AdminSysDictCategoryUpsertRequest request) {
+        sysDictService.adminUpdateCategory(request);
 
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "删除字典分类")
+    // @SysOperateLog(value = "删除字典分类")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除字典分类")
-    @DeleteMapping(value = "/sys/data-dict/classifieds")
-    public ApiResult<Void> deleteClassified(@RequestBody @Valid IdsDTO<Long> dto) {
-        sysDictService.adminDeleteCategory(dto.getIds());
+    @PostMapping(value = "/category/delete")
+    public ApiResult<Void> deleteClassified(@RequestBody @Valid IdsRequest<Long> request) {
+        sysDictService.adminDeleteCategory(request.getIds());
 
         return ApiResult.success();
     }
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
-    @Operation(summary = "分页列表字典分类下的字典项")
-    @GetMapping(value = "/sys/data-dict/classifieds/{classifiedId}/items")
-    public ApiResult<PageResult<SysDataDictItemBO>> list(@PathVariable Long classifiedId, AdminSysDataDictItemListDTO dto) {
-        dto.setClassifiedId(classifiedId);
-        return ApiResult.success(sysDictService.adminListItem(pageParam, dto));
+    @Operation(summary = "分页查询字典项")
+    @PostMapping(value = "/item/list")
+    public ApiResult<PageResult<SysDictItemDTO>> list(@RequestBody @Valid AdminSysDictItemListQuery query) {
+        return ApiResult.success(sysDictService.adminListItem(query));
     }
 
-    @SysOperateLog(value = "新增字典项")
+    // @SysOperateLog(value = "新增字典项")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增字典项")
-    @PostMapping(value = "/sys/data-dict/classifieds/{classifiedId}/items")
-    public ApiResult<Void> insert(@PathVariable Long classifiedId, @RequestBody @Valid AdminSysDataDictItemInsertOrUpdateDTO dto) {
-        dto.setClassifiedId(classifiedId);
-        sysDictService.adminInsertItem(dto);
+    @PostMapping(value = "/item/create")
+    public ApiResult<Void> insert(@RequestBody @Valid AdminSysDictItemUpsertRequest request) {
+        sysDictService.adminCreateItem(request);
 
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "编辑字典项")
+    // @SysOperateLog(value = "修改字典项")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
-    @Operation(summary = "编辑字典项")
-    @PutMapping(value = "/sys/data-dict/classifieds/{classifiedId}/items/{id}")
-    public ApiResult<Void> update(@PathVariable Long classifiedId, @PathVariable Long id, @RequestBody @Valid AdminSysDataDictItemInsertOrUpdateDTO dto) {
-        dto
-                .setId(id)
-                .setClassifiedId(classifiedId);
-        sysDictService.adminUpdateItem(dto);
+    @Operation(summary = "修改字典项")
+    @PostMapping(value = "/item/update")
+    public ApiResult<Void> update(@RequestBody @Valid AdminSysDictItemUpsertRequest request) {
+        sysDictService.adminUpdateItem(request);
 
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "删除字典项")
+    // @SysOperateLog(value = "删除字典项")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除字典项")
-    @DeleteMapping(value = "/sys/data-dict/classifieds/{classifiedId}/items")
-    public ApiResult<Void> deleteItem(@PathVariable Long classifiedId, @RequestBody @Valid IdsDTO<Long> dto) {
-        sysDictService.adminDeleteItem(dto.getIds(), classifiedId);
+    @PostMapping(value = "/item/delete")
+    public ApiResult<Void> deleteItem(@RequestBody @Valid IdsRequest<Long> request) {
+        sysDictService.adminDeleteItem(request.getIds());
 
         return ApiResult.success();
     }

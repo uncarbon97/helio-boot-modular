@@ -1,8 +1,8 @@
 package cc.uncarbon.module.sys.service;
 
-import cc.uncarbon.framework.core.exception.BusinessException;
-import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysMenuDTO;
-import cc.uncarbon.module.sys.model.response.SysMenuBO;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysMenuBO;
 
 import java.util.Collection;
 import java.util.List;
@@ -22,12 +22,12 @@ public interface SysMenuService {
     /**
      * 系统管理-新增
      */
-    Long adminInsert(AdminInsertOrUpdateSysMenuDTO dto);
+    Long adminCreate(AdminSysMenuUpsertRequest request);
 
     /**
      * 系统管理-修改
      */
-    void adminUpdate(AdminInsertOrUpdateSysMenuDTO dto);
+    void adminUpdate(AdminSysMenuUpsertRequest request);
 
     /**
      * 系统管理-删除

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 
 /**
- * 系统管理-分页列表上传文件信息 DTO
+ * 系统管理-分页查询上传文件信息 DTO
  */
 @Accessors(chain = true)
 @AllArgsConstructor

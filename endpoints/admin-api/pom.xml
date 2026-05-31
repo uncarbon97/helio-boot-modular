@@ -21,6 +21,8 @@
         <sys.version>${revision}</sys.version>
         <!-- 文件管理 -->
         <file.version>${revision}</file.version>
+        <!-- 租户管理 -->
+        <tenant.version>${revision}</tenant.version>
 
 
         <!-- 引用跨模块共享 -->
@@ -42,6 +44,12 @@
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>file-service</artifactId>
             <version>${file.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>tenant-service</artifactId>
+            <version>${tenant.version}</version>
         </dependency>
 
 

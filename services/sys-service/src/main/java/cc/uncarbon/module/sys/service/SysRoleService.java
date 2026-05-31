@@ -1,13 +1,12 @@
 package cc.uncarbon.module.sys.service;
 
-import cc.uncarbon.framework.core.exception.BusinessException;
-import cc.uncarbon.framework.core.page.PageParam;
-import cc.uncarbon.framework.core.page.PageResult;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.sys.model.interior.UserRoleContainer;
+import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
 import cc.uncarbon.module.sys.model.request.AdminBindRoleMenuRelationDTO;
-import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysRoleDTO;
-import cc.uncarbon.module.sys.model.request.AdminListSysRoleDTO;
-import cc.uncarbon.module.sys.model.response.SysRoleBO;
+import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysRoleBO;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,19 +19,19 @@ import java.util.Set;
 public interface SysRoleService {
 
     /**
-     * 系统管理-分页列表
+     * 系统管理-分页查询
      */
-    PageResult<SysRoleBO> adminList(AdminListSysRoleDTO dto);
+    PageResult<SysRoleBO> adminList(AdminSysRoleListQuery query);
 
     /**
      * 系统管理-新增
      */
-    Long adminInsert(AdminInsertOrUpdateSysRoleDTO dto);
+    Long adminCreate(AdminSysRoleUpsertRequest request);
 
     /**
      * 系统管理-修改
      */
-    void adminUpdate(AdminInsertOrUpdateSysRoleDTO dto);
+    void adminUpdate(AdminSysRoleUpsertRequest request);
 
     /**
      * 系统管理-删除

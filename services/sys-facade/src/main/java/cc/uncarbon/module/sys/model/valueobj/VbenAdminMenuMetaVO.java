@@ -1,0 +1,26 @@
+package cc.uncarbon.module.sys.model.valueobj;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.io.Serializable;
+
+
+/**
+ * 系统菜单子项详情 for VbenAdmin
+ */
+@AllArgsConstructor
+@Data
+public class VbenAdminMenuMetaVO implements Serializable {
+
+    @Schema(description = "名称")
+    private String name;
+
+    @Schema(description = "是否不可关闭")
+    private Boolean affix;
+
+    @Schema(description = "图标")
+    private String icon;
+
+}

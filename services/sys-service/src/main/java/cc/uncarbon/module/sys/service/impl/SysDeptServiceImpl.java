@@ -5,12 +5,12 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
-import cc.uncarbon.module.sys.enums.SysErrorEnum;
+import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.dal.mapper.SysDeptMapper;
 import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
 import cc.uncarbon.module.sys.model.interior.UserRoleContainer;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
-import cc.uncarbon.module.sys.model.response.SysDeptDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 import cc.uncarbon.module.sys.service.SysDeptService;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
@@ -56,7 +56,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     public SysDeptDTO getById(Long id, boolean throwIfNotFound) throws BusinessException {
         SysDeptEntity entity = sysDeptMapper.selectById(id);
         if (throwIfNotFound) {
-            SysErrorEnum.INVALID_ID.assertNotNull(entity);
+            SysErrorCodeEnum.A01001.assertNotNull(entity);
         }
 
         return this.entity2BO(entity);
@@ -64,7 +64,7 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Long adminInsert(AdminSysDeptUpsertRequest request) {
+    public Long adminCreate(AdminSysDeptUpsertRequest request) {
         log.info(LOG_PREFIX + "新增 >> {}", request);
         checkRepeat(request);
 
@@ -150,7 +150,7 @@ public class SysDeptServiceImpl implements SysDeptService {
      */
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private SysDeptDTO entity2BO(SysDeptEntity entity) {
         if (entity == null) {
@@ -170,7 +170,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private List<SysDeptDTO> entityList2BOs(List<SysDeptEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {

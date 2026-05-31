@@ -8,7 +8,7 @@ import cc.uncarbon.module.sys.enums.SysLogStatusEnum;
 import cc.uncarbon.module.sys.extension.SysLogAspectExtension;
 import cc.uncarbon.module.sys.extension.impl.DefaultSysLogAspectExtension;
 import cc.uncarbon.module.sys.model.request.AdminInsertSysLogDTO;
-import cc.uncarbon.module.sys.model.response.IPLocationBO;
+import cc.uncarbon.module.sys.model.valueobj.IPLocationBO;
 import cc.uncarbon.module.sys.service.SysLogService;
 import cn.dev33.satoken.spring.SpringMVCUtil;
 import cn.hutool.core.bean.BeanUtil;
@@ -178,7 +178,7 @@ public class SysLogAspect {
             extensionInstance.beforeSaving(dto, joinPoint, annotation, e, ret);
 
             // 保存系统日志
-            sysLogService.adminInsert(dto);
+            sysLogService.adminCreate(dto);
         } finally {
             UserContextHolder.clear();
         }

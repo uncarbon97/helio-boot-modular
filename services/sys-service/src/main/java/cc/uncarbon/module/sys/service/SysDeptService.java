@@ -3,7 +3,7 @@ package cc.uncarbon.module.sys.service;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
-import cc.uncarbon.module.sys.model.response.SysDeptDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -21,7 +21,7 @@ public interface SysDeptService {
     /**
      * 系统管理-新增
      */
-    Long adminInsert(AdminSysDeptUpsertRequest request);
+    Long adminCreate(AdminSysDeptUpsertRequest request);
 
     /**
      * 系统管理-修改

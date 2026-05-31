@@ -92,14 +92,9 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
             // 批量插入需要增量更新的部分
             List<SysRoleMenuRelationEntity> entityList = new ArrayList<>(menuIds.size());
             for (Long menuId : menuIds) {
-                entityList.add(
-                        SysRoleMenuRelationEntity.builder()
-                                .roleId(roleId)
-                                .menuId(menuId)
-                                .build()
-                );
+                entityList.add(SysRoleMenuRelationEntity.of(roleId, menuId));
             }
-            entityList.forEach(sysRoleMenuRelationMapper::insert);
+            sysRoleMenuRelationMapper.insert(entityList);
         }
     }
 }

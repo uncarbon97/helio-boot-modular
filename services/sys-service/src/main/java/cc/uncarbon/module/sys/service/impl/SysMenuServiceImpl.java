@@ -1,20 +1,20 @@
 package cc.uncarbon.module.sys.service.impl;
 
-import cc.uncarbon.framework.core.constant.HeliumConstant;
-import cc.uncarbon.framework.core.context.UserContextHolder;
-import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
-import cc.uncarbon.framework.core.exception.BusinessException;
-import cc.uncarbon.framework.core.function.StreamFunction;
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
-import cc.uncarbon.module.sys.enums.SysErrorEnum;
-import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
 import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
+import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
+import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysMenuBO;
+import cc.uncarbon.module.sys.model.valueobj.VbenAdminMenuMetaVO;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
-import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysMenuDTO;
-import cc.uncarbon.module.sys.model.response.SysMenuBO;
-import cc.uncarbon.module.sys.model.response.VbenAdminMenuMetaVO;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
@@ -88,7 +88,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     public SysMenuBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException {
         SysMenuEntity entity = sysMenuMapper.selectById(id);
         if (throwIfInvalidId) {
-            SysErrorEnum.INVALID_ID.assertNotNull(entity);
+            SysErrorCodeEnum.A01001.assertNotNull(entity);
         }
 
         return this.entity2BO(entity);
@@ -101,18 +101,18 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Long adminInsert(AdminInsertOrUpdateSysMenuDTO dto) {
-        log.info("[系统管理-新增系统菜单] >> 入参={}", dto);
-        checkRepeat(dto);
+    public Long adminCreate(AdminSysMenuUpsertRequest request) {
+        log.info("[系统管理-新增系统菜单] >> 入参={}", request);
+        checkRepeat(request);
 
-        if (ObjectUtil.isNull(dto.getParentId())) {
-            dto.setParentId(0L);
+        if (ObjectUtil.isNull(request.getParentId())) {
+            request.setParentId(SysConstant.ROOT_PARENT_ID);
         }
 
-        dto.setId(null);
+        request.setId(null);
 
         SysMenuEntity entity = new SysMenuEntity();
-        BeanUtil.copyProperties(dto, entity);
+        BeanUtil.copyProperties(request, entity);
 
         sysMenuMapper.insert(entity);
 
@@ -124,16 +124,16 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminUpdate(AdminInsertOrUpdateSysMenuDTO dto) {
-        log.info("[系统管理-修改系统菜单] >> 入参={}", dto);
-        checkRepeat(dto);
+    public void adminUpdate(AdminSysMenuUpsertRequest request) {
+        log.info("[系统管理-修改系统菜单] >> 入参={}", request);
+        checkRepeat(request);
 
-        if (ObjectUtil.isNull(dto.getParentId())) {
-            dto.setParentId(0L);
+        if (ObjectUtil.isNull(request.getParentId())) {
+            request.setParentId(SysConstant.ROOT_PARENT_ID);
         }
 
         SysMenuEntity entity = new SysMenuEntity();
-        BeanUtil.copyProperties(dto, entity);
+        BeanUtil.copyProperties(request, entity);
 
         sysMenuMapper.updateById(entity);
     }
@@ -153,7 +153,7 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     @Override
     public List<SysMenuBO> adminListSideMenu() {
-        Set<Long> visibleMenuIds = this.listCurrentUserVisibleMenuIds();
+        Set<Long> visibleMenuIds = listCurrentUserVisibleMenuIds();
         return this.listByIds(visibleMenuIds, SysMenuTypeEnum.forAdminSide());
     }
 
@@ -162,7 +162,7 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     @Override
     public List<SysMenuBO> adminListVisibleMenu() {
-        Set<Long> visibleMenuIds = this.listCurrentUserVisibleMenuIds();
+        Set<Long> visibleMenuIds = listCurrentUserVisibleMenuIds();
         return this.listByIds(visibleMenuIds, SysMenuTypeEnum.all());
     }
 
@@ -174,10 +174,10 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Override
     public Map<Long, Set<String>> getRoleIdPermissionMap(Collection<Long> roleIds) {
         if (CollUtil.isEmpty(roleIds)) {
-            return Collections.emptyMap();
+            return Map.of();
         }
 
-        HashMap<Long, Set<String>> ret = new HashMap<>(roleIds.size(), 1);
+        Map<Long, Set<String>> ret = new HashMap<>(roleIds.size(), 1);
 
         roleIds.forEach(
                 roleId -> {
@@ -187,7 +187,7 @@ public class SysMenuServiceImpl implements SysMenuService {
                         // 超级管理员读取所有权限，不管有没有被禁用
                         permissions = sysMenuMapper.selectList(null).stream()
                                 .map(SysMenuEntity::getPermission)
-                                .filter(StrUtil::isNotEmpty)
+                                .filter(CharSequenceUtil::isNotEmpty)
                                 .collect(Collectors.toSet());
                     } else {
                         // 非超级管理员则通过角色ID，关联查询拥有的菜单，菜单上有权限名
@@ -242,7 +242,7 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private SysMenuBO entity2BO(SysMenuEntity entity) {
         if (entity == null) {
@@ -259,10 +259,10 @@ public class SysMenuServiceImpl implements SysMenuService {
 
         String snowflakeIdStr = SNOWFLAKE.nextIdStr();
         bo
-                .setName(bo.getTitle())
-                .setMeta(new VbenAdminMenuMetaVO(bo.getTitle(), false, bo.getIcon()));
+                .setName(bo.getName())
+                .setMeta(new VbenAdminMenuMetaVO(bo.getName(), false, bo.getIcon()));
 
-        switch (bo.getType()) {
+        switch (bo.getMenuType()) {
             case DIR, BUTTON -> bo
                     .setComponent(SysConstant.VBEN_ADMIN_BLANK_VIEW)
                     .setExternalLink(null)
@@ -300,8 +300,8 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     private Set<Long> listCurrentUserVisibleMenuIds() {
         // 1. 取当前账号拥有角色Ids
-        Set<Long> roleIds = UserContextHolder.getUserContext().getRolesIds();
-        SysErrorEnum.NO_ROLE_AVAILABLE_FOR_CURRENT_USER.assertNotEmpty(roleIds);
+        var roleIds = UserContextHolder.getUserContext().getRolesIds();
+        SysErrorCodeEnum.A01005.assertNotEmpty(roleIds);
 
         // 2. 得到所有可用的 菜单ID-上级菜单ID map，备用
         Map<Long, Long> allMenuMap = sysMenuMapper.selectList(
@@ -318,7 +318,7 @@ public class SysMenuServiceImpl implements SysMenuService {
 
         // 4. 根据现有角色，获取直接关联的菜单ID
         Set<Long> directlyRelatedMenuIds = sysRoleMenuRelationService.listMenuIdsByRoleIds(roleIds);
-        SysErrorEnum.NO_MENU_AVAILABLE_FOR_CURRENT_ROLE.assertNotEmpty(directlyRelatedMenuIds);
+        SysErrorCodeEnum.A01006.assertNotEmpty(directlyRelatedMenuIds);
 
         // 5. 因为直接关联的菜单ID，可能不包含父级菜单，使得级联关系缺失，这里得给他补上
         return this.traceParentMenuIds(allMenuMap, directlyRelatedMenuIds);
@@ -333,7 +333,7 @@ public class SysMenuServiceImpl implements SysMenuService {
                 new QueryWrapper<SysMenuEntity>()
                         .lambda()
                         .in(SysMenuEntity::getId, ids)
-                        .in(SysMenuEntity::getType, types)
+                        .in(SysMenuEntity::getMenuType, types)
                         // 仅显示启用状态菜单
                         .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
                         .orderByAsc(SysMenuEntity::getSort)
@@ -348,25 +348,25 @@ public class SysMenuServiceImpl implements SysMenuService {
 
     /**
      * 检查是否存在重复
-     *
-     * @param dto DTO
      */
-    private void checkRepeat(AdminInsertOrUpdateSysMenuDTO dto) {
-        if (CharSequenceUtil.isNotBlank(dto.getPermission())) {
-            dto.setPermission(CharSequenceUtil.cleanBlank(dto.getPermission()));
+    private void checkRepeat(AdminSysMenuUpsertRequest request) {
+        if (CharSequenceUtil.isNotBlank(request.getPermission())) {
+            request.setPermission(CharSequenceUtil.cleanBlank(request.getPermission()));
 
-            SysMenuEntity existingEntity = sysMenuMapper.selectOne(
+            SysMenuEntity ent = sysMenuMapper.selectOne(
                     new QueryWrapper<SysMenuEntity>()
                             .lambda()
                             // 仅取主键ID
                             .select(SysMenuEntity::getId)
+                            // 并非原地更新
+                            .ne(Objects.nonNull(request.getId()), SysMenuEntity::getId, request.getId())
                             // 权限标识相同
-                            .eq(SysMenuEntity::getPermission, dto.getPermission())
+                            .eq(SysMenuEntity::getPermission, request.getPermission())
                             .last(SQLSegment.LIMIT_1)
             );
 
-            if (existingEntity != null && !existingEntity.getId().equals(dto.getId())) {
-                throw new BusinessException(400, "已存在相同权限标识，请重新输入");
+            if (ent != null) {
+                throw new HasRepeatRecordException("已存在相同的【权限标识】");
             }
         }
     }

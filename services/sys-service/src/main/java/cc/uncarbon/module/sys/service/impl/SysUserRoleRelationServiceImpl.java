@@ -34,7 +34,7 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long adminInsert(Long tenantId, Long userId, Long roleId) {
+    public Long adminCreate(Long tenantId, Long userId, Long roleId) {
         SysUserRoleRelationEntity entity = new SysUserRoleRelationEntity()
                 .setUserId(userId).setRoleId(roleId);
         entity.setTenantId(tenantId);

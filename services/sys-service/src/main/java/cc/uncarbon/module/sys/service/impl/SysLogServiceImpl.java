@@ -1,15 +1,14 @@
 package cc.uncarbon.module.sys.service.impl;
 
-import cc.uncarbon.framework.core.exception.BusinessException;
-import cc.uncarbon.framework.core.page.PageParam;
-import cc.uncarbon.framework.core.page.PageResult;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.sys.entity.SysLogEntity;
-import cc.uncarbon.module.sys.enums.SysErrorEnum;
+import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.dal.mapper.SysLoginLogMapper;
 import cc.uncarbon.module.sys.service.SysLogService;
+import cc.uncarbon.module.sys.model.query.AdminSysLogListQuery;
 import cc.uncarbon.module.sys.model.request.AdminInsertSysLogDTO;
-import cc.uncarbon.module.sys.model.request.AdminListSysLogDTO;
-import cc.uncarbon.module.sys.model.response.SysLogBO;
+import cc.uncarbon.module.sys.model.valueobj.SysLogBO;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 
@@ -43,12 +41,12 @@ public class SysLogServiceImpl implements SysLogService {
 
 
     /**
-     * 系统管理-分页列表
+     * 系统管理-分页查询
      */
     @Override
-    public PageResult<SysLogBO> adminList(AdminListSysLogDTO dto) {
+    public PageResult<SysLogBO> adminList(AdminSysLogListQuery query) {
         Page<SysLogEntity> entityPage = sysLoginLogMapper.selectPage(
-                new Page<>(query.getPageNum(), query.getPageSize()),
+                new Page<>(query.getPageParam().getPageNum(), query.getPageParam().getPageSize()),
                 new QueryWrapper<SysLogEntity>()
                         .lambda()
                         // 仅返回给前端少量字段
@@ -57,13 +55,13 @@ public class SysLogServiceImpl implements SysLogService {
                                 SysLogEntity::getIpLocationRegionName, SysLogEntity::getIpLocationProvinceName,
                                 SysLogEntity::getIpLocationCityName, SysLogEntity::getIpLocationDistrictName)
                         // 用户账号
-                        .like(CharSequenceUtil.isNotBlank(dto.getUsername()), SysLogEntity::getUsername, CharSequenceUtil.cleanBlank(dto.getUsername()))
+                        .like(CharSequenceUtil.isNotBlank(query.getUsername()), SysLogEntity::getUsername, CharSequenceUtil.cleanBlank(query.getUsername()))
                         // 操作内容
-                        .like(CharSequenceUtil.isNotBlank(dto.getOperation()), SysLogEntity::getOperation, CharSequenceUtil.cleanBlank(dto.getOperation()))
+                        .like(CharSequenceUtil.isNotBlank(query.getOperation()), SysLogEntity::getOperation, CharSequenceUtil.cleanBlank(query.getOperation()))
                         // 状态
-                        .eq(ObjectUtil.isNotNull(dto.getStatus()), SysLogEntity::getStatus, dto.getStatus())
+                        .eq(ObjectUtil.isNotNull(query.getStatus()), SysLogEntity::getStatus, query.getStatus())
                         // 时间区间
-                        .between(ObjectUtil.isNotNull(dto.getBeginAt()) && ObjectUtil.isNotNull(dto.getEndAt()), SysLogEntity::getCreatedAt, dto.getBeginAt(), dto.getEndAt())
+                        .between(ObjectUtil.isNotNull(query.getBeginAt()) && ObjectUtil.isNotNull(query.getEndAt()), SysLogEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
                         // 排序
                         .orderByDesc(SysLogEntity::getId)
         );
@@ -93,7 +91,7 @@ public class SysLogServiceImpl implements SysLogService {
     public SysLogBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException {
         SysLogEntity entity = sysLoginLogMapper.selectById(id);
         if (throwIfInvalidId) {
-            SysErrorEnum.INVALID_ID.assertNotNull(entity);
+            SysErrorCodeEnum.A01001.assertNotNull(entity);
         }
 
         return this.entity2BO(entity);
@@ -104,7 +102,7 @@ public class SysLogServiceImpl implements SysLogService {
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Long adminInsert(AdminInsertSysLogDTO dto) {
+    public Long adminCreate(AdminInsertSysLogDTO dto) {
         log.info("[系统管理-新增操作日志] >> 入参={}", dto);
 
         SysLogEntity entity = new SysLogEntity();
@@ -129,7 +127,7 @@ public class SysLogServiceImpl implements SysLogService {
      */
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private SysLogBO entity2BO(SysLogEntity entity) {
         if (entity == null) {
@@ -145,7 +143,7 @@ public class SysLogServiceImpl implements SysLogService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private List<SysLogBO> entityList2BOs(List<SysLogEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {
@@ -162,7 +160,7 @@ public class SysLogServiceImpl implements SysLogService {
     }
 
     /**
-     * 实体转响应模型
+     * 实体转值对象
      */
     private PageResult<SysLogBO> entityPage2BOPage(Page<SysLogEntity> entityPage) {
         return new PageResult<SysLogBO>()

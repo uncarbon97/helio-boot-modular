@@ -1,6 +1,6 @@
 package cc.uncarbon.module.oss.biz;
 
-import cc.uncarbon.framework.core.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.module.oss.enums.OssErrorEnum;
 import cc.uncarbon.module.oss.facade.OssUploadDownloadFacade;
 import cc.uncarbon.module.oss.model.request.UploadFileAttributeDTO;

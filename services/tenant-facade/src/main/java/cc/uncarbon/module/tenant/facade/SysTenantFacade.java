@@ -1,8 +1,7 @@
 package cc.uncarbon.module.tenant.facade;
 
-import cc.uncarbon.module.sys.model.request.AdminInsertTenantMetaDTO;
-import cc.uncarbon.module.sys.model.request.AdminUpdateTenantMetaDTO;
-import cc.uncarbon.module.sys.model.response.TenantMetaKickOutUsersBO;
+import cc.uncarbon.module.tenant.model.request.AdminSysTenantUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.TenantMetaKickOutUsersBO;
 
 import java.util.Collection;
 
@@ -14,12 +13,12 @@ public interface SysTenantFacade {
     /**
      * 系统管理-新增
      */
-    Long adminInsert(AdminInsertTenantMetaDTO dto);
+    Long adminCreate(AdminSysTenantUpsertRequest request);
 
     /**
      * 系统管理-修改
      */
-    TenantMetaKickOutUsersBO adminUpdate(AdminUpdateTenantMetaDTO dto);
+    TenantMetaKickOutUsersBO adminUpdate(AdminSysTenantUpsertRequest request);
 
     /**
      * 系统管理-删除

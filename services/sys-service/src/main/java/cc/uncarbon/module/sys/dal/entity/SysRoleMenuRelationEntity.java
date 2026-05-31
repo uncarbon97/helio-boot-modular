@@ -1,6 +1,5 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantRelationEntity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -43,4 +42,10 @@ public class SysRoleMenuRelationEntity extends AbstractTenantRelationEntity {
 	@TableField(value = "menu_id")
 	private Long menuId;
 
+	public static SysRoleMenuRelationEntity of(Long roleId, Long menuId) {
+		SysRoleMenuRelationEntity ret = new SysRoleMenuRelationEntity();
+		ret.roleId = roleId;
+		ret.menuId = menuId;
+		return ret;
+	}
 }

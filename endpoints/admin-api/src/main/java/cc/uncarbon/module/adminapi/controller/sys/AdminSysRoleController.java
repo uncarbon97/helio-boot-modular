@@ -1,34 +1,32 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
-import cc.uncarbon.framework.core.constant.HeliumConstant;
-import cc.uncarbon.framework.core.page.PageParam;
-import cc.uncarbon.framework.core.page.PageResult;
-import cc.uncarbon.framework.web.model.request.IdsDTO;
-import cc.uncarbon.framework.web.model.reponse.ApiResult;
-import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
+import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.model.request.IdsRequest;
+import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
-import cc.uncarbon.module.sys.annotation.SysOperateLog;
+import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
 import cc.uncarbon.module.sys.model.request.AdminBindRoleMenuRelationDTO;
-import cc.uncarbon.module.sys.model.request.AdminInsertOrUpdateSysRoleDTO;
-import cc.uncarbon.module.sys.model.request.AdminListSysRoleDTO;
-import cc.uncarbon.module.sys.model.response.SysRoleBO;
+import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysRoleBO;
 import cc.uncarbon.module.sys.service.SysRoleService;
-import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.Set;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "系统角色管理接口")
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/")
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/role")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -42,66 +40,63 @@ public class AdminSysRoleController {
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
-    @Operation(summary = "分页列表")
-    @GetMapping(value = "/sys/roles")
-    public ApiResult<PageResult<SysRoleBO>> list(AdminListSysRoleDTO dto) {
-        return ApiResult.success(sysRoleService.adminList(pageParam, dto));
+    @Operation(summary = "分页查询")
+    @PostMapping(value = "/list")
+    public ApiResult<PageResult<SysRoleBO>> list(@RequestBody @Valid AdminSysRoleListQuery query) {
+        return ApiResult.success(sysRoleService.adminList(query));
     }
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
-    @GetMapping(value = "/sys/roles/{id}")
-    public ApiResult<SysRoleBO> getById(@PathVariable Long id) {
+    @PostMapping(value = "/detail")
+    public ApiResult<SysRoleBO> detail(@RequestParam Long id) {
         return ApiResult.success(sysRoleService.getOneById(id, true));
     }
 
-    @SysOperateLog(value = "新增系统角色")
+    // @SysOperateLog(value = "新增系统角色")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
-    @PostMapping(value = "/sys/roles")
-    public ApiResult<Void> insert(@RequestBody @Valid AdminInsertOrUpdateSysRoleDTO dto) {
-        dto.setTenantId(null);
-        sysRoleService.adminInsert(dto);
+    @PostMapping(value = "/create")
+    public ApiResult<Void> insert(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
+        request.setTenantId(null);
+        sysRoleService.adminCreate(request);
 
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "编辑系统角色")
+    // @SysOperateLog(value = "编辑系统角色")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "编辑")
-    @PutMapping(value = "/sys/roles/{id}")
-    public ApiResult<Void> update(@PathVariable Long id, @RequestBody @Valid AdminInsertOrUpdateSysRoleDTO dto) {
-        dto
-                .setTenantId(null)
-                .setId(id);
-        sysRoleService.adminUpdate(dto);
+    @PostMapping(value = "/update")
+    public ApiResult<Void> update(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
+        request.setTenantId(null);
+        sysRoleService.adminUpdate(request);
 
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "删除系统角色")
+    // @SysOperateLog(value = "删除系统角色")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
-    @DeleteMapping(value = "/sys/roles")
-    public ApiResult<Void> delete(@RequestBody @Valid IdsDTO<Long> dto) {
-        sysRoleService.adminDelete(dto.getIds());
+    @PostMapping(value = "/delete")
+    public ApiResult<Void> delete(@RequestBody @Valid IdsRequest<Long> request) {
+        sysRoleService.adminDelete(request.getIds());
 
         // 角色删除时，删除对应缓存键
-        rolePermissionCacheHelper.deleteCache(dto.getIds());
+        rolePermissionCacheHelper.deleteCache(request.getIds());
 
         return ApiResult.success();
     }
 
-    @SysOperateLog(value = "绑定角色与菜单关联关系")
+    // @SysOperateLog(value = "绑定角色与菜单关联关系")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bindMenus")
     @Operation(summary = "绑定角色与菜单关联关系")
-    @PutMapping(value = "/sys/roles/{id}/menus")
-    public ApiResult<Void> bindMenus(@PathVariable Long id, @RequestBody @Valid AdminBindRoleMenuRelationDTO dto) {
-        dto.setRoleId(id);
-        Set<String> newPermissions = sysRoleService.adminBindMenus(dto);
+    @PostMapping(value = "/bind-menus")
+    public ApiResult<Void> bindMenus(@RequestBody @Valid AdminBindRoleMenuRelationDTO request) {
+        Set<String> newPermissions = sysRoleService.adminBindMenus(request);
 
         // 覆盖更新缓存
-        rolePermissionCacheHelper.putCache(dto.getRoleId(), newPermissions);
+        rolePermissionCacheHelper.putCache(request.getRoleId(), newPermissions);
 
         return ApiResult.success();
     }

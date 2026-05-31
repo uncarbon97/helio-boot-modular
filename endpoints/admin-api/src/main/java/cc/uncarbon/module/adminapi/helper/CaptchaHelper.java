@@ -1,6 +1,6 @@
 package cc.uncarbon.module.adminapi.helper;
 
-import cc.uncarbon.framework.core.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.module.adminapi.enums.AdminApiErrorEnum;
 import cc.uncarbon.module.adminapi.model.internal.AdminCaptchaContainer;
 import cn.hutool.captcha.CaptchaUtil;

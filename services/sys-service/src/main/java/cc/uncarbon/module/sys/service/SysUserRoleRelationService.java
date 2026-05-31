@@ -12,7 +12,7 @@ public interface SysUserRoleRelationService {
      * 系统管理-新增
      * 注：本方法较为特殊，仅供SysTenantFacadeImpl调用
      */
-    Long adminInsert(Long tenantId, Long userId, Long roleId);
+    Long adminCreate(Long tenantId, Long userId, Long roleId);
 
     /**
      * 先清理用户ID所有关联关系, 再绑定用户ID与角色ID

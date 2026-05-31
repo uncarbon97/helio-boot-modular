@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.request;
 
-import cc.uncarbon.framework.core.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cn.hutool.core.text.CharSequenceUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;

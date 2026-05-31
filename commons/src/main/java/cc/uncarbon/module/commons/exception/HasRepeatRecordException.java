@@ -6,6 +6,6 @@ import cc.uncarbon.module.commons.enums.DefaultErrorCodeEnum;
 public class HasRepeatRecordException extends BusinessException {
 
     public HasRepeatRecordException(String errorMsg) {
-        super(DefaultErrorCodeEnum.A00000.getErrorCode(), errorMsg);
+        super(DefaultErrorCodeEnum.A00001.getErrorCode(), errorMsg);
     }
 }

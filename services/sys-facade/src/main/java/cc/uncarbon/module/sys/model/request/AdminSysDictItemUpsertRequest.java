@@ -22,10 +22,11 @@ import java.io.Serializable;
 @Data
 public class AdminSysDictItemUpsertRequest implements Serializable {
 
-    @Schema(description = "主键ID", hidden = true, title = "仅修改时使用")
+    @Schema(description = "主键ID", title = "仅修改时使用")
     private Long id;
 
-    @Schema(description = "所属分类ID")
+    @Schema(description = "所属分类ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "所属分类ID必填")
     private Long categoryId;
 
     @Schema(description = "字典项编码", requiredMode = Schema.RequiredMode.REQUIRED)

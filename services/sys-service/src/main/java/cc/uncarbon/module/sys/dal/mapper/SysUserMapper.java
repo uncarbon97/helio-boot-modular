@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.dal.mapper;
 
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
-import cc.uncarbon.module.sys.model.response.SysUserBaseInfoBO;
+import cc.uncarbon.module.sys.model.valueobj.SysUserBaseInfoBO;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.annotation.InterceptorIgnore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

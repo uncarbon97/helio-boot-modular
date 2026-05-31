@@ -13,7 +13,7 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-新增/修改部门
+ * 系统管理-部门-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -21,7 +21,7 @@ import java.io.Serializable;
 @Data
 public class AdminSysDeptUpsertRequest implements Serializable {
 
-    @Schema(description = "主键ID", hidden = true, title = "仅修改时使用")
+    @Schema(description = "主键ID", title = "仅修改时使用")
     private Long id;
 
     @Schema(description = "部门名称", requiredMode = Schema.RequiredMode.REQUIRED)

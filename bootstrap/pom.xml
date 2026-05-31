@@ -22,7 +22,7 @@
         <!-- 制品文件名 -->
         <products.filename>helium-boot</products.filename>
 
-        <!-- 引用 Web 模块 -->
+        <!-- 引入 API 端点 -->
         <!-- B端 API -->
         <admin-api.version>${revision}</admin-api.version>
         <!-- C端 API -->
@@ -30,7 +30,7 @@
     </properties>
 
     <dependencies>
-        <!-- 引用 Web 模块 -->
+        <!-- 引入 API 端点 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>admin-api</artifactId>
