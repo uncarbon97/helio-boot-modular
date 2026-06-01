@@ -1,5 +1,6 @@
 package cc.uncarbon.module.tenant.model.request;
 
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -31,5 +32,8 @@ public class AdminUpdateTenantMetaRequest implements Serializable {
 
     @Schema(description = "所属租户套餐ID")
     private Long packageId;
+
+    @Schema(description = "状态")
+    private EnabledStatusEnum status;
 
 }

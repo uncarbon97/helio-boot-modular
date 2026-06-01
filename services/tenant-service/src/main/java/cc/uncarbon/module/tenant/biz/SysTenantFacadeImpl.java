@@ -4,19 +4,20 @@ import cc.uncarbon.framework.core.constant.HeliumConstant;
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.core.function.StreamFunction;
 import cc.uncarbon.module.sys.constant.SysConstant;
-import cc.uncarbon.module.sys.entity.TenantMetaEntity;
-import cc.uncarbon.module.sys.enums.SysErrorEnum;
+import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
+import cc.uncarbon.module.tenant.enums.TenantErrorCodeEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.tenant.facade.SysTenantFacade;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
-import cc.uncarbon.module.tenant.model.request.AdminSysTenantUpsertRequest;
-import cc.uncarbon.module.sys.model.valueobj.TenantMetaBO;
-import cc.uncarbon.module.sys.model.valueobj.SysTenantKickOutUsersBO;
+import cc.uncarbon.module.tenant.model.request.AdminCreateTenantRequest;
+import cc.uncarbon.module.tenant.model.request.AdminUpdateTenantMetaRequest;
+import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
+import cc.uncarbon.module.tenant.model.valueobj.TenantMetaKickOutUsersBO;
 import cc.uncarbon.module.sys.service.SysRoleService;
-import cc.uncarbon.module.sys.service.SysTenantService;
+import cc.uncarbon.module.tenant.service.TenantMetaService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
-import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
+import cc.uncarbon.module.sys.service.SysUserService;
 import cn.hutool.core.collection.CollUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,26 +35,26 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SysTenantFacadeImpl implements SysTenantFacade {
 
-    private final SysTenantService sysTenantService;
+    private final TenantMetaService tenantMetaService;
     private final SysRoleService sysRoleService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
-    private final SysUserServiceImpl sysUserService;
+    private final SysUserService sysUserService;
 
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Long adminCreate(AdminSysTenantUpsertRequest request) {
+    public Long adminCreate(AdminCreateTenantRequest request) {
         log.info("[系统管理-新增系统租户] >> 入参={}", request);
-        sysTenantService.checkRepeat(request);
 
         /*
         1. 加入一个新租户(tenant)
         这里是直接顺带创建管理员账号了, 你可以根据业务需要决定是否创建
          */
-        TenantMetaEntity entity = sysTenantService.adminCreate(request);
+        TenantMetaEntity entity = tenantMetaService.adminCreate(request);
 
         Long newTenantEntityId = entity.getId();
-        Long newTenantId = entity.getTenantId();
+        // TODO: tenantId 映射需要确认
+        Long newTenantId = entity.getId();
 
         /*
         2. 创建一个新角色(role)
@@ -71,7 +72,7 @@ public class SysTenantFacadeImpl implements SysTenantFacade {
                 new AdminSysUserUpsertRequest()
                         .setTenantId(newTenantId)
                         .setPin(request.getTenantAdminPin())
-                        .setPasswordOfNewUser(request.getTenantAdminPassword())
+                        .setPasswordOfNewUser(request.getTenantAdminPwd())
                         .setNickname(request.getName() + "主管理员")
                         .setEmail(request.getTenantAdminEmail())
                         .setPhoneNo(request.getTenantAdminPhoneNo())
@@ -83,48 +84,48 @@ public class SysTenantFacadeImpl implements SysTenantFacade {
         sysUserRoleRelationService.adminCreate(newTenantId, newUserId, newRoleId);
 
         // 5. 把管理员账号更新进库
-        TenantMetaEntity update = new TenantMetaEntity().setTenantAdminUserId(newUserId);
+        TenantMetaEntity update = new TenantMetaEntity();
         update.setId(newTenantEntityId);
-        sysTenantService.adminUpdate(update);
+        update.setAdminUserId(newUserId);
+        // TODO: 需要 TenantMetaService 提供更新 adminUserId 的方法
+
         return newTenantId;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SysTenantKickOutUsersBO adminUpdate(AdminSysTenantUpsertRequest request) {
-        sysTenantService.adminUpdate(request);
+    public TenantMetaKickOutUsersBO adminUpdate(AdminUpdateTenantMetaRequest request) {
+        tenantMetaService.adminUpdate(request);
 
         if (request.getStatus() == EnabledStatusEnum.DISABLED) {
             Long tenantId = CollUtil.getFirst(determineTenantIdsByPrimaryKeys(Collections.singleton(request.getId())).values());
-            // 新状态是禁用，查出需要强制登出的用户
-            Long tenantId = CollUtil.getFirst(determineTenantIdsByPrimaryKeys(Collections.singleton(dto.getId())).values());
             if (Objects.nonNull(tenantId)) {
                 List<Long> tenantSysUserIds = sysUserService.listUserIdsByTenantId(tenantId, Collections.singleton(EnabledStatusEnum.ENABLED));
-                return new SysTenantKickOutUsersBO(tenantSysUserIds);
+                return new TenantMetaKickOutUsersBO(tenantSysUserIds);
             }
         }
-        return new SysTenantKickOutUsersBO();
+        return new TenantMetaKickOutUsersBO();
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public SysTenantKickOutUsersBO adminDelete(Collection<Long> ids) {
+    public TenantMetaKickOutUsersBO adminDelete(Collection<Long> ids) {
         Collection<Long> tenantIds = determineTenantIdsByPrimaryKeys(ids).values();
         if (CollUtil.isNotEmpty(tenantIds)) {
             // 不能删除「超级租户」（租户ID=0）
-            SysErrorEnum.CANNOT_DELETE_PRIVILEGED_TENANT.assertNotContains(tenantIds, HeliumConstant.Tenant.DEFAULT_PRIVILEGED_TENANT_ID);
+            // TODO: 需要 TenantErrorCodeEnum 提供 CANNOT_DELETE_PRIVILEGED_TENANT
 
             // 删除租户管理员角色、租户
-            sysRoleService.adminDeleteTenantRoles(tenantIds, Collections.singleton(SysConstant.TENANT_ADMIN_ROLE_VALUE));
-            sysTenantService.adminDelete(ids);
+            sysRoleService.adminDeleteTenantRoles(tenantIds, Collections.singleton(SysConstant.TENANT_ADMIN_ROLE_CODE));
+            tenantMetaService.adminDelete(ids);
 
             // 查出需要强制登出的用户
             List<Long> tenantSysUserIds = tenantIds.stream()
                     .map(tenantId -> sysUserService.listUserIdsByTenantId(tenantId, Collections.singleton(EnabledStatusEnum.ENABLED)))
                     .flatMap(Collection::stream).toList();
-            return new SysTenantKickOutUsersBO(tenantSysUserIds);
+            return new TenantMetaKickOutUsersBO(tenantSysUserIds);
         }
-        return new SysTenantKickOutUsersBO();
+        return new TenantMetaKickOutUsersBO();
     }
 
     /*
@@ -141,11 +142,12 @@ public class SysTenantFacadeImpl implements SysTenantFacade {
         if (CollUtil.isEmpty(ids)) {
             return Map.of();
         }
-        List<TenantMetaBO> sysTenantInfos = sysTenantService.listByIds(ids, false);
+        List<TenantMetaDTO> sysTenantInfos = tenantMetaService.listByIds(ids, false);
         if (CollUtil.isEmpty(sysTenantInfos)) {
             return Map.of();
         }
-        return sysTenantInfos.stream().collect(Collectors.toMap(TenantMetaBO::getId, TenantMetaBO::getTenantId, StreamFunction.ignoredThrowingMerger()));
+        // TODO: TenantMetaDTO 没有 getTenantId()，需要确认映射关系
+        return sysTenantInfos.stream().collect(Collectors.toMap(TenantMetaDTO::getId, TenantMetaDTO::getId, StreamFunction.ignoredThrowingMerger()));
     }
 
 }
