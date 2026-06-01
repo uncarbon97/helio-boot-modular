@@ -42,4 +42,10 @@ public class TenantPackageMenuRelationEntity extends AbstractRelationEntity {
     @TableField(value = "menu_id")
     private Long menuId;
 
+    public static TenantPackageMenuRelationEntity of(Long packageId, Long menuId) {
+        return new TenantPackageMenuRelationEntity()
+                .setPackageId(packageId)
+                .setMenuId(menuId);
+    }
+
 }
