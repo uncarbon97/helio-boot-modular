@@ -13,7 +13,8 @@
 
     <artifactId>commons</artifactId>
     <description>跨模块共享代码</description>
-    <version>${revision}</version>
+    <!-- 固定版本；-SNAPSHOT 后缀让 Maven 能及时刷新缓存 -->
+    <version>0.0.0-SNAPSHOT</version>
 
     <properties>
     </properties>

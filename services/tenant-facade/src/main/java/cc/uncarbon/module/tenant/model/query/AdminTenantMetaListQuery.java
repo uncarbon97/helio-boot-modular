@@ -13,7 +13,7 @@ import java.io.Serializable;
 
 
 /**
- * 租户管理-租户管理-分页查询
+ * 租户-分页查询
  */
 @Accessors(chain = true)
 @AllArgsConstructor

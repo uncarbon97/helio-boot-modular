@@ -25,10 +25,6 @@
         <tenant.version>${revision}</tenant.version>
 
 
-        <!-- 引用跨模块共享 -->
-        <commons.version>${revision}</commons.version>
-
-
         <!-- 引用其他第三方依赖 -->
     </properties>
 
@@ -53,11 +49,10 @@
         </dependency>
 
 
-        <!-- 引用跨模块共享 -->
+        <!-- 引用其他契约 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>commons</artifactId>
-            <version>${revision}</version>
         </dependency>
 
 

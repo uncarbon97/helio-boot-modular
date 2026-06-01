@@ -12,12 +12,12 @@ import cc.uncarbon.module.sys.model.valueobj.SysLogBO;
 public interface SysLogService {
 
     /**
-     * 系统管理-分页查询
+     * 后台管理-分页查询
      */
     PageResult<SysLogBO> adminList(AdminSysLogListQuery query);
 
     /**
-     * 系统管理-新增
+     * 后台管理-新增
      */
     Long adminCreate(AdminInsertSysLogDTO dto);
 

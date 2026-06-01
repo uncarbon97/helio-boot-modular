@@ -19,37 +19,37 @@ import java.util.Set;
 public interface SysRoleService {
 
     /**
-     * 系统管理-分页查询
+     * 后台管理-分页查询
      */
     PageResult<SysRoleBO> adminList(AdminSysRoleListQuery query);
 
     /**
-     * 系统管理-新增
+     * 后台管理-新增
      */
     Long adminCreate(AdminSysRoleUpsertRequest request);
 
     /**
-     * 系统管理-修改
+     * 后台管理-修改
      */
     void adminUpdate(AdminSysRoleUpsertRequest request);
 
     /**
-     * 系统管理-删除
+     * 后台管理-删除
      */
     void adminDelete(Collection<Long> ids);
 
     /**
-     * 系统管理-绑定角色与菜单关联关系
+     * 后台管理-绑定角色与菜单关联关系
      */
     Set<String> adminBindMenus(AdminBindRoleMenuRelationDTO dto);
 
     /**
-     * 系统管理-下拉框数据
+     * 后台管理-下拉框数据
      */
     List<SysRoleBO> adminSelectOptions();
 
     /**
-     * 系统管理-删除指定租户的特定角色
+     * 后台管理-删除指定租户的特定角色
      */
     void adminDeleteTenantRoles(Collection<Long> tenantIds, Collection<String> roleValues);
 

@@ -123,7 +123,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long adminCreate(AdminSysUserUpsertRequest request) {
-        log.info("[系统管理-新增后台用户] >> 入参={}", request);
+        log.info("[后台管理-新增后台用户] >> 入参={}", request);
         checkRepeat(request);
 
         if (Objects.nonNull(request.getDeptId())) {
@@ -154,7 +154,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void adminUpdate(AdminSysUserUpsertRequest request) {
-        log.info("[系统管理-修改后台用户] >> 入参={}", request);
+        log.info("[后台管理-修改后台用户] >> 入参={}", request);
         preUpdateCheck(request.getId(), request.getStatus());
         checkRepeat(request);
 
@@ -169,7 +169,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void adminDelete(Collection<Long> ids) {
-        log.info("[系统管理-删除后台用户] >> 入参={}", ids);
+        log.info("[后台管理-删除后台用户] >> 入参={}", ids);
         preDeleteCheck(ids);
         sysUserMapper.deleteByIds(ids);
     }

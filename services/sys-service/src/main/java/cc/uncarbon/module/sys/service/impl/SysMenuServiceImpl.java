@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.util.StreamFunction;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
@@ -52,7 +53,7 @@ public class SysMenuServiceImpl implements SysMenuService {
 
 
     /**
-     * 系统管理-列表
+     * 后台管理-列表
      */
     @Override
     public List<SysMenuBO> adminList() {
@@ -95,14 +96,14 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     /**
-     * 系统管理-新增
+     * 后台管理-新增
      *
      * @return 主键ID
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long adminCreate(AdminSysMenuUpsertRequest request) {
-        log.info("[系统管理-新增系统菜单] >> 入参={}", request);
+        log.info("[后台管理-新增系统菜单] >> 入参={}", request);
         checkRepeat(request);
 
         if (ObjectUtil.isNull(request.getParentId())) {
@@ -120,12 +121,12 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     /**
-     * 系统管理-修改
+     * 后台管理-修改
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void adminUpdate(AdminSysMenuUpsertRequest request) {
-        log.info("[系统管理-修改系统菜单] >> 入参={}", request);
+        log.info("[后台管理-修改系统菜单] >> 入参={}", request);
         checkRepeat(request);
 
         if (ObjectUtil.isNull(request.getParentId())) {
@@ -139,17 +140,17 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     /**
-     * 系统管理-删除
+     * 后台管理-删除
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void adminDelete(Collection<Long> ids) {
-        log.info("[系统管理-删除系统菜单] >> 入参={}", ids);
+        log.info("[后台管理-删除系统菜单] >> 入参={}", ids);
         sysMenuMapper.deleteByIds(ids);
     }
 
     /**
-     * 系统管理-取侧边菜单
+     * 后台管理-取侧边菜单
      */
     @Override
     public List<SysMenuBO> adminListSideMenu() {
@@ -158,7 +159,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     /**
-     * 系统管理-取所有可见菜单
+     * 后台管理-取所有可见菜单
      */
     @Override
     public List<SysMenuBO> adminListVisibleMenu() {

@@ -49,7 +49,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
 
     /**
-     * 系统管理-分页查询
+     * 后台管理-分页查询
      */
     @Override
     public PageResult<SysRoleBO> adminList(AdminSysRoleListQuery query) {
@@ -100,14 +100,14 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 系统管理-新增
+     * 后台管理-新增
      *
      * @return 主键ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long adminCreate(AdminSysRoleUpsertRequest request) {
-        log.info("[系统管理-新增系统角色] >> 入参={}", request);
+        log.info("[后台管理-新增系统角色] >> 入参={}", request);
         preInsertOrUpdateCheck(request);
         checkRepeat(request);
 
@@ -121,12 +121,12 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 系统管理-修改
+     * 后台管理-修改
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdate(AdminSysRoleUpsertRequest request) {
-        log.info("[系统管理-修改系统角色] >> 入参={}", request);
+        log.info("[后台管理-修改系统角色] >> 入参={}", request);
         preInsertOrUpdateCheck(request);
         checkRepeat(request);
 
@@ -139,18 +139,18 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 系统管理-删除
+     * 后台管理-删除
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void adminDelete(Collection<Long> ids) {
-        log.info("[系统管理-删除系统角色] >> 入参={}", ids);
+        log.info("[后台管理-删除系统角色] >> 入参={}", ids);
         preDeleteCheck(ids);
         sysRoleMapper.deleteByIds(ids);
     }
 
     /**
-     * 系统管理-绑定角色与菜单关联关系
+     * 后台管理-绑定角色与菜单关联关系
      *
      * @return 新菜单ID集合对应的权限名
      */
@@ -165,7 +165,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 系统管理-下拉框数据
+     * 后台管理-下拉框数据
      */
     @Override
     public List<SysRoleBO> adminSelectOptions() {
@@ -185,7 +185,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 系统管理-删除指定租户的特定角色
+     * 后台管理-删除指定租户的特定角色
      * @param tenantIds 租户IDs，非主键ID，必填
      * @param roleValues 角色值集合，可以为空
      */

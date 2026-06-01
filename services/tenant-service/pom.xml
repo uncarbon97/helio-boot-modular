@@ -32,6 +32,10 @@
 
 
         <!-- 引用其他契约 -->
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>commons</artifactId>
+        </dependency>
 
 
         <!-- 引用框架基础包/启动包 -->

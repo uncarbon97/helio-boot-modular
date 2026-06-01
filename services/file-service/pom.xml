@@ -35,6 +35,10 @@
         <!-- 引用其他契约 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
+            <artifactId>commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
             <artifactId>sys-facade</artifactId>
             <version>${sys.version}</version>
         </dependency>

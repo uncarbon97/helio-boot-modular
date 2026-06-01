@@ -14,7 +14,7 @@ public enum DefaultErrorCodeEnum implements ErrorCodeEnum {
 
     /*
     错误码格式 [A][BB][CCC]
-    [BB] 本枚举内固定为 00
+    [BB] 本枚举内固定为 00，表示未分类
     [CCC] 按具体错误区分
      */
 

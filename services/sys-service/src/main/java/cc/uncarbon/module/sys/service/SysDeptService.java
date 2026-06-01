@@ -14,27 +14,27 @@ import java.util.List;
 public interface SysDeptService {
 
     /**
-     * 系统管理-列表
+     * 后台管理-列表
      */
     List<SysDeptDTO> adminList();
 
     /**
-     * 系统管理-新增
+     * 后台管理-新增
      */
     Long adminCreate(AdminSysDeptUpsertRequest request);
 
     /**
-     * 系统管理-修改
+     * 后台管理-修改
      */
     void adminUpdate(AdminSysDeptUpsertRequest request);
 
     /**
-     * 系统管理-删除
+     * 后台管理-删除
      */
     void adminDelete(Collection<Long> ids);
 
     /**
-     * 系统管理-下拉框数据
+     * 后台管理-下拉框数据
      *
      * @param inferiorsOnly 只能看到本部门及以下
      */

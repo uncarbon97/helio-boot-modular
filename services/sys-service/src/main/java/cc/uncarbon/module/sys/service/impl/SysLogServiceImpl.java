@@ -41,7 +41,7 @@ public class SysLogServiceImpl implements SysLogService {
 
 
     /**
-     * 系统管理-分页查询
+     * 后台管理-分页查询
      */
     @Override
     public PageResult<SysLogBO> adminList(AdminSysLogListQuery query) {
@@ -98,12 +98,12 @@ public class SysLogServiceImpl implements SysLogService {
     }
 
     /**
-     * 系统管理-新增
+     * 后台管理-新增
      */
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long adminCreate(AdminInsertSysLogDTO dto) {
-        log.info("[系统管理-新增操作日志] >> 入参={}", dto);
+        log.info("[后台管理-新增操作日志] >> 入参={}", dto);
 
         SysLogEntity entity = new SysLogEntity();
         BeanUtil.copyProperties(dto, entity);

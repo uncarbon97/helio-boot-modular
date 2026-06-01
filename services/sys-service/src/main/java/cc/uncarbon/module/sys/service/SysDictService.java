@@ -20,42 +20,42 @@ import java.util.List;
 public interface SysDictService {
 
     /**
-     * 系统管理-分页查询字典分类
+     * 后台管理-分页查询字典分类
      */
     PageResult<SysDictCategoryDTO> adminListCategory(AdminSysDictCategoryListQuery query);
 
     /**
-     * 系统管理-新增字典分类
+     * 后台管理-新增字典分类
      */
     Long adminCreateCategory(AdminSysDictCategoryUpsertRequest request);
 
     /**
-     * 系统管理-修改字典分类
+     * 后台管理-修改字典分类
      */
     void adminUpdateCategory(AdminSysDictCategoryUpsertRequest request);
 
     /**
-     * 系统管理-删除字典分类
+     * 后台管理-删除字典分类
      */
     void adminDeleteCategory(Collection<Long> ids);
 
     /**
-     * 系统管理-分页查询字典项
+     * 后台管理-分页查询字典项
      */
     PageResult<SysDictItemDTO> adminListItem(AdminSysDictItemListQuery query);
 
     /**
-     * 系统管理-新增字典项
+     * 后台管理-新增字典项
      */
     Long adminCreateItem(AdminSysDictItemUpsertRequest request);
 
     /**
-     * 系统管理-修改字典项
+     * 后台管理-修改字典项
      */
     void adminUpdateItem(AdminSysDictItemUpsertRequest request);
 
     /**
-     * 系统管理-删除字典项
+     * 后台管理-删除字典项
      */
     void adminDeleteItem(Collection<Long> ids);
 

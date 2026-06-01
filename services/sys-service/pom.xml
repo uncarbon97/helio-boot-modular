@@ -19,7 +19,7 @@
     <version>${revision}</version>
 
     <properties>
-        <commons.version>${revision}</commons.version>
+
     </properties>
 
     <dependencies>
@@ -31,14 +31,11 @@
         </dependency>
 
 
-        <!-- 引用跨模块共享 -->
+        <!-- 引用其他契约 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>commons</artifactId>
-            <version>${commons.version}</version>
         </dependency>
-
-        <!-- 引用其他契约 -->
 
 
         <!-- 引用框架基础包/启动包 -->

@@ -15,32 +15,32 @@ import java.util.Set;
 public interface SysMenuService {
 
     /**
-     * 系统管理-列表
+     * 后台管理-列表
      */
     List<SysMenuBO> adminList();
 
     /**
-     * 系统管理-新增
+     * 后台管理-新增
      */
     Long adminCreate(AdminSysMenuUpsertRequest request);
 
     /**
-     * 系统管理-修改
+     * 后台管理-修改
      */
     void adminUpdate(AdminSysMenuUpsertRequest request);
 
     /**
-     * 系统管理-删除
+     * 后台管理-删除
      */
     void adminDelete(Collection<Long> ids);
 
     /**
-     * 系统管理-取侧边菜单
+     * 后台管理-取侧边菜单
      */
     List<SysMenuBO> adminListSideMenu();
 
     /**
-     * 系统管理-取所有可见菜单
+     * 后台管理-取所有可见菜单
      */
     List<SysMenuBO> adminListVisibleMenu();
 

@@ -96,7 +96,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 系统管理-分页查询字典分类下的字典项
+     * 后台管理-分页查询字典分类下的字典项
      */
     @Override
     public PageResult<SysDictItemDTO> adminListItem(AdminSysDictItemListQuery query) {
@@ -114,7 +114,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 系统管理-新增字典项
+     * 后台管理-新增字典项
      *
      * @return 主键ID
      */
@@ -133,7 +133,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 系统管理-修改字典项
+     * 后台管理-修改字典项
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -148,7 +148,7 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     /**
-     * 系统管理-删除字典项
+     * 后台管理-删除字典项
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

@@ -12,13 +12,14 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-租户-修改主数据
+ * 租户-修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class AdminUpdateTenantMetaRequest implements Serializable {
+
 
     @Schema(description = "主键ID", title = "仅修改时使用")
     private Long id;

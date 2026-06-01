@@ -18,22 +18,22 @@ import java.util.List;
 public interface TenantMetaService {
 
     /**
-     * 租户管理-分页查询
+     * 后台管理-分页查询
      */
     PageResult<TenantMetaDTO> adminList(AdminTenantMetaListQuery query);
 
     /**
-     * 租户管理-新增
+     * 后台管理-新增
      */
     TenantMetaEntity adminCreate(AdminCreateTenantRequest request);
 
     /**
-     * 租户管理-修改
+     * 后台管理-修改
      */
     void adminUpdate(AdminUpdateTenantMetaRequest request);
 
     /**
-     * 租户管理-删除
+     * 后台管理-删除
      */
     void adminDelete(Collection<Long> ids);
 

@@ -9,7 +9,7 @@ import java.util.Set;
 public interface SysUserRoleRelationService {
 
     /**
-     * 系统管理-新增
+     * 后台管理-新增
      * 注：本方法较为特殊，仅供SysTenantFacadeImpl调用
      */
     Long adminCreate(Long tenantId, Long userId, Long roleId);

@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 
 /**
- * 租户管理-租户-新增
+ * 租户-新增
  */
 @Accessors(chain = true)
 @AllArgsConstructor

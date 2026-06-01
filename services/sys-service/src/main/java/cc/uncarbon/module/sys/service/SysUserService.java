@@ -17,7 +17,7 @@ import java.util.Set;
 public interface SysUserService {
 
     /**
-     * 系统管理-分页查询
+     * 后台管理-分页查询
      */
     PageResult<SysUserBO> adminList(AdminSysUserListQuery query);
 
@@ -39,44 +39,44 @@ public interface SysUserService {
     SysUserBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException;
 
     /**
-     * 系统管理-新增
+     * 后台管理-新增
      *
      * @return 主键ID
      */
     Long adminCreate(AdminSysUserUpsertRequest request);
 
     /**
-     * 系统管理-修改
+     * 后台管理-修改
      */
     void adminUpdate(AdminSysUserUpsertRequest request);
 
     /**
-     * 系统管理-删除
+     * 后台管理-删除
      */
     void adminDelete(Collection<Long> ids);
 
     /**
-     * 系统管理-登录
+     * 后台管理-登录
      */
     SysUserLoginBO adminLogin(SysUserLoginDTO dto);
 
     /**
-     * 系统管理-取当前用户信息
+     * 后台管理-取当前用户信息
      */
     VbenAdminUserInfoVO adminGetCurrentUserInfo();
 
     /**
-     * 系统管理-重置某用户密码
+     * 后台管理-重置某用户密码
      */
     void adminResetUserPassword(AdminResetSysUserPasswordDTO dto);
 
     /**
-     * 系统管理-修改当前用户密码
+     * 后台管理-修改当前用户密码
      */
     void adminUpdateCurrentUserPassword(AdminUpdateCurrentSysUserPasswordDTO dto);
 
     /**
-     * 系统管理-绑定用户与角色关联关系
+     * 后台管理-绑定用户与角色关联关系
      */
     void adminBindRoles(AdminBindUserRoleRelationDTO dto);
 
@@ -102,12 +102,12 @@ public interface SysUserService {
     List<Long> listUserIdsByTenantId(Long tenantId, Collection<EnabledStatusEnum> statusEnums);
 
     /**
-     * 系统管理-更新当前用户信息资料
+     * 后台管理-更新当前用户信息资料
      */
     void adminUpdateCurrentUserInfo(AdminUpdateCurrentSysUserInfoDTO dto);
 
     /**
-     * 系统管理-更新当前用户头像
+     * 后台管理-更新当前用户头像
      */
     void adminUpdateCurrentUserAvatar(AdminUpdateCurrentSysUserAvatarDTO dto);
 

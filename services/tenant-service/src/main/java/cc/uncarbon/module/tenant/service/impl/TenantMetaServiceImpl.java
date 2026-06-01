@@ -3,6 +3,7 @@ package cc.uncarbon.module.tenant.service.impl;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.enums.TenantErrorCodeEnum;
@@ -59,6 +60,38 @@ public class TenantMetaServiceImpl implements TenantMetaService {
         return convertPage(entityPage, true);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public TenantMetaEntity adminCreate(AdminCreateTenantRequest request) {
+        log.info(LOG_PREFIX + "新增 >> {}", request);
+        checkRepeat(request);
+
+        TenantMetaEntity entity = new TenantMetaEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        tenantMetaMapper.insert(entity);
+
+        return entity;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminUpdate(AdminUpdateTenantMetaRequest request) {
+        log.info(LOG_PREFIX + "修改 >> {}", request);
+
+        TenantMetaEntity entity = new TenantMetaEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        tenantMetaMapper.updateById(entity);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminDelete(Collection<Long> ids) {
+        log.info("[系统管理-删除系统租户] >> 入参={}", ids);
+        tenantMetaMapper.deleteByIds(ids);
+    }
+
     @Override
     public TenantMetaDTO getOneById(Long id) {
         return getOneById(id, false);
@@ -74,45 +107,9 @@ public class TenantMetaServiceImpl implements TenantMetaService {
         return convertEntity(entity, true);
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public TenantMetaEntity adminCreate(AdminCreateTenantRequest request) {
-        log.info(LOG_PREFIX + "新增 >> {}", request);
-
-        TenantMetaEntity entity = new TenantMetaEntity();
-        BeanUtil.copyProperties(request, entity);
-
-        tenantMetaMapper.insert(entity);
-
-        return entity;
-    }
-
-    /**
-     * 系统管理-修改
-     */
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void adminUpdate(AdminUpdateTenantMetaRequest request) {
-        log.info(LOG_PREFIX + "修改 >> {}", request);
-
-        TenantMetaEntity entity = new TenantMetaEntity();
-        BeanUtil.copyProperties(request, entity);
-
-        tenantMetaMapper.updateById(entity);
-    }
-
-    /**
-     * 系统管理-删除
-     */
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void adminDelete(Collection<Long> ids) {
-        log.info("[系统管理-删除系统租户] >> 入参={}", ids);
-        tenantMetaMapper.deleteByIds(ids);
-    }
-
     /**
      * 根据主键IDs，取租户BOs
+     *
      * @param fillTenantAdminUser 是否根据租户管理员用户ID，查询关联用户信息并填充到BO
      */
     @Override
@@ -120,7 +117,7 @@ public class TenantMetaServiceImpl implements TenantMetaService {
         if (CollUtil.isEmpty(ids)) {
             return List.of();
         }
-        List<TenantMetaEntity> entityList = tenantMetaMapper.selectBatchIds(ids);
+        List<TenantMetaEntity> entityList = tenantMetaMapper.selectByIds(ids);
         return convertList(entityList, fillTenantAdminUser);
     }
 
@@ -132,6 +129,7 @@ public class TenantMetaServiceImpl implements TenantMetaService {
 
     /**
      * 实体转值对象
+     *
      * @param fillTenantAdminUser 是否根据租户管理员用户ID，查询关联用户信息并填充到BO
      */
     private TenantMetaDTO convertEntity(TenantMetaEntity entity, boolean fillTenantAdminUser) {
@@ -153,7 +151,7 @@ public class TenantMetaServiceImpl implements TenantMetaService {
     /**
      * 实体转值对象
      *
-     * @param entityList 实体 List
+     * @param entityList          实体 List
      * @param fillTenantAdminUser 填充管理员用户信息
      */
     private List<TenantMetaDTO> convertList(List<TenantMetaEntity> entityList, boolean fillTenantAdminUser) {
@@ -181,21 +179,18 @@ public class TenantMetaServiceImpl implements TenantMetaService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminCreateTenantRequest request) {
-        TenantMetaEntity existingEntity = tenantMetaMapper.selectOne(
+        TenantMetaEntity ent = tenantMetaMapper.selectOne(
                 new QueryWrapper<TenantMetaEntity>()
                         .lambda()
                         // 仅取主键ID
                         .select(TenantMetaEntity::getId)
-                        // 租户ID相同
-                        .eq(TenantMetaEntity::getTenantId, request.getTenantId())
-                        .or()
-                        // 或租户名相同
-                        .eq(TenantMetaEntity::getTenantName, request.getTenantName())
+                        // 租户编码相同
+                        .eq(TenantMetaEntity::getCode, request.getCode())
                         .last(SQLSegment.LIMIT_1)
         );
 
-        if (existingEntity != null && !existingEntity.getId().equals(request.getId())) {
-            throw new BusinessException(400, "已存在相同系统租户，请重新输入");
+        if (ent != null) {
+            throw new HasRepeatRecordException("已存在相同的【租户编码】");
         }
     }
 
