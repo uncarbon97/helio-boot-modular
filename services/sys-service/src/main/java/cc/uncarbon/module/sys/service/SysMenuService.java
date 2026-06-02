@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.service;
 
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysMenuBO;
 
@@ -47,12 +47,12 @@ public interface SysMenuService {
     /**
      * 根据 ID 取详情
      */
-    SysMenuBO getOneById(Long id);
+    SysMenuBO getById(Long id);
 
     /**
-     * 根据 ID 取详情
+     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
-    SysMenuBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException;
+    SysMenuBO getNonnullById(Long id) throws NoRecordException;
 
     /**
      * 根据角色Ids，获取角色ID 对应的权限名 Map

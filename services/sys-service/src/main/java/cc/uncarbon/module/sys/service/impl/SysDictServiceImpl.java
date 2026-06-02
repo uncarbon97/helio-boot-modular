@@ -4,6 +4,7 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
@@ -19,6 +20,7 @@ import cc.uncarbon.module.sys.service.SysDictService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Nonnull;
@@ -80,6 +82,7 @@ public class SysDictServiceImpl implements SysDictService {
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdateCategory(AdminSysDictCategoryUpsertRequest request) {
         log.info(LOG_PREFIX + "修改分类 >> {}", request);
+        checkCategoryExistence(request.getId());
         checkRepeat(request);
 
         SysDictCategoryEntity entity = new SysDictCategoryEntity();
@@ -139,6 +142,7 @@ public class SysDictServiceImpl implements SysDictService {
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdateItem(AdminSysDictItemUpsertRequest request) {
         log.info(LOG_PREFIX + "修改字典项 >> {}", request);
+        checkItemExistence(request.getId());
         checkRepeat(request);
 
         SysDictItemEntity entity = new SysDictItemEntity();
@@ -271,7 +275,7 @@ public class SysDictServiceImpl implements SysDictService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysDictCategoryUpsertRequest request) throws BusinessException {
-        SysDictCategoryEntity ent = sysDictCategoryMapper.selectOne(
+        SysDictCategoryEntity entity = sysDictCategoryMapper.selectOne(
                 new QueryWrapper<SysDictCategoryEntity>()
                         .lambda()
                         // 仅取主键ID
@@ -283,7 +287,7 @@ public class SysDictServiceImpl implements SysDictService {
                         .last(SQLSegment.LIMIT_1)
         );
 
-        if (ent != null) {
+        if (entity != null) {
             throw new HasRepeatRecordException("已存在相同的【字典分类编码】");
         }
     }
@@ -292,10 +296,8 @@ public class SysDictServiceImpl implements SysDictService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysDictItemUpsertRequest request) throws BusinessException {
-        SysDictItemEntity ent = sysDictItemMapper.selectOne(
-                new QueryWrapper<SysDictItemEntity>()
-                        .lambda()
-                        // 仅取主键ID
+        SysDictItemEntity entity = sysDictItemMapper.selectOne(
+                new LambdaQueryWrapper<SysDictItemEntity>()
                         .select(SysDictItemEntity::getId)
                         // 并非原地更新
                         .ne(Objects.nonNull(request.getId()), SysDictItemEntity::getId, request.getId())
@@ -306,9 +308,35 @@ public class SysDictServiceImpl implements SysDictService {
                         .last(SQLSegment.LIMIT_1)
         );
 
-        if (ent != null) {
+        if (entity != null) {
             throw new HasRepeatRecordException("同一分类下，已存在相同的【字典项编码】");
         }
+    }
+
+    /**
+     * 检查分类是否存在
+     */
+    private void checkCategoryExistence(Long id) {
+        boolean exists = sysDictCategoryMapper.exists(
+                new LambdaQueryWrapper<SysDictCategoryEntity>()
+                        .select(SysDictCategoryEntity::getId)
+                        .eq(SysDictCategoryEntity::getId, id)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        NoRecordException.throwIfFalse(exists);
+    }
+
+    /**
+     * 检查字典项是否存在
+     */
+    private void checkItemExistence(Long id) {
+        boolean exists = sysDictItemMapper.exists(
+                new LambdaQueryWrapper<SysDictItemEntity>()
+                        .select(SysDictItemEntity::getId)
+                        .eq(SysDictItemEntity::getId, id)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        NoRecordException.throwIfFalse(exists);
     }
 
 }

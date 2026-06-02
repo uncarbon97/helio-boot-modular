@@ -45,7 +45,7 @@ public class AdminSysDeptController {
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysDeptDTO> detail(@RequestParam Long id) {
-        return ApiResult.success(sysDeptService.getById(id, true));
+        return ApiResult.success(sysDeptService.getNonnullById(id));
     }
 
     // @SysOperateLog(value = "新增部门")

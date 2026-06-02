@@ -50,7 +50,7 @@ public class AdminTenantController {
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<TenantMetaDTO> detail(@RequestParam Long id) {
-        return ApiResult.success(tenantMetaService.getOneById(id, true));
+        return ApiResult.success(tenantMetaService.getNonnullById(id));
     }
 
     // @SysOperateLog(value = "新增系统租户")

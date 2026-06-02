@@ -1,11 +1,10 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
-import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.dal.mapper.SysDeptMapper;
 import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
 import cc.uncarbon.module.sys.model.interior.UserRoleContainer;
@@ -17,7 +16,7 @@ import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,17 +48,13 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     @Override
     public SysDeptDTO getById(Long id) {
-        return this.getById(id, false);
+        SysDeptEntity entity = sysDeptMapper.selectById(id);
+        return this.entity2BO(entity);
     }
 
     @Override
-    public SysDeptDTO getById(Long id, boolean throwIfNotFound) throws BusinessException {
-        SysDeptEntity entity = sysDeptMapper.selectById(id);
-        if (throwIfNotFound) {
-            SysErrorCodeEnum.A01001.assertNotNull(entity);
-        }
-
-        return this.entity2BO(entity);
+    public SysDeptDTO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -85,6 +80,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     public void adminUpdate(AdminSysDeptUpsertRequest request) {
         log.info(LOG_PREFIX + "编辑 >> {}", request);
+        checkExistence(request.getId());
         checkRepeat(request);
 
         if (ObjectUtil.isNull(request.getParentId())) {
@@ -190,19 +186,20 @@ public class SysDeptServiceImpl implements SysDeptService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysDeptUpsertRequest request) {
-        SysDeptEntity ent = sysDeptMapper.selectOne(
-                new QueryWrapper<SysDeptEntity>()
-                        .lambda()
-                        // 仅取主键ID
+        // ignored
+    }
+
+    /**
+     * 检查是否存在
+     */
+    private void checkExistence(Long id) {
+        boolean exists = sysDeptMapper.exists(
+                new LambdaQueryWrapper<SysDeptEntity>()
                         .select(SysDeptEntity::getId)
-                        // 名称相同
-                        .eq(SysDeptEntity::getTitle, request.getTitle())
+                        .eq(SysDeptEntity::getId, id)
                         .last(SQLSegment.LIMIT_1)
         );
-
-        if (ent != null && !ent.getId().equals(request.getId())) {
-            throw new BusinessException(400, "已存在相同部门，请重新输入");
-        }
+        NoRecordException.throwIfFalse(exists);
     }
 
     /**

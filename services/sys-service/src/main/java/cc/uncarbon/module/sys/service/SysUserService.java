@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.service;
 
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
@@ -23,20 +23,13 @@ public interface SysUserService {
 
     /**
      * 根据 ID 取详情
-     *
-     * @param id 主键ID
-     * @return null or 详情
      */
-    SysUserBO getOneById(Long id);
+    SysUserBO getById(Long id);
 
     /**
-     * 根据 ID 取详情
-     *
-     * @param id               主键ID
-     * @param throwIfInvalidId 未找到时是否抛出异常
-     * @return null or 详情
+     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
-    SysUserBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException;
+    SysUserBO getNonnullById(Long id) throws NoRecordException;
 
     /**
      * 后台管理-新增

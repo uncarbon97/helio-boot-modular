@@ -1,0 +1,28 @@
+package cc.uncarbon.module.tenant.model.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.util.Set;
+
+
+/**
+ * 租户套餐-绑定套餐与菜单关联关系
+ */
+@Accessors(chain = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class AdminBindPackageMenuRelationDTO implements Serializable {
+
+    @Schema(description = "菜单Ids(空=清理关联关系后不再绑定任何菜单)")
+    private Set<Long> menuIds;
+
+    @Schema(description = "套餐ID", hidden = true)
+    private Long packageId;
+
+}

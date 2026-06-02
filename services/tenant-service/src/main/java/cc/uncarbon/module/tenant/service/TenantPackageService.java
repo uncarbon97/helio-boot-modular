@@ -1,9 +1,14 @@
 package cc.uncarbon.module.tenant.service;
 
-import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.tenant.model.query.AdminTenantPackageListQuery;
+import cc.uncarbon.module.tenant.model.request.AdminBindPackageMenuRelationDTO;
+import cc.uncarbon.module.tenant.model.request.AdminTenantPackageUpsertRequest;
+import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 /**
  * 租户套餐
@@ -11,17 +16,38 @@ import java.util.List;
 public interface TenantPackageService {
 
     /**
-     * 根据ID获取
+     * 后台管理-分页查询
      */
-    TenantPackageEntity getById(Long id);
+    PageResult<TenantPackageDTO> adminList(AdminTenantPackageListQuery query);
 
     /**
-     * 根据ID集合批量获取
+     * 后台管理-新增
      */
-    List<TenantPackageEntity> listByIds(Collection<Long> ids);
+    Long adminCreate(AdminTenantPackageUpsertRequest request);
 
     /**
-     * 根据ID删除
+     * 后台管理-修改
      */
-    void deleteByIds(Collection<Long> ids);
+    void adminUpdate(AdminTenantPackageUpsertRequest request);
+
+    /**
+     * 后台管理-删除
+     */
+    void adminDelete(Collection<Long> ids);
+
+    /**
+     * 后台管理-绑定套餐与菜单关联关系
+     */
+    Set<String> adminBindMenus(AdminBindPackageMenuRelationDTO dto);
+
+    /**
+     * 根据 ID 取详情
+     */
+    TenantPackageDTO getById(Long id);
+
+    /**
+     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
+     */
+    TenantPackageDTO getNonnullById(Long id) throws NoRecordException;
+
 }

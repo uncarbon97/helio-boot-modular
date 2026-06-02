@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.service;
 
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
@@ -42,20 +42,13 @@ public interface SysDeptService {
 
     /**
      * 根据 ID 取详情
-     *
-     * @param id 主键ID
-     * @return null or 详情
      */
     SysDeptDTO getById(Long id);
 
     /**
-     * 根据 ID 取详情
-     *
-     * @param id              主键ID
-     * @param throwIfNotFound 未找到时是否抛出异常
-     * @return null or 详情
+     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
-    SysDeptDTO getById(Long id, boolean throwIfNotFound) throws BusinessException;
+    SysDeptDTO getNonnullById(Long id) throws NoRecordException;
 
     /**
      * 取当前用户关联部门信息

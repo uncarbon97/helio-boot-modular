@@ -44,7 +44,7 @@ public class AdminSysMenuController {
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysMenuBO> detail(@RequestParam Long id) {
-        return ApiResult.success(sysMenuService.getOneById(id, true));
+        return ApiResult.success(sysMenuService.getNonnullById(id));
     }
 
     // @SysOperateLog(value = "新增系统菜单")

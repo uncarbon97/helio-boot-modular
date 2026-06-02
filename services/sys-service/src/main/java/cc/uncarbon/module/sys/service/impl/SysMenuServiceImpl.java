@@ -1,10 +1,10 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.util.StreamFunction;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
@@ -25,6 +25,7 @@ import cn.hutool.core.text.StrPool;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,30 +70,19 @@ public class SysMenuServiceImpl implements SysMenuService {
 
     /**
      * 根据 ID 取详情
-     *
-     * @param id 主键ID
-     * @return null or 详情
      */
     @Override
-    public SysMenuBO getOneById(Long id) {
-        return this.getOneById(id, false);
+    public SysMenuBO getById(Long id) {
+        SysMenuEntity entity = sysMenuMapper.selectById(id);
+        return this.entity2BO(entity);
     }
 
     /**
-     * 根据 ID 取详情
-     *
-     * @param id               主键ID
-     * @param throwIfInvalidId 未找到时是否抛出异常
-     * @return null or 详情
+     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
     @Override
-    public SysMenuBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException {
-        SysMenuEntity entity = sysMenuMapper.selectById(id);
-        if (throwIfInvalidId) {
-            SysErrorCodeEnum.A01001.assertNotNull(entity);
-        }
-
-        return this.entity2BO(entity);
+    public SysMenuBO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
     }
 
     /**
@@ -127,6 +117,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Override
     public void adminUpdate(AdminSysMenuUpsertRequest request) {
         log.info("[后台管理-修改系统菜单] >> 入参={}", request);
+        checkExistence(request.getId());
         checkRepeat(request);
 
         if (ObjectUtil.isNull(request.getParentId())) {
@@ -331,8 +322,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         Assert.notEmpty(types);
 
         List<SysMenuEntity> entityList = sysMenuMapper.selectList(
-                new QueryWrapper<SysMenuEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<SysMenuEntity>()
                         .in(SysMenuEntity::getId, ids)
                         .in(SysMenuEntity::getMenuType, types)
                         // 仅显示启用状态菜单
@@ -348,16 +338,27 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     /**
+     * 检查是否存在
+     */
+    private void checkExistence(Long id) {
+        boolean exists = sysMenuMapper.exists(
+                new LambdaQueryWrapper<SysMenuEntity>()
+                        .select(SysMenuEntity::getId)
+                        .eq(SysMenuEntity::getId, id)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        NoRecordException.throwIfFalse(exists);
+    }
+
+    /**
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysMenuUpsertRequest request) {
         if (CharSequenceUtil.isNotBlank(request.getPermission())) {
             request.setPermission(CharSequenceUtil.cleanBlank(request.getPermission()));
 
-            SysMenuEntity ent = sysMenuMapper.selectOne(
-                    new QueryWrapper<SysMenuEntity>()
-                            .lambda()
-                            // 仅取主键ID
+            SysMenuEntity entity = sysMenuMapper.selectOne(
+                    new LambdaQueryWrapper<SysMenuEntity>()
                             .select(SysMenuEntity::getId)
                             // 并非原地更新
                             .ne(Objects.nonNull(request.getId()), SysMenuEntity::getId, request.getId())
@@ -366,7 +367,7 @@ public class SysMenuServiceImpl implements SysMenuService {
                             .last(SQLSegment.LIMIT_1)
             );
 
-            if (ent != null) {
+            if (entity != null) {
                 throw new HasRepeatRecordException("已存在相同的【权限标识】");
             }
         }

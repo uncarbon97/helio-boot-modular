@@ -50,7 +50,7 @@ public class AdminSysRoleController {
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysRoleBO> detail(@RequestParam Long id) {
-        return ApiResult.success(sysRoleService.getOneById(id, true));
+        return ApiResult.success(sysRoleService.getNonnullById(id));
     }
 
     // @SysOperateLog(value = "新增系统角色")

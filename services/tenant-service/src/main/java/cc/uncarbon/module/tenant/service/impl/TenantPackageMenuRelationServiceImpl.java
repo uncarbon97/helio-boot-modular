@@ -4,7 +4,6 @@ import cc.uncarbon.module.tenant.dal.entity.TenantPackageMenuRelationEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMenuRelationMapper;
 import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.RequiredArgsConstructor;
@@ -27,28 +26,9 @@ public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRe
     private final TenantPackageMenuRelationMapper tenantPackageMenuRelationMapper;
 
 
-    /**
-     * 根据套餐Ids取菜单Ids
-     *
-     * @param packageIds 套餐Ids
-     * @return 菜单Ids
-     */
     @Override
-    public Set<Long> listMenuIdsByPackageIds(Collection<Long> packageIds) throws IllegalArgumentException {
-        Assert.notEmpty(packageIds);
-
-        Set<Long> ret = new HashSet<>(packageIds.size() << 4);
-        for (Long packageId : packageIds) {
-            ret.addAll(
-                    tenantPackageMenuRelationMapper.selectList(
-                            new QueryWrapper<TenantPackageMenuRelationEntity>()
-                                    .lambda()
-                                    .select(TenantPackageMenuRelationEntity::getMenuId)
-                                    .eq(TenantPackageMenuRelationEntity::getPackageId, packageId)
-                    ).stream().map(TenantPackageMenuRelationEntity::getMenuId).collect(Collectors.toSet()));
-        }
-
-        return ret;
+    public List<Long> listMenuIdsByPackageId(long packageId) {
+        return tenantPackageMenuRelationMapper.listMenuIdsByPackage(packageId);
     }
 
     /**
@@ -59,12 +39,10 @@ public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRe
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void cleanAndBind(Long packageId, Collection<Long> menuIds) {
-        LambdaQueryWrapper<TenantPackageMenuRelationEntity> menuIdsQuery =
-                new QueryWrapper<TenantPackageMenuRelationEntity>()
-                        .lambda()
-                        .select(TenantPackageMenuRelationEntity::getMenuId)
-                        .eq(TenantPackageMenuRelationEntity::getPackageId, packageId);
+    public void cleanAndBind(long packageId, Collection<Long> menuIds) {
+        var menuIdsQuery = new LambdaQueryWrapper<TenantPackageMenuRelationEntity>()
+                .select(TenantPackageMenuRelationEntity::getMenuId)
+                .eq(TenantPackageMenuRelationEntity::getPackageId, packageId);
 
         if (CollUtil.isEmpty(menuIds)) {
             tenantPackageMenuRelationMapper.delete(menuIdsQuery);

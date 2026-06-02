@@ -1,7 +1,7 @@
 package cc.uncarbon.module.tenant.service;
 
 
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.model.query.AdminTenantMetaListQuery;
@@ -40,12 +40,12 @@ public interface TenantMetaService {
     /**
      * 根据 ID 取详情
      */
-    TenantMetaDTO getOneById(Long id);
+    TenantMetaDTO getById(Long id);
 
     /**
-     * 根据 ID 取详情
+     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
-    TenantMetaDTO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException;
+    TenantMetaDTO getNonnullById(Long id) throws NoRecordException;
 
     /**
      * 根据主键IDs，取租户BOs

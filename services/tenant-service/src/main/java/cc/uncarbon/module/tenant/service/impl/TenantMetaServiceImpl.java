@@ -1,12 +1,11 @@
 package cc.uncarbon.module.tenant.service.impl;
 
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
-import cc.uncarbon.module.tenant.enums.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.model.query.AdminTenantMetaListQuery;
 import cc.uncarbon.module.tenant.model.request.AdminCreateTenantRequest;
 import cc.uncarbon.module.tenant.model.request.AdminUpdateTenantMetaRequest;
@@ -16,6 +15,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -78,6 +78,7 @@ public class TenantMetaServiceImpl implements TenantMetaService {
     @Override
     public void adminUpdate(AdminUpdateTenantMetaRequest request) {
         log.info(LOG_PREFIX + "修改 >> {}", request);
+        checkExistence(request.getId());
 
         TenantMetaEntity entity = new TenantMetaEntity();
         BeanUtil.copyProperties(request, entity);
@@ -93,18 +94,14 @@ public class TenantMetaServiceImpl implements TenantMetaService {
     }
 
     @Override
-    public TenantMetaDTO getOneById(Long id) {
-        return getOneById(id, false);
+    public TenantMetaDTO getById(Long id) {
+        TenantMetaEntity entity = tenantMetaMapper.selectById(id);
+        return convertEntity(entity, true);
     }
 
     @Override
-    public TenantMetaDTO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException {
-        TenantMetaEntity entity = tenantMetaMapper.selectById(id);
-        if (throwIfInvalidId) {
-            TenantErrorCodeEnum.A03001.throwIfNull(entity);
-        }
-
-        return convertEntity(entity, true);
+    public TenantMetaDTO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
     }
 
     /**
@@ -179,19 +176,30 @@ public class TenantMetaServiceImpl implements TenantMetaService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminCreateTenantRequest request) {
-        TenantMetaEntity ent = tenantMetaMapper.selectOne(
-                new QueryWrapper<TenantMetaEntity>()
-                        .lambda()
-                        // 仅取主键ID
+        TenantMetaEntity entity = tenantMetaMapper.selectOne(
+                new LambdaQueryWrapper<TenantMetaEntity>()
                         .select(TenantMetaEntity::getId)
                         // 租户编码相同
                         .eq(TenantMetaEntity::getCode, request.getCode())
                         .last(SQLSegment.LIMIT_1)
         );
 
-        if (ent != null) {
+        if (entity != null) {
             throw new HasRepeatRecordException("已存在相同的【租户编码】");
         }
+    }
+
+    /**
+     * 检查是否存在
+     */
+    private void checkExistence(Long id) {
+        boolean exists = tenantMetaMapper.exists(
+                new LambdaQueryWrapper<TenantMetaEntity>()
+                        .select(TenantMetaEntity::getId)
+                        .eq(TenantMetaEntity::getId, id)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        NoRecordException.throwIfFalse(exists);
     }
 
 }

@@ -3,6 +3,8 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
@@ -24,6 +26,7 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.PostConstruct;
@@ -104,20 +107,16 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public SysUserBO getOneById(Long id) {
-        return this.getOneById(id, false);
-    }
-
-    @Override
-    public SysUserBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException {
+    public SysUserBO getById(Long id) {
         dataScopeCheck(Collections.singleton(id));
 
         SysUserEntity entity = sysUserMapper.selectById(id);
-        if (throwIfInvalidId) {
-            SysErrorCodeEnum.A01001.throwIfNull(entity);
-        }
-
         return this.entity2BO(entity, true);
+    }
+
+    @Override
+    public SysUserBO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -155,6 +154,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public void adminUpdate(AdminSysUserUpsertRequest request) {
         log.info("[后台管理-修改后台用户] >> 入参={}", request);
+        checkExistence(request.getId());
         preUpdateCheck(request.getId(), request.getStatus());
         checkRepeat(request);
 
@@ -239,7 +239,7 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public VbenAdminUserInfoVO adminGetCurrentUserInfo() {
-        SysUserBO sysUserBO = this.getOneById(UserContextHolder.getUserId(), true);
+        SysUserBO sysUserBO = this.getNonnullById(UserContextHolder.getUserId());
         return VbenAdminUserInfoVO.builder()
                 .username(sysUserBO.getUsername())
                 .nickname(sysUserBO.getNickname())
@@ -405,6 +405,19 @@ public class SysUserServiceImpl implements SysUserService {
         if (existingEntity != null && !existingEntity.getId().equals(request.getId())) {
             throw new BusinessException(400, "已存在相同账号，请重新输入");
         }
+    }
+
+    /**
+     * 检查是否存在
+     */
+    private void checkExistence(Long id) {
+        boolean exists = sysUserMapper.exists(
+                new LambdaQueryWrapper<SysUserEntity>()
+                        .select(SysUserEntity::getId)
+                        .eq(SysUserEntity::getId, id)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        NoRecordException.throwIfFalse(exists);
     }
 
     /**

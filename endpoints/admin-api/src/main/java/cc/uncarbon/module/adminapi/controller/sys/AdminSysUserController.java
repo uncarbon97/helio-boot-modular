@@ -53,7 +53,7 @@ public class AdminSysUserController {
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysUserBO> detail(@RequestParam Long id) {
-        return ApiResult.success(sysUserService.getOneById(id, true));
+        return ApiResult.success(sysUserService.getNonnullById(id));
     }
 
     // @SysOperateLog(value = "新增后台用户")

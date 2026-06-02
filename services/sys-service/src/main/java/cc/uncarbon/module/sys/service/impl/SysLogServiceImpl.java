@@ -2,13 +2,13 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.module.sys.entity.SysLogEntity;
-import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
+import cc.uncarbon.module.commons.enums.DefaultErrorCodeEnum;
 import cc.uncarbon.module.sys.dal.mapper.SysLoginLogMapper;
-import cc.uncarbon.module.sys.service.SysLogService;
+import cc.uncarbon.module.sys.entity.SysLogEntity;
 import cc.uncarbon.module.sys.model.query.AdminSysLogListQuery;
 import cc.uncarbon.module.sys.model.request.AdminInsertSysLogDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysLogBO;
+import cc.uncarbon.module.sys.service.SysLogService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -91,7 +91,7 @@ public class SysLogServiceImpl implements SysLogService {
     public SysLogBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException {
         SysLogEntity entity = sysLoginLogMapper.selectById(id);
         if (throwIfInvalidId) {
-            SysErrorCodeEnum.A01001.assertNotNull(entity);
+            DefaultErrorCodeEnum.A00002.throwIfNull(entity);
         }
 
         return this.entity2BO(entity);

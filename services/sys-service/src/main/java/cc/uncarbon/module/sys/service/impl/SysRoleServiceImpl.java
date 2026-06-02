@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.core.function.StreamFunction;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
@@ -18,6 +19,7 @@ import cc.uncarbon.module.sys.model.valueobj.SysRoleBO;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -73,30 +75,19 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     /**
      * 根据 ID 取详情
-     *
-     * @param id 主键ID
-     * @return null or 详情
      */
     @Override
-    public SysRoleBO getOneById(Long id) {
-        return this.getOneById(id, false);
+    public SysRoleBO getById(Long id) {
+        SysRoleEntity entity = sysRoleMapper.selectById(id);
+        return this.entity2BO(entity, true);
     }
 
     /**
-     * 根据 ID 取详情
-     *
-     * @param id 主键ID
-     * @param throwIfInvalidId 未找到时是否抛出异常
-     * @return null or 详情
+     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
     @Override
-    public SysRoleBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException {
-        SysRoleEntity entity = sysRoleMapper.selectById(id);
-        if (throwIfInvalidId) {
-            SysErrorCodeEnum.A01001.assertNotNull(entity);
-        }
-
-        return this.entity2BO(entity, true);
+    public SysRoleBO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
     }
 
     /**
@@ -127,6 +118,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Transactional(rollbackFor = Exception.class)
     public void adminUpdate(AdminSysRoleUpsertRequest request) {
         log.info("[后台管理-修改系统角色] >> 入参={}", request);
+        checkExistence(request.getId());
         preInsertOrUpdateCheck(request);
         checkRepeat(request);
 
@@ -340,6 +332,19 @@ public class SysRoleServiceImpl implements SysRoleService {
                 .setTotal(entityPage.getTotal())
                 // 需填充菜单IDs
                 .setRecords(this.entityList2BOs(entityPage.getRecords(), fillMenuIds));
+    }
+
+    /**
+     * 检查是否存在
+     */
+    private void checkExistence(Long id) {
+        boolean exists = sysRoleMapper.exists(
+                new LambdaQueryWrapper<SysRoleEntity>()
+                        .select(SysRoleEntity::getId)
+                        .eq(SysRoleEntity::getId, id)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        NoRecordException.throwIfFalse(exists);
     }
 
     /**

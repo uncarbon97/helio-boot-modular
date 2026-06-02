@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.service;
 
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.sys.model.interior.UserRoleContainer;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
@@ -56,12 +56,12 @@ public interface SysRoleService {
     /**
      * 根据 ID 取详情
      */
-    SysRoleBO getOneById(Long id);
+    SysRoleBO getById(Long id);
 
     /**
-     * 根据 ID 取详情
+     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
-    SysRoleBO getOneById(Long id, boolean throwIfInvalidId) throws BusinessException;
+    SysRoleBO getNonnullById(Long id) throws NoRecordException;
 
     /**
      * 取用户ID拥有角色对应的 角色ID-角色名 map
