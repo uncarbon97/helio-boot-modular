@@ -4,7 +4,6 @@ import cc.uncarbon.module.sys.dal.entity.SysRoleMenuRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMenuRelationMapper;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Assert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.RequiredArgsConstructor;
@@ -27,44 +26,31 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
     private final SysRoleMenuRelationMapper sysRoleMenuRelationMapper;
 
 
-    /**
-     * 根据角色Ids取菜单Ids
-     * 因为多种角色容易出现交集，所以干脆用 Set
-     *
-     * @param roleIds 角色Ids
-     * @return 菜单Ids
-     */
     @Override
-    public Set<Long> listMenuIdsByRoleIds(Collection<Long> roleIds) throws IllegalArgumentException {
-        Assert.notEmpty(roleIds);
+    public Set<Long> listMenuIdsByRoleIds(Collection<Long> roleIds) {
+        if (CollUtil.isEmpty(roleIds)) {
+            return Set.of();
+        }
 
         // aka * 16
         Set<Long> ret = new HashSet<>(roleIds.size() << 4);
         for (Long roleId : roleIds) {
-            ret.addAll(
-                    sysRoleMenuRelationMapper.selectList(
-                            new QueryWrapper<SysRoleMenuRelationEntity>()
-                                    .lambda()
-                                    .select(SysRoleMenuRelationEntity::getMenuId)
-                                    .eq(SysRoleMenuRelationEntity::getRoleId, roleId)
-                    ).stream().map(SysRoleMenuRelationEntity::getMenuId).collect(Collectors.toSet()));
+            var menuIdsQuery =
+                    new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+                            .select(SysRoleMenuRelationEntity::getMenuId)
+                            .eq(SysRoleMenuRelationEntity::getRoleId, roleId);
+            ret.addAll(sysRoleMenuRelationMapper.selectList(menuIdsQuery).stream()
+                            .map(SysRoleMenuRelationEntity::getMenuId).collect(Collectors.toSet()));
         }
 
         return ret;
     }
 
-    /**
-     * 绑定角色ID与菜单ID关联关系，增量更新
-     *
-     * @param roleId  角色ID
-     * @param menuIds 新菜单ID集合
-     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void cleanAndBind(Long roleId, Collection<Long> menuIds) {
-        LambdaQueryWrapper<SysRoleMenuRelationEntity> menuIdsQuery =
-                new QueryWrapper<SysRoleMenuRelationEntity>()
-                        .lambda()
+        var menuIdsQuery =
+                new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
                         .select(SysRoleMenuRelationEntity::getMenuId)
                         .eq(SysRoleMenuRelationEntity::getRoleId, roleId);
 
@@ -90,10 +76,8 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
 
         if (CollUtil.isNotEmpty(menuIds)) {
             // 批量插入需要增量更新的部分
-            List<SysRoleMenuRelationEntity> entityList = new ArrayList<>(menuIds.size());
-            for (Long menuId : menuIds) {
-                entityList.add(SysRoleMenuRelationEntity.of(roleId, menuId));
-            }
+            List<SysRoleMenuRelationEntity> entityList = menuIds.stream()
+                    .map(menuId -> SysRoleMenuRelationEntity.of(roleId, menuId)).toList();
             sysRoleMenuRelationMapper.insert(entityList);
         }
     }

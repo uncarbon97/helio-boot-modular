@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 
 /**
- * 部门信息
+ * 部门
  */
 @Accessors(chain = true)
 @AllArgsConstructor

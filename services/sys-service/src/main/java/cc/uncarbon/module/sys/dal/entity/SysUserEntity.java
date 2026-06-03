@@ -3,8 +3,8 @@ package cc.uncarbon.module.sys.dal.entity;
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
-import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserAvatarDTO;
-import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserInfoDTO;
+import cc.uncarbon.module.sys.model.request.AdminUpdateMyAvatarRequest;
+import cc.uncarbon.module.sys.model.request.AdminUpdateMyProfileRequest;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -80,7 +80,7 @@ public class SysUserEntity extends AbstractTenantGenericEntity {
 	private String avatarUrl;
 
 
-	public static SysUserEntity of(AdminUpdateCurrentSysUserInfoDTO dto) {
+	public static SysUserEntity of(AdminUpdateMyProfileRequest dto) {
 		SysUserEntity ret = new SysUserEntity();
 		ret.setNickname(dto.getNickname())
 		   .setGender(dto.getGender())
@@ -89,7 +89,7 @@ public class SysUserEntity extends AbstractTenantGenericEntity {
 		return ret;
 	}
 
-	public static SysUserEntity of(AdminUpdateCurrentSysUserAvatarDTO dto) {
+	public static SysUserEntity of(AdminUpdateMyAvatarRequest dto) {
 		SysUserEntity ret = new SysUserEntity();
 		ret.setAvatarUrl(dto.getAvatarUrl());
 		return ret;

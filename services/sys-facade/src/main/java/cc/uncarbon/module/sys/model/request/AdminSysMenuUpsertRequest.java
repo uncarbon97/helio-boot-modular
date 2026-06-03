@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.model.request;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
-import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +15,7 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-系统菜单-新增/修改
+ * 系统菜单-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -27,7 +27,7 @@ public class AdminSysMenuUpsertRequest implements Serializable {
     private Long id;
 
     @Schema(description = "菜单名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 50, message = "【菜单名称】最长50位")
+    @Size(max = 50, message = "菜单名称最长50位")
     @NotBlank(message = "菜单名称必填")
     private String name;
 
@@ -36,18 +36,18 @@ public class AdminSysMenuUpsertRequest implements Serializable {
 
     @Schema(description = "菜单类型", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "菜单类型必填")
-    private SysMenuTypeEnum menuType;
+    private MenuTypeEnum menuType;
 
     @Schema(description = "前端组件名称")
-    @Size(max = 50, message = "【前端组件名称】最长50位")
+    @Size(max = 50, message = "前端组件名称最长50位")
     private String component;
 
     @Schema(description = "菜单权限标识")
-    @Size(max = 255, message = "【权限标识】最长255位")
+    @Size(max = 255, message = "权限标识最长255位")
     private String permission;
 
     @Schema(description = "图标")
-    @Size(max = 255, message = "【图标】最长255位")
+    @Size(max = 255, message = "图标最长255位")
     private String icon;
 
     @Schema(description = "排序")
@@ -57,7 +57,7 @@ public class AdminSysMenuUpsertRequest implements Serializable {
     private EnabledStatusEnum status;
 
     @Schema(description = "外链地址")
-    @Size(max = 255, message = "【外链地址】最长255位")
+    @Size(max = 255, message = "外链地址最长255位")
     private String externalLink;
 
 }

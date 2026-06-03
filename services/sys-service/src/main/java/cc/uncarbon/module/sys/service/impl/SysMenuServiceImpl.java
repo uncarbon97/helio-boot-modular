@@ -10,9 +10,9 @@ import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
 import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
-import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
-import cc.uncarbon.module.sys.model.valueobj.SysMenuBO;
+import cc.uncarbon.module.sys.model.valueobj.SysMenuInfo;
 import cc.uncarbon.module.sys.model.valueobj.VbenAdminMenuMetaVO;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
@@ -57,7 +57,7 @@ public class SysMenuServiceImpl implements SysMenuService {
      * 后台管理-列表
      */
     @Override
-    public List<SysMenuBO> adminList() {
+    public List<SysMenuInfo> adminList() {
         List<SysMenuEntity> entityList = sysMenuMapper.selectList(
                 new QueryWrapper<SysMenuEntity>()
                         .lambda()
@@ -65,23 +65,23 @@ public class SysMenuServiceImpl implements SysMenuService {
                         .orderByAsc(SysMenuEntity::getSort)
         );
 
-        return this.entityList2BOs(entityList);
+        return convertList(entityList);
     }
 
     /**
      * 根据 ID 取详情
      */
     @Override
-    public SysMenuBO getById(Long id) {
+    public SysMenuInfo getById(Long id) {
         SysMenuEntity entity = sysMenuMapper.selectById(id);
-        return this.entity2BO(entity);
+        return convertEntity(entity);
     }
 
     /**
      * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
     @Override
-    public SysMenuBO getNonnullById(Long id) throws NoRecordException {
+    public SysMenuInfo getNonnullById(Long id) throws NoRecordException {
         return NoRecordException.throwIfNull(getById(id));
     }
 
@@ -144,18 +144,18 @@ public class SysMenuServiceImpl implements SysMenuService {
      * 后台管理-取侧边菜单
      */
     @Override
-    public List<SysMenuBO> adminListSideMenu() {
+    public List<SysMenuInfo> adminListSideMenu() {
         Set<Long> visibleMenuIds = listCurrentUserVisibleMenuIds();
-        return this.listByIds(visibleMenuIds, SysMenuTypeEnum.forAdminSide());
+        return listByIds(visibleMenuIds, MenuTypeEnum.forAdminSide());
     }
 
     /**
      * 后台管理-取所有可见菜单
      */
     @Override
-    public List<SysMenuBO> adminListVisibleMenu() {
+    public List<SysMenuInfo> adminListVisibleMenu() {
         Set<Long> visibleMenuIds = listCurrentUserVisibleMenuIds();
-        return this.listByIds(visibleMenuIds, SysMenuTypeEnum.all());
+        return listByIds(visibleMenuIds, MenuTypeEnum.all());
     }
 
     /**
@@ -186,7 +186,7 @@ public class SysMenuServiceImpl implements SysMenuService {
 
                         Set<Long> menuIds = sysRoleMenuRelationService.listMenuIdsByRoleIds(Collections.singleton(roleId));
                         if (CollUtil.isEmpty(menuIds)) {
-                            permissions = Collections.emptySet();
+                            permissions = Set.of();
                         } else {
                             permissions = sysMenuMapper.selectList(
                                             new QueryWrapper<SysMenuEntity>()
@@ -215,7 +215,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Override
     public Set<String> listPermissionsByMenuIds(Collection<Long> menuIds) {
         if (CollUtil.isEmpty(menuIds)) {
-            return Collections.emptySet();
+            return Set.of();
         }
 
         return sysMenuMapper.selectList(
@@ -236,53 +236,49 @@ public class SysMenuServiceImpl implements SysMenuService {
     /**
      * 实体转值对象
      */
-    private SysMenuBO entity2BO(SysMenuEntity entity) {
+    private SysMenuInfo convertEntity(SysMenuEntity entity) {
         if (entity == null) {
             return null;
         }
 
-        SysMenuBO bo = new SysMenuBO();
-        BeanUtil.copyProperties(entity, bo);
-
+        SysMenuInfo ret = new SysMenuInfo();
+        BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
-        if (SysConstant.ROOT_PARENT_ID.equals(bo.getParentId())) {
-            bo.setParentId(null);
+        if (SysConstant.ROOT_PARENT_ID.equals(ret.getParentId())) {
+            ret.setParentId(null);
         }
 
         String snowflakeIdStr = SNOWFLAKE.nextIdStr();
-        bo
-                .setName(bo.getName())
-                .setMeta(new VbenAdminMenuMetaVO(bo.getName(), false, bo.getIcon()));
+        ret
+                .setName(ret.getName())
+                .setMeta(new VbenAdminMenuMetaVO(ret.getName(), false, ret.getIcon()));
 
-        switch (bo.getMenuType()) {
-            case DIR, BUTTON -> bo
+        switch (ret.getMenuType()) {
+            case DIR, BUTTON -> ret
                     .setComponent(SysConstant.VBEN_ADMIN_BLANK_VIEW)
                     .setExternalLink(null)
                     .setPath(StrPool.SLASH + snowflakeIdStr);
             case MENU -> {
-                bo
+                ret
                         .setExternalLink(null)
-                        .setPath(bo.getComponent());
+                        .setPath(ret.getComponent());
                 // 防止用户忘记加了, 主动补充/
-                if (CharSequenceUtil.isNotBlank(bo.getPath()) && !bo.getPath().startsWith(StrPool.SLASH)) {
-                    bo.setPath(StrPool.SLASH + bo.getPath());
+                if (CharSequenceUtil.isNotBlank(ret.getPath()) && !ret.getPath().startsWith(StrPool.SLASH)) {
+                    ret.setPath(StrPool.SLASH + ret.getPath());
                 }
             }
-            case EXTERNAL_LINK -> bo
-                    .setComponent(bo.getExternalLink())
-                    .setPath(bo.getExternalLink());
+            case EXTERNAL_LINK -> ret
+                    .setComponent(ret.getExternalLink())
+                    .setPath(ret.getExternalLink());
         }
-        return bo;
+        return ret;
     }
 
-    private List<SysMenuBO> entityList2BOs(List<SysMenuEntity> entityList) {
-        // 深拷贝
-        List<SysMenuBO> ret = new ArrayList<>(entityList.size());
-        entityList.forEach(
-                entity -> ret.add(this.entity2BO(entity))
-        );
-
-        return ret;
+    private List<SysMenuInfo> convertList(List<SysMenuEntity> entityList) {
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+        return entityList.stream().map(this::convertEntity).toList();
     }
 
     /**
@@ -313,10 +309,10 @@ public class SysMenuServiceImpl implements SysMenuService {
         SysErrorCodeEnum.A01006.assertNotEmpty(directlyRelatedMenuIds);
 
         // 5. 因为直接关联的菜单ID，可能不包含父级菜单，使得级联关系缺失，这里得给他补上
-        return this.traceParentMenuIds(allMenuMap, directlyRelatedMenuIds);
+        return traceParentMenuIds(allMenuMap, directlyRelatedMenuIds);
     }
 
-    private List<SysMenuBO> listByIds(Collection<Long> ids, List<SysMenuTypeEnum> types)
+    private List<SysMenuInfo> listByIds(Collection<Long> ids, List<MenuTypeEnum> types)
             throws IllegalArgumentException {
         Assert.notEmpty(ids);
         Assert.notEmpty(types);
@@ -334,7 +330,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             return List.of();
         }
 
-        return this.entityList2BOs(entityList);
+        return convertList(entityList);
     }
 
     /**
@@ -368,7 +364,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             );
 
             if (entity != null) {
-                throw new HasRepeatRecordException("已存在相同的【权限标识】");
+                throw new HasRepeatRecordException("已存在相同的权限标识");
             }
         }
     }

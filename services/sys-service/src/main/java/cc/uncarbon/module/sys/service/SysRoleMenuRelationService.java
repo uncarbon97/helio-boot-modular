@@ -11,10 +11,10 @@ public interface SysRoleMenuRelationService {
     /**
      * 根据角色Ids取菜单Ids
      */
-    Set<Long> listMenuIdsByRoleIds(Collection<Long> roleIds) throws IllegalArgumentException;
+    Set<Long> listMenuIdsByRoleIds(Collection<Long> roleIds);
 
     /**
-     * 绑定角色ID与菜单ID关联关系，增量更新
+     * 绑定角色与菜单关联关系，增量更新
      */
     void cleanAndBind(Long roleId, Collection<Long> menuIds);
 }

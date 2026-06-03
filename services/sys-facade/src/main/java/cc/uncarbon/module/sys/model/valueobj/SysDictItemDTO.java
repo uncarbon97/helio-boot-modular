@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 
 /**
- * 字典项信息
+ * 字典项
  */
 @Accessors(chain = true)
 @AllArgsConstructor

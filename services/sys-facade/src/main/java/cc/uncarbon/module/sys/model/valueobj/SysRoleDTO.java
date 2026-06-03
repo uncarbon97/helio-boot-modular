@@ -12,13 +12,13 @@ import java.util.Collection;
 
 
 /**
- * 系统角色BO
+ * 系统角色
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysRoleBO implements Serializable {
+public class SysRoleDTO implements Serializable {
 
     @Schema(description = "主键ID")
     private Long id;

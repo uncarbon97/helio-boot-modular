@@ -2,23 +2,24 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.module.sys.dal.entity.SysUserRoleRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
+import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
-
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 
 /**
- * 后台用户-角色关联
+ * 系统用户-角色关联关系
  */
 @RequiredArgsConstructor
 @Service
@@ -28,10 +29,6 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
     private final SysUserRoleRelationMapper sysUserRoleRelationMapper;
 
 
-    /**
-     * 后台管理-新增
-     * 注：本方法较为特殊，仅供SysTenantFacadeImpl调用
-     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long adminCreate(Long tenantId, Long userId, Long roleId) {
@@ -44,10 +41,6 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
         return entity.getId();
     }
 
-
-    /**
-     * 先清理用户ID所有关联关系, 再绑定用户ID与角色ID
-     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void cleanAndBind(Long userId, Collection<Long> roleIds) {
@@ -59,52 +52,33 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
 
         if (CollUtil.isNotEmpty(roleIds)) {
             // 需要绑定角色
-            roleIds.forEach(
-                    roleId -> sysUserRoleRelationMapper.insert(
-                            SysUserRoleRelationEntity.builder()
-                                    .userId(userId)
-                                    .roleId(roleId)
-                                    .build()
-                    )
-            );
+            List<SysUserRoleRelationEntity> entityList = roleIds.stream()
+                    .map(roleId -> SysUserRoleRelationEntity.of(userId, roleId)).toList();
+            sysUserRoleRelationMapper.insert(entityList);
         }
     }
 
-    /**
-     * 取拥有角色Ids
-     *
-     * @param userId 用户ID
-     * @return 失败返回空列表
-     */
     @Override
-    public Set<Long> listRoleIdsByUserId(Long userId) throws IllegalArgumentException {
-        if (userId == null) {
-            throw new IllegalArgumentException("userId必填");
+    public List<Long> listRoleIdsByUser(Long userId) {
+        if (Objects.isNull(userId)) {
+            return List.of();
         }
 
         return sysUserRoleRelationMapper.selectList(
-                new QueryWrapper<SysUserRoleRelationEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<SysUserRoleRelationEntity>()
                         .select(SysUserRoleRelationEntity::getRoleId)
                         .eq(SysUserRoleRelationEntity::getUserId, userId)
-        ).stream().map(SysUserRoleRelationEntity::getRoleId).collect(Collectors.toSet());
+        ).stream().map(SysUserRoleRelationEntity::getRoleId).toList();
     }
 
-    /**
-     * 取角色IDs关联的用户IDs
-     *
-     * @param roleIds 角色IDs
-     * @return 空集合or用户IDs
-     */
     @Override
-    public Set<Long> listUserIdsByRoleIds(Collection<Long> roleIds) {
+    public Set<Long> listUserIdsByRoles(Collection<Long> roleIds) {
         if (CollUtil.isEmpty(roleIds)) {
-            return Collections.emptySet();
+            return Set.of();
         }
 
         return sysUserRoleRelationMapper.selectList(
-                new QueryWrapper<SysUserRoleRelationEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<SysUserRoleRelationEntity>()
                         .select(SysUserRoleRelationEntity::getUserId)
                         .in(SysUserRoleRelationEntity::getRoleId, roleIds)
         ).stream().map(SysUserRoleRelationEntity::getUserId).collect(Collectors.toSet());

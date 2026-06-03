@@ -1,6 +1,8 @@
 package cc.uncarbon.module.sys.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
+import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
+import cc.uncarbon.module.sys.enums.LoginLogTypeEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -36,7 +38,7 @@ public class SysLoginLogEntity extends AbstractTenantGenericEntity {
 
 	@Schema(description = "登录日志类型")
 	@TableField(value = "login_log_type")
-	private Integer loginLogType;
+	private LoginLogTypeEnum loginLogType;
 
 	@Schema(description = "用户账号")
 	@TableField(value = "user_pin")
@@ -64,7 +66,7 @@ public class SysLoginLogEntity extends AbstractTenantGenericEntity {
 
 	@Schema(description = "结果状态")
 	@TableField(value = "result_status")
-	private Integer resultStatus;
+	private LogResultStatusEnum resultStatus;
 
 	@Schema(description = "失败原因文本")
 	@TableField(value = "failed_msg")

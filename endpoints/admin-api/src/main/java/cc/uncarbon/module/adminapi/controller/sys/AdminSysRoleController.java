@@ -10,7 +10,7 @@ import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
 import cc.uncarbon.module.sys.model.request.AdminBindRoleMenuRelationDTO;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
-import cc.uncarbon.module.sys.model.valueobj.SysRoleBO;
+import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
@@ -42,14 +42,14 @@ public class AdminSysRoleController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "分页查询")
     @PostMapping(value = "/list")
-    public ApiResult<PageResult<SysRoleBO>> list(@RequestBody @Valid AdminSysRoleListQuery query) {
+    public ApiResult<PageResult<SysRoleDTO>> list(@RequestBody @Valid AdminSysRoleListQuery query) {
         return ApiResult.success(sysRoleService.adminList(query));
     }
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
-    public ApiResult<SysRoleBO> detail(@RequestParam Long id) {
+    public ApiResult<SysRoleDTO> detail(@RequestParam Long id) {
         return ApiResult.success(sysRoleService.getNonnullById(id));
     }
 

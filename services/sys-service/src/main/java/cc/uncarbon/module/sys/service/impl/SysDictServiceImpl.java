@@ -200,13 +200,14 @@ public class SysDictServiceImpl implements SysDictService {
     /**
      * 实体转值对象
      */
-    private SysDictCategoryDTO convertSingle(SysDictCategoryEntity entity) {
+    private SysDictCategoryDTO convertEntity(SysDictCategoryEntity entity) {
         if (entity == null) {
             return null;
         }
 
         SysDictCategoryDTO ret = new SysDictCategoryDTO();
         BeanUtil.copyProperties(entity, ret);
+        // 按需改写字段
 
         return ret;
     }
@@ -214,13 +215,14 @@ public class SysDictServiceImpl implements SysDictService {
     /**
      * 实体转值对象
      */
-    private SysDictItemDTO convertSingle(SysDictItemEntity entity) {
+    private SysDictItemDTO convertEntity(SysDictItemEntity entity) {
         if (entity == null) {
             return null;
         }
 
         SysDictItemDTO ret = new SysDictItemDTO();
         BeanUtil.copyProperties(entity, ret);
+        // 按需改写字段
 
         return ret;
     }
@@ -232,9 +234,7 @@ public class SysDictServiceImpl implements SysDictService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-
-        // 深拷贝
-        return entityList.stream().map(this::convertSingle).toList();
+        return entityList.stream().map(this::convertEntity).toList();
     }
 
     /**
@@ -244,9 +244,7 @@ public class SysDictServiceImpl implements SysDictService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-
-        // 深拷贝
-        return entityList.stream().map(this::convertSingle).toList();
+        return entityList.stream().map(this::convertEntity).toList();
     }
 
     /**
@@ -288,7 +286,7 @@ public class SysDictServiceImpl implements SysDictService {
         );
 
         if (entity != null) {
-            throw new HasRepeatRecordException("已存在相同的【字典分类编码】");
+            throw new HasRepeatRecordException("已存在相同的字典分类编码");
         }
     }
 
@@ -309,7 +307,7 @@ public class SysDictServiceImpl implements SysDictService {
         );
 
         if (entity != null) {
-            throw new HasRepeatRecordException("同一分类下，已存在相同的【字典项编码】");
+            throw new HasRepeatRecordException("同一分类下，已存在相同的字典项编码");
         }
     }
 

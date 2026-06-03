@@ -1,26 +1,26 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
-import cc.uncarbon.framework.core.context.TenantContext;
+import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 
 /**
- * 登录后返回的字段
- * 用于内部 RPC 调用
+ * 后台管理-登录
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysUserLoginBO implements Serializable {
+public class AdminSysUserLoginReply implements Serializable {
 
     @Schema(description = "用户ID")
     private Long id;

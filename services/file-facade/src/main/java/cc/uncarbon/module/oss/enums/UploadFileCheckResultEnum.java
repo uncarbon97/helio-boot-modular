@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 前端上传文件检查结果枚举类
+ * 前端上传文件检查结果枚举
  */
 @AllArgsConstructor
 @Getter

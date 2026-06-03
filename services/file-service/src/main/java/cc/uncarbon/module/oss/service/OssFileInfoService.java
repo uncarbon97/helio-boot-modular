@@ -1,9 +1,8 @@
 package cc.uncarbon.module.oss.service;
 
-import cc.uncarbon.framework.core.constant.HeliumConstant;
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
-import cc.uncarbon.framework.core.page.PageParam;
 import cc.uncarbon.framework.core.page.PageResult;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.module.oss.constant.OssConstant;
 import cc.uncarbon.module.oss.entity.OssFileInfoEntity;
 import cc.uncarbon.module.oss.enums.OssErrorEnum;
@@ -15,7 +14,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.NonNull;
@@ -28,8 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -59,7 +57,7 @@ public class OssFileInfoService {
                         // 文件类别
                         .eq(CharSequenceUtil.isNotBlank(dto.getClassified()), OssFileInfoEntity::getClassified, CharSequenceUtil.cleanBlank(dto.getClassified()))
                         // 时间区间
-                        .between(ObjectUtil.isNotNull(dto.getBeginAt()) && ObjectUtil.isNotNull(dto.getEndAt()), OssFileInfoEntity::getCreatedAt, dto.getBeginAt(), dto.getEndAt())
+                        .between(Objects.nonNull(dto.getBeginAt()) && Objects.nonNull(dto.getEndAt()), OssFileInfoEntity::getCreatedAt, dto.getBeginAt(), dto.getEndAt())
                         // 排序
                         .orderByDesc(OssFileInfoEntity::getId)
         );
@@ -101,7 +99,7 @@ public class OssFileInfoService {
         log.info("[系统管理-删除上传文件信息] >> ids={}", ids);
 
         // 1. 删除原始文件
-        List<OssFileInfoEntity> entityList = ossFileInfoMapper.selectBatchIds(ids);
+        List<OssFileInfoEntity> entityList = ossFileInfoMapper.selectByIds(ids);
         for (OssFileInfoEntity entity : entityList) {
             fileStorageService.delete(toFileInfo(entity));
         }
@@ -202,18 +200,18 @@ public class OssFileInfoService {
             return null;
         }
 
-        OssFileInfoBO bo = new OssFileInfoBO();
-        BeanUtil.copyProperties(entity, bo);
+        OssFileInfoBO ret = new OssFileInfoBO();
+        BeanUtil.copyProperties(entity, ret);
 
         // 按需改写字段
 
-        return bo;
+        return ret;
     }
 
     /**
      * 实体转值对象
      */
-    private List<OssFileInfoBO> entityList2BOs(List<OssFileInfoEntity> entityList) {
+    private List<OssFileInfoBO> convertList(List<OssFileInfoEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
@@ -235,7 +233,7 @@ public class OssFileInfoService {
                 .setCurrent(entityPage.getCurrent())
                 .setSize(entityPage.getSize())
                 .setTotal(entityPage.getTotal())
-                .setRecords(this.entityList2BOs(entityPage.getRecords()));
+                .setRecords(this.convertList(entityPage.getRecords()));
     }
 
 }

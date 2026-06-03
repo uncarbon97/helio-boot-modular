@@ -64,10 +64,8 @@ public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRe
         menuIds.removeAll(existingMenuIds);
 
         if (CollUtil.isNotEmpty(menuIds)) {
-            List<TenantPackageMenuRelationEntity> entityList = new ArrayList<>(menuIds.size());
-            for (Long menuId : menuIds) {
-                entityList.add(TenantPackageMenuRelationEntity.of(packageId, menuId));
-            }
+            List<TenantPackageMenuRelationEntity> entityList = menuIds.stream()
+                    .map(menuId -> TenantPackageMenuRelationEntity.of(packageId, menuId)).toList();
             tenantPackageMenuRelationMapper.insert(entityList);
         }
     }

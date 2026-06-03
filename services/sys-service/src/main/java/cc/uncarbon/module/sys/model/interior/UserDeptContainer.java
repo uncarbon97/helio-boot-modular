@@ -71,8 +71,8 @@ public class UserDeptContainer {
      */
     public void updateVisibleDepts(List<SysDeptEntity> visibleDepts) {
         if (CollUtil.isEmpty(visibleDepts)) {
-            this.visibleDeptIds = Collections.emptyList();
-            this.visibleDepts = Collections.emptyList();
+            this.visibleDeptIds = List.of();
+            this.visibleDepts = List.of();
         } else {
             this.visibleDeptIds = visibleDepts.stream().map(SysDeptEntity::getId).toList();
             this.visibleDepts = visibleDepts;

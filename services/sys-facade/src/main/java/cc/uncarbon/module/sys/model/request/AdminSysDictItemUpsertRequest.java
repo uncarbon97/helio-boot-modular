@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-字典项-新增/修改
+ * 字典项-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -30,17 +30,17 @@ public class AdminSysDictItemUpsertRequest implements Serializable {
     private Long categoryId;
 
     @Schema(description = "字典项编码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 255, message = "【字典项编码】最长255位")
+    @Size(max = 255, message = "字典项编码最长255位")
     @NotBlank(message = "字典项编码必填")
     private String code;
 
     @Schema(description = "字典项标签", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 255, message = "【字典项标签】最长255位")
+    @Size(max = 255, message = "字典项标签最长255位")
     @NotBlank(message = "字典项标签必填")
     private String label;
 
     @Schema(description = "字典项值", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 4096, message = "【字典项值】最长4096位")
+    @Size(max = 4096, message = "字典项值最长4096位")
     @NotBlank(message = "字典项值必填")
     private String value;
 
@@ -53,7 +53,7 @@ public class AdminSysDictItemUpsertRequest implements Serializable {
     private Integer sort;
 
     @Schema(description = "字典项描述")
-    @Size(max = 255, message = "【字典项描述】最长255位")
+    @Size(max = 255, message = "字典项描述最长255位")
     private String description;
 
 }

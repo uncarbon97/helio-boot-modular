@@ -6,7 +6,7 @@ import cc.uncarbon.framework.core.context.TenantContextHolder;
 import cc.uncarbon.framework.core.context.UserContext;
 import cc.uncarbon.framework.core.context.UserContextHolder;
 import cc.uncarbon.module.Bootstrap;
-import cc.uncarbon.module.sys.model.valueobj.SysRoleBO;
+import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cn.hutool.core.collection.CollUtil;
 import jakarta.annotation.Resource;
@@ -50,7 +50,7 @@ class ExampleUnitTest {
 
     @Test
     void exampleTest() {
-        List<SysRoleBO> selectOptions = sysRoleService.adminSelectOptions();
+        List<SysRoleDTO> selectOptions = sysRoleService.adminSelectOptions();
         Assertions.assertTrue(CollUtil.isNotEmpty(selectOptions));
     }
 }

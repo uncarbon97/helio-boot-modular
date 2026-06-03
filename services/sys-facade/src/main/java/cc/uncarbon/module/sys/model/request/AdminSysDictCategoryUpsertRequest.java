@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-字典分类-新增/修改
+ * 字典分类-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -26,12 +26,12 @@ public class AdminSysDictCategoryUpsertRequest implements Serializable {
     private Long id;
 
     @Schema(description = "字典编码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 255, message = "【字典编码】最长255位")
+    @Size(max = 255, message = "字典编码最长255位")
     @NotBlank(message = "字典编码必填")
     private String code;
 
     @Schema(description = "字典名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 255, message = "【字典名称】最长255位")
+    @Size(max = 255, message = "字典名称最长255位")
     @NotBlank(message = "字典名称必填")
     private String name;
 
@@ -40,7 +40,7 @@ public class AdminSysDictCategoryUpsertRequest implements Serializable {
     private EnabledStatusEnum status;
 
     @Schema(description = "字典描述")
-    @Size(max = 255, message = "【字典描述】最长255位")
+    @Size(max = 255, message = "字典描述最长255位")
     private String description;
 
 }

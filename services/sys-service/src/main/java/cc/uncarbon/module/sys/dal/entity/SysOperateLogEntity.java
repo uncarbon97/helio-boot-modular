@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
+import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -84,7 +85,7 @@ public class SysOperateLogEntity extends AbstractTenantGenericEntity {
 
 	@Schema(description = "结果状态")
 	@TableField(value = "result_status")
-	private Integer resultStatus;
+	private LogResultStatusEnum resultStatus;
 
 	@Schema(description = "失败原因文本")
 	@TableField(value = "failed_msg")

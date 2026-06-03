@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
-import cc.uncarbon.module.sys.model.valueobj.SysMenuBO;
+import cc.uncarbon.module.sys.model.valueobj.SysMenuInfo;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,7 +17,7 @@ public interface SysMenuService {
     /**
      * 后台管理-列表
      */
-    List<SysMenuBO> adminList();
+    List<SysMenuInfo> adminList();
 
     /**
      * 后台管理-新增
@@ -37,22 +37,22 @@ public interface SysMenuService {
     /**
      * 后台管理-取侧边菜单
      */
-    List<SysMenuBO> adminListSideMenu();
+    List<SysMenuInfo> adminListSideMenu();
 
     /**
      * 后台管理-取所有可见菜单
      */
-    List<SysMenuBO> adminListVisibleMenu();
+    List<SysMenuInfo> adminListVisibleMenu();
 
     /**
      * 根据 ID 取详情
      */
-    SysMenuBO getById(Long id);
+    SysMenuInfo getById(Long id);
 
     /**
      * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
-    SysMenuBO getNonnullById(Long id) throws NoRecordException;
+    SysMenuInfo getNonnullById(Long id) throws NoRecordException;
 
     /**
      * 根据角色Ids，获取角色ID 对应的权限名 Map

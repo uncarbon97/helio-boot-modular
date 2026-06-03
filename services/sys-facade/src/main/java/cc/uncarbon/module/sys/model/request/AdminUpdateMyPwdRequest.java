@@ -12,13 +12,13 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-当前用户-修改密码
+ * 当前用户-修改密码
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminUpdateCurrentSysUserPasswordDTO implements Serializable {
+public class AdminUpdateMyPwdRequest implements Serializable {
 
     @Schema(description = "原密码", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "【原密码】必填")

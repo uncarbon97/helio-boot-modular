@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationEvent;
 import java.util.Collection;
 
 /**
- * 强制登出后台用户事件
+ * 强制登出系统用户事件
  */
 @Getter
 public final class KickOutSysUsersEvent extends ApplicationEvent {
@@ -24,7 +24,7 @@ public final class KickOutSysUsersEvent extends ApplicationEvent {
     public static final class EventData {
 
         /**
-         * 需要被强制登出的后台用户IDs
+         * 需要被强制登出的系统用户IDs
          */
         private final Collection<Long> sysUserIds;
 

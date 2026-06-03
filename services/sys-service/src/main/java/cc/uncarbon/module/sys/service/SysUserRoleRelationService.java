@@ -1,10 +1,11 @@
 package cc.uncarbon.module.sys.service;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
- * 后台用户-角色关联
+ * 系统用户-角色关联关系
  */
 public interface SysUserRoleRelationService {
 
@@ -15,17 +16,18 @@ public interface SysUserRoleRelationService {
     Long adminCreate(Long tenantId, Long userId, Long roleId);
 
     /**
-     * 先清理用户ID所有关联关系, 再绑定用户ID与角色ID
+     * 绑定用户与角色关联关系，增量更新
      */
     void cleanAndBind(Long userId, Collection<Long> roleIds);
 
     /**
-     * 取拥有角色Ids
+     * 根据用户ID，查询关联的角色IDs
      */
-    Set<Long> listRoleIdsByUserId(Long userId) throws IllegalArgumentException;
+    List<Long> listRoleIdsByUser(Long userId);
 
     /**
-     * 取角色IDs关联的用户IDs
+     * 根据角色IDs，查询关联的用户IDs
      */
-    Set<Long> listUserIdsByRoleIds(Collection<Long> roleIds);
+    Set<Long> listUserIdsByRoles(Collection<Long> roleIds);
+
 }

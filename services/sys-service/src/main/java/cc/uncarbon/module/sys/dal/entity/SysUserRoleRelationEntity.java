@@ -1,6 +1,5 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantRelationEntity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -43,4 +42,11 @@ public class SysUserRoleRelationEntity extends AbstractTenantRelationEntity {
 	@TableField(value = "role_id")
 	private Long roleId;
 
+
+	public static SysUserRoleRelationEntity of(Long userId, Long roleId) {
+		SysUserRoleRelationEntity ret = new SysUserRoleRelationEntity();
+		ret.userId = userId;
+		ret.roleId = roleId;
+		return ret;
+	}
 }

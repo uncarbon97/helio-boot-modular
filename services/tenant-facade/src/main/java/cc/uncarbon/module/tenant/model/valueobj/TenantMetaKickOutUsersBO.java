@@ -13,11 +13,11 @@ import java.util.List;
 @Getter
 public class TenantMetaKickOutUsersBO {
 
-    @Schema(description = "后台用户IDs")
+    @Schema(description = "系统用户IDs")
     private final List<Long> sysUserIds;
 
     public TenantMetaKickOutUsersBO() {
-        this.sysUserIds = Collections.emptyList();
+        this.sysUserIds = List.of();
     }
 
     public TenantMetaKickOutUsersBO(List<Long> sysUserIds) {

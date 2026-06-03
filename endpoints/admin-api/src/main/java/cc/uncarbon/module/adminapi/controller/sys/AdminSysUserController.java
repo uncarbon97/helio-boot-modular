@@ -10,10 +10,11 @@ import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
-import cc.uncarbon.module.sys.model.request.AdminBindUserRoleRelationDTO;
-import cc.uncarbon.module.sys.model.request.AdminResetSysUserPasswordDTO;
+import cc.uncarbon.module.sys.model.request.AdminBindUserRolesRequest;
+import cc.uncarbon.module.sys.model.request.AdminResetSysUserPwdRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
-import cc.uncarbon.module.sys.model.valueobj.SysUserBO;
+import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
+import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
@@ -26,11 +27,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "后台用户管理接口")
+@Tag(name = "系统用户管理接口")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/user")
 @RequiredArgsConstructor
 @RestController
@@ -40,23 +41,24 @@ public class AdminSysUserController {
     private static final String PERMISSION_PREFIX = "SysUser:";
 
     private final SysUserServiceImpl sysUserService;
+    private final SysUserRoleRelationService sysUserRoleRelationService;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "分页查询")
     @PostMapping(value = "/list")
-    public ApiResult<PageResult<SysUserBO>> list(@RequestBody @Valid AdminSysUserListQuery query) {
+    public ApiResult<PageResult<SysUserDTO>> list(@RequestBody @Valid AdminSysUserListQuery query) {
         return ApiResult.success(sysUserService.adminList(query));
     }
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
-    public ApiResult<SysUserBO> detail(@RequestParam Long id) {
+    public ApiResult<SysUserDTO> detail(@RequestParam Long id) {
         return ApiResult.success(sysUserService.getNonnullById(id));
     }
 
-    // @SysOperateLog(value = "新增后台用户")
+    // @SysOperateLog(value = "新增系统用户")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
@@ -67,7 +69,7 @@ public class AdminSysUserController {
         return ApiResult.success();
     }
 
-    // @SysOperateLog(value = "编辑后台用户")
+    // @SysOperateLog(value = "编辑系统用户")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "编辑")
     @PostMapping(value = "/update")
@@ -85,7 +87,7 @@ public class AdminSysUserController {
         return ApiResult.success();
     }
 
-    // @SysOperateLog(value = "删除后台用户")
+    // @SysOperateLog(value = "删除系统用户")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
@@ -104,7 +106,7 @@ public class AdminSysUserController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "resetPassword")
     @Operation(summary = "重置某用户密码")
     @PostMapping(value = "/reset-password")
-    public ApiResult<Void> resetPassword(@RequestBody @Valid AdminResetSysUserPasswordDTO request) {
+    public ApiResult<Void> resetPassword(@RequestBody @Valid AdminResetSysUserPwdRequest request) {
         sysUserService.adminResetUserPassword(request);
 
         // 强制登出
@@ -116,7 +118,7 @@ public class AdminSysUserController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bindRoles")
     @Operation(summary = "绑定用户与角色关联关系")
     @PostMapping(value = "/bind-roles")
-    public ApiResult<Void> bindRoles(@RequestBody AdminBindUserRoleRelationDTO request) {
+    public ApiResult<Void> bindRoles(@RequestBody AdminBindUserRolesRequest request) {
         sysUserService.adminBindRoles(request);
 
         // 异步强制登出，以更新对应权限；可以视业务需要决定是否删除该代码
@@ -139,8 +141,8 @@ public class AdminSysUserController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "取指定用户关联角色ID")
     @PostMapping(value = "/list-related-role-ids")
-    public ApiResult<Set<Long>> listRelatedRoleIds(@RequestParam Long userId) {
-        return ApiResult.success(sysUserService.listRelatedRoleIds(userId));
+    public ApiResult<List<Long>> listRelatedRoleIds(@RequestParam Long userId) {
+        return ApiResult.success(sysUserRoleRelationService.listRoleIdsByUser(userId));
     }
 
 }

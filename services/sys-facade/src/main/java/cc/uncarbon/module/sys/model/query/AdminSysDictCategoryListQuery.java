@@ -12,7 +12,7 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-字典分类-分页查询
+ * 字典分类-分页查询
  */
 @Accessors(chain = true)
 @AllArgsConstructor

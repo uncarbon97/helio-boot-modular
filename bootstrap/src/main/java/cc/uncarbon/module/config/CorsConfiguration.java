@@ -5,9 +5,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Spring Boot 2.4+ 跨域设置需要变化
- * 参考https://blog.csdn.net/jxysgzs/article/details/110818712
- *
  * 因可能个别项目需要特别的跨域设置，单拎出来放在这
  *
  * @author Uncarbon

@@ -2,8 +2,8 @@ package cc.uncarbon.module.tenant.service.impl;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
-import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.model.query.AdminTenantMetaListQuery;
@@ -14,7 +14,6 @@ import cc.uncarbon.module.tenant.service.TenantMetaService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -26,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -48,11 +48,11 @@ public class TenantMetaServiceImpl implements TenantMetaService {
                 new QueryWrapper<TenantMetaEntity>()
                         .lambda()
                         // 租户编码
-                        .like(ObjectUtil.isNotNull(query.getCode()), TenantMetaEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
+                        .like(Objects.nonNull(query.getCode()), TenantMetaEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
                         // 租户名称
                         .like(CharSequenceUtil.isNotBlank(query.getName()), TenantMetaEntity::getName, CharSequenceUtil.cleanBlank(query.getName()))
                         // 状态
-                        .eq(ObjectUtil.isNotNull(query.getStatus()), TenantMetaEntity::getStatus, query.getStatus())
+                        .eq(Objects.nonNull(query.getStatus()), TenantMetaEntity::getStatus, query.getStatus())
                         // 排序
                         .orderByDesc(TenantMetaEntity::getId)
         );
@@ -134,15 +134,15 @@ public class TenantMetaServiceImpl implements TenantMetaService {
             return null;
         }
 
-        TenantMetaDTO bo = new TenantMetaDTO();
-        BeanUtil.copyProperties(entity, bo);
+        TenantMetaDTO ret = new TenantMetaDTO();
+        BeanUtil.copyProperties(entity, ret);
 
         // 按需改写字段
-        if (fillTenantAdminUser && ObjectUtil.isNotNull(entity.getTenantAdminUserId())) {
-            bo.setTenantAdminUser(sysUserMapper.getBaseInfoByUserId(entity.getTenantAdminUserId()));
+        if (fillTenantAdminUser && Objects.nonNull(entity.getTenantAdminUserId())) {
+            ret.setTenantAdminUser(sysUserMapper.getBaseInfoByUserId(entity.getTenantAdminUserId()));
         }
 
-        return bo;
+        return ret;
     }
 
     /**
@@ -185,7 +185,7 @@ public class TenantMetaServiceImpl implements TenantMetaService {
         );
 
         if (entity != null) {
-            throw new HasRepeatRecordException("已存在相同的【租户编码】");
+            throw new HasRepeatRecordException("已存在相同的租户编码");
         }
     }
 

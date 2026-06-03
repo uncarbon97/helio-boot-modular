@@ -14,7 +14,7 @@ import java.util.Objects;
 
 
 /**
- * 系统管理-系统角色-新增/修改
+ * 系统角色-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -29,12 +29,12 @@ public class AdminSysRoleUpsertRequest implements Serializable {
     private Long tenantId;
 
     @Schema(description = "角色编码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 100, message = "【角色编码】最长100位")
+    @Size(max = 100, message = "角色编码最长100位")
     @NotBlank(message = "角色编码必填")
     private String code;
 
     @Schema(description = "角色名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 50, message = "【角色名称】最长50位")
+    @Size(max = 50, message = "角色名称最长50位")
     @NotBlank(message = "角色名称必填")
     private String name;
 

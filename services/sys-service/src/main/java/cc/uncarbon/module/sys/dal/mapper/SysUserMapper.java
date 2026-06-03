@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 后台用户
+ * 系统用户
  */
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUserEntity> {

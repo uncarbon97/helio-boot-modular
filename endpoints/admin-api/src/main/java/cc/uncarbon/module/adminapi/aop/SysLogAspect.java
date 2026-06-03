@@ -7,9 +7,9 @@ import cc.uncarbon.module.sys.annotation.SysOperateLog;
 import cc.uncarbon.module.sys.enums.SysLogStatusEnum;
 import cc.uncarbon.module.sys.extension.SysLogAspectExtension;
 import cc.uncarbon.module.sys.extension.impl.DefaultSysLogAspectExtension;
-import cc.uncarbon.module.sys.model.request.AdminInsertSysLogDTO;
+import cc.uncarbon.module.sys.model.request.CreateSysLoginLogRequest;
 import cc.uncarbon.module.sys.model.valueobj.IPLocationBO;
-import cc.uncarbon.module.sys.service.SysLogService;
+import cc.uncarbon.module.sys.service.SysLoginLogService;
 import cn.dev33.satoken.spring.SpringMVCUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
@@ -83,7 +83,7 @@ public class SysLogAspect {
 
     private static final SysLogAspectExtension DEFAULT_SYS_LOG_ASPECT_EXTENSION = new DefaultSysLogAspectExtension();
 
-    private final SysLogService sysLogService;
+    private final SysLoginLogService sysLoginLogService;
     private final ThreadPoolTaskExecutor taskExecutor;
 
 
@@ -93,7 +93,7 @@ public class SysLogAspect {
     @AfterReturning(pointcut = "@annotation(annotation)", returning = "ret")
     public void returning(JoinPoint joinPoint, SysOperateLog annotation, Object ret) {
         if (!ArrayUtil.contains(annotation.when(), SysOperateLog.When.SUCCESS)) {
-            // 系统日志保存时机不包含“成功时”
+            // 系统登录日志保存时机不包含“成功时”
             return;
         }
 
@@ -115,7 +115,7 @@ public class SysLogAspect {
     @AfterThrowing(value = "@annotation(annotation)", throwing = "e")
     public void throwing(JoinPoint joinPoint, SysOperateLog annotation, Throwable e) {
         if (!ArrayUtil.contains(annotation.when(), SysOperateLog.When.FAILED)) {
-            // 系统日志保存时机不包含“失败时”
+            // 系统登录日志保存时机不包含“失败时”
             return;
         }
 
@@ -132,7 +132,7 @@ public class SysLogAspect {
     }
 
     /**
-     * 同步保存系统日志
+     * 同步保存系统登录日志
      * @param joinPoint 切点
      * @param annotation 注解实例
      * @param aspectContext 上下文
@@ -153,7 +153,7 @@ public class SysLogAspect {
                 extensionInstance = ReflectUtil.newInstance(extensionClazz);
             }
 
-            AdminInsertSysLogDTO dto = buildInsertDTO(joinPoint, annotation, aspectContext);
+            CreateSysLoginLogRequest dto = buildInsertDTO(joinPoint, annotation, aspectContext);
             setParamInDTO(joinPoint, dto);
 
             if (e != null) {
@@ -177,8 +177,8 @@ public class SysLogAspect {
             // 扩展：保存到 DB 前
             extensionInstance.beforeSaving(dto, joinPoint, annotation, e, ret);
 
-            // 保存系统日志
-            sysLogService.adminCreate(dto);
+            // 保存系统登录日志
+            sysLoginLogService.create(dto);
         } finally {
             UserContextHolder.clear();
         }
@@ -233,7 +233,7 @@ public class SysLogAspect {
     }
 
     /**
-     * 异步保存系统日志
+     * 异步保存系统登录日志
      */
     private void saveSysLogAsync(final JoinPoint joinPoint, SysOperateLog annotation, final AspectContext aspectContext,
                                  final Throwable e, Object ret) {
@@ -245,8 +245,8 @@ public class SysLogAspect {
     /**
      * 构造新增DTO
      */
-    private static AdminInsertSysLogDTO buildInsertDTO(JoinPoint joinPoint, SysOperateLog annotation, AspectContext aspectContext) {
-        return new AdminInsertSysLogDTO()
+    private static CreateSysLoginLogRequest buildInsertDTO(JoinPoint joinPoint, SysOperateLog annotation, AspectContext aspectContext) {
+        return new CreateSysLoginLogRequest()
                 // 记录操作人
                 .setUserId(UserContextHolder.getUserId())
                 .setUsername(UserContextHolder.getUserName())
@@ -267,7 +267,7 @@ public class SysLogAspect {
     /**
      * 记录请求参数，设置dto的param字段
      */
-    private static void setParamInDTO(JoinPoint joinPoint, AdminInsertSysLogDTO dto) {
+    private static void setParamInDTO(JoinPoint joinPoint, CreateSysLoginLogRequest dto) {
         Map<Object, Object> afterMasked = new LinkedHashMap<>(32, 1);
         String params = Arrays.stream(joinPoint.getArgs()).map(
                 item -> {

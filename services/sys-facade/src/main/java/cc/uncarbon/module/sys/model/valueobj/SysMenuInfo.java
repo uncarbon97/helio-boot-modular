@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
 import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
-import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,13 +13,13 @@ import java.time.LocalDateTime;
 
 
 /**
- * 系统菜单BO
+ * 系统菜单
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysMenuBO implements Serializable {
+public class SysMenuInfo implements Serializable {
 
     @Schema(description = "主键ID")
     private Long id;
@@ -37,7 +37,7 @@ public class SysMenuBO implements Serializable {
     private Long parentId;
 
     @Schema(description = "菜单类型")
-    private SysMenuTypeEnum menuType;
+    private MenuTypeEnum menuType;
 
     @Schema(description = "菜单权限标识")
     private String permission;

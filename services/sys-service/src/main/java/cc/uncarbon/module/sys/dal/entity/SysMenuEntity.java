@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
-import cc.uncarbon.module.sys.enums.SysMenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -46,7 +46,7 @@ public class SysMenuEntity extends AbstractTenantGenericEntity {
 
 	@Schema(description = "菜单类型")
 	@TableField(value = "menu_type")
-	private SysMenuTypeEnum menuType;
+	private MenuTypeEnum menuType;
 
 	@Schema(description = "菜单权限标识")
 	@TableField(value = "permission")

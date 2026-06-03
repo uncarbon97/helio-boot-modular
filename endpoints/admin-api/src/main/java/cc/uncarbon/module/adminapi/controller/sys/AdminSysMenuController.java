@@ -6,7 +6,7 @@ import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.model.request.IdsRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
-import cc.uncarbon.module.sys.model.valueobj.SysMenuBO;
+import cc.uncarbon.module.sys.model.valueobj.SysMenuInfo;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
@@ -36,14 +36,14 @@ public class AdminSysMenuController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "列表")
     @PostMapping(value = "/list")
-    public ApiResult<List<SysMenuBO>> list() {
+    public ApiResult<List<SysMenuInfo>> list() {
         return ApiResult.success(sysMenuService.adminList());
     }
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
-    public ApiResult<SysMenuBO> detail(@RequestParam Long id) {
+    public ApiResult<SysMenuInfo> detail(@RequestParam Long id) {
         return ApiResult.success(sysMenuService.getNonnullById(id));
     }
 
@@ -79,13 +79,13 @@ public class AdminSysMenuController {
 
     @Operation(summary = "取侧边菜单")
     @PostMapping("/side-list")
-    public ApiResult<List<SysMenuBO>> adminListSideMenu() {
+    public ApiResult<List<SysMenuInfo>> adminListSideMenu() {
         return ApiResult.success(sysMenuService.adminListSideMenu());
     }
 
     @Operation(summary = "取所有可见菜单")
     @PostMapping("/visible-list")
-    public ApiResult<List<SysMenuBO>> adminListVisibleMenu() {
+    public ApiResult<List<SysMenuInfo>> adminListVisibleMenu() {
         return ApiResult.success(sysMenuService.adminListVisibleMenu());
     }
 

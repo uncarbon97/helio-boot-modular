@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class VbenAdminUserInfoVO implements Serializable {
+public class MyProfileDTO implements Serializable {
 
     @Schema(description = "账号")
     private String pin;

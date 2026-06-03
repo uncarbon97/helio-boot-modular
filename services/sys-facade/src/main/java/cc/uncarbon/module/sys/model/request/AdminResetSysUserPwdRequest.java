@@ -2,7 +2,6 @@ package cc.uncarbon.module.sys.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -13,16 +12,16 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-重置某用户密码
+ * 重置某用户密码
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminResetSysUserPasswordDTO implements Serializable {
+public class AdminResetSysUserPwdRequest implements Serializable {
 
     @Schema(description = "随机新密码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(min = 16, max = 64, message = "【随机新密码】最短16位，最长64位")
+    @Size(min = 16, max = 64, message = "随机新密码最短16位，最长64位")
     @NotBlank(message = "随机新密码必填")
     private String randomPassword;
 

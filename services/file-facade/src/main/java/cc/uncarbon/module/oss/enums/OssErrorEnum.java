@@ -7,7 +7,7 @@ import lombok.Getter;
 
 
 /**
- * oss模块错误枚举类
+ * oss模块错误枚举
  */
 @AllArgsConstructor
 @Getter

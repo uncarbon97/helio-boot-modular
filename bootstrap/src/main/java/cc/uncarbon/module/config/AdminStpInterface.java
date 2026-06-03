@@ -1,23 +1,24 @@
 package cc.uncarbon.module.config;
 
-import cc.uncarbon.framework.core.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cn.dev33.satoken.stp.StpInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
 /**
- * 自定义权限验证接口扩展
- * 用于系统管理
+ * 实现权限数据源加载接口
  *
  * @author Uncarbon
  */
 @Component
 @RequiredArgsConstructor
-public class AdminSaTokenExtendConfiguration implements StpInterface {
+public class AdminStpInterface implements StpInterface {
 
     private final RolePermissionCacheHelper rolePermissionCacheHelper;
 
@@ -27,7 +28,7 @@ public class AdminSaTokenExtendConfiguration implements StpInterface {
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        return rolePermissionCacheHelper.getUserPermissions();
+        return rolePermissionCacheHelper.getCurrentUserPermissions();
     }
 
     /**
@@ -35,6 +36,10 @@ public class AdminSaTokenExtendConfiguration implements StpInterface {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        return UserContextHolder.getUserContext().getRoles();
+        Collection<String> roleCodes = UserContextHolder.getUserContext().getRoleCodes();
+        if (roleCodes instanceof List<String> asList) {
+            return asList;
+        }
+        return new ArrayList<>(roleCodes);
     }
 }

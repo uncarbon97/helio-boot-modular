@@ -5,22 +5,24 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 后台用户-部门关联
+ * 系统用户-部门关联关系
  */
 public interface SysUserDeptRelationService {
 
     /**
-     * 列举用户ID关联的部门IDs
+     * 根据用户ID，查询关联的部门IDs
+     * 目前只有单成员
      */
-    List<Long> getUserDeptIds(Long userId);
+    List<Long> listDeptIdsByUser(Long userId);
 
     /**
-     * 先清理用户ID所有关联关系, 再绑定用户ID与部门ID
+     * 根据部门IDs，查询关联的用户ID
+     */
+    Set<Long> listUserIdsByDepts(Collection<Long> deptIds);
+
+    /**
+     * 绑定用户与部门关联关系
      */
     void cleanAndBind(Long userId, Long deptId);
 
-    /**
-     * 列举部门IDs关联的用户IDs
-     */
-    Set<Long> listUserIdsByDeptIds(Collection<Long> deptIds);
 }

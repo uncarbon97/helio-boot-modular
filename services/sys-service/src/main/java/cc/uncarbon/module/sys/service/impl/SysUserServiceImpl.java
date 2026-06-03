@@ -4,8 +4,12 @@ import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
-import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
+import cc.uncarbon.framework.helium.tenant.context.TenantContext;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
@@ -15,9 +19,9 @@ import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
 import cc.uncarbon.module.sys.model.interior.UserRoleContainer;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
-import cc.uncarbon.module.sys.model.valueobj.SysUserBO;
-import cc.uncarbon.module.sys.model.valueobj.SysUserLoginBO;
-import cc.uncarbon.module.sys.model.valueobj.VbenAdminUserInfoVO;
+import cc.uncarbon.module.sys.model.valueobj.AdminSysUserLoginReply;
+import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.*;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cn.hutool.core.bean.BeanUtil;
@@ -25,7 +29,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -43,12 +46,14 @@ import java.util.stream.Collectors;
 
 
 /**
- * 后台用户
+ * 系统用户
  */
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class SysUserServiceImpl implements SysUserService {
+
+    private static final String LOG_PREFIX = "[系统管理][用户]";
 
     private final SysUserMapper sysUserMapper;
     private final SysRoleService sysRoleService;
@@ -58,6 +63,7 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserDeptRelationService sysUserDeptRelationService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
+    private final SysLoginLogService sysLoginLogService;
 
     private boolean isTenantEnabled;
 
@@ -68,11 +74,11 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public PageResult<SysUserBO> adminList(AdminSysUserListQuery query) {
+    public PageResult<SysUserDTO> adminList(AdminSysUserListQuery query) {
         // 预处理：根据【手动选择的部门】筛选用户
-        Set<Long> deptUserIds = Collections.emptySet();
+        Set<Long> deptUserIds = Set.of();
         if (query.needFilterBySelectedDeptId()) {
-            deptUserIds = sysUserDeptRelationService.listUserIdsByDeptIds(Collections.singleton(query.getSelectedDeptId()));
+            deptUserIds = sysUserDeptRelationService.listUserIdsByDepts(Collections.singleton(query.getSelectedDeptId()));
             if (CollUtil.isEmpty(deptUserIds)) {
                 // 【手动选择的部门】没有任何用户ID，直接返回空列表
                 return new PageResult<>(query.getPageParam());
@@ -103,26 +109,13 @@ public class SysUserServiceImpl implements SysUserService {
                         .orderByDesc(SysUserEntity::getId)
         );
 
-        return this.entityPage2BOPage(entityPage, true);
-    }
-
-    @Override
-    public SysUserBO getById(Long id) {
-        dataScopeCheck(Collections.singleton(id));
-
-        SysUserEntity entity = sysUserMapper.selectById(id);
-        return this.entity2BO(entity, true);
-    }
-
-    @Override
-    public SysUserBO getNonnullById(Long id) throws NoRecordException {
-        return NoRecordException.throwIfNull(getById(id));
+        return this.convertPage(entityPage, true);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long adminCreate(AdminSysUserUpsertRequest request) {
-        log.info("[后台管理-新增后台用户] >> 入参={}", request);
+        log.info(LOG_PREFIX + "新增 >> {}", request);
         checkRepeat(request);
 
         if (Objects.nonNull(request.getDeptId())) {
@@ -153,7 +146,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void adminUpdate(AdminSysUserUpsertRequest request) {
-        log.info("[后台管理-修改后台用户] >> 入参={}", request);
+        log.info(LOG_PREFIX + "修改 >> {}", request);
         checkExistence(request.getId());
         preUpdateCheck(request.getId(), request.getStatus());
         checkRepeat(request);
@@ -169,32 +162,45 @@ public class SysUserServiceImpl implements SysUserService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void adminDelete(Collection<Long> ids) {
-        log.info("[后台管理-删除后台用户] >> 入参={}", ids);
+        log.info(LOG_PREFIX + "删除 >> {}", ids);
         preDeleteCheck(ids);
         sysUserMapper.deleteByIds(ids);
     }
 
     @Override
-    public SysUserLoginBO adminLogin(SysUserLoginDTO dto) {
+    public SysUserDTO getById(Long id) {
+        dataScopeCheck(Collections.singleton(id));
+
+        SysUserEntity entity = sysUserMapper.selectById(id);
+        return this.convertEntity(entity, true);
+    }
+
+    @Override
+    public SysUserDTO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
+    }
+
+    @Override
+    public AdminSysUserLoginReply adminLogin(AdminSysUserLoginRequest request) {
         /*
         如果启用了多租户功能，并且前端指定了租户ID，则先查库确认租户是否有效
         注意：数据源级多租户，登录前【必须】主动指定租户ID，如: dto.setTenantId(101L)
          */
         // ConcurrentHashMap 的 value 不能为 null，还是 new 一个吧
-        TenantContext tenantContext = new TenantContext();
-        if (isTenantEnabled && ObjectUtil.isNotNull(dto.getTenantId())) {
-            tenantContext = this.checkAndGetTenantContext(dto.getTenantId());
+        TenantContext tenantContext = new SimpleTenantContext();
+        if (isTenantEnabled && Objects.nonNull(request.getTenantId())) {
+            tenantContext = this.checkAndGetTenantContext(request.getTenantId());
             // 验证通过，将所属租户写入租户上下文，使得 SQL 拦截器可以正确执行
             TenantContextHolder.setTenantContext(tenantContext);
         }
 
         // 不要直接提示“账号不存在”或“密码不正确”，避免撞库攻击
-        SysUserEntity sysUserEntity = this.getUserByPin(dto.getUsername());
+        SysUserEntity sysUserEntity = sysUserMapper.getUserByPin(request.getPin());
         if (sysUserEntity == null) {
             throw new BusinessException(SysErrorCodeEnum.A01002);
         }
 
-        if (!PwdUtil.encrypt(dto.getPassword(), sysUserEntity.getPwdSalt()).equals(sysUserEntity.getPwd())) {
+        if (!PwdUtil.encrypt(request.getPassword(), sysUserEntity.getPwdSalt()).equals(sysUserEntity.getPwd())) {
             throw new BusinessException(SysErrorCodeEnum.A01002);
         }
 
@@ -207,7 +213,7 @@ public class SysUserServiceImpl implements SysUserService {
         ---------------------------------------------------
          */
 
-        if (isTenantEnabled && ObjectUtil.isNotNull(sysUserEntity.getTenantId())) {
+        if (isTenantEnabled && Objects.nonNull(sysUserEntity.getTenantId())) {
             // 二次赋值，以防万一（也许前端没有传租户ID，上方的 if 块并没有执行）
             tenantContext = this.checkAndGetTenantContext(sysUserEntity.getTenantId());
             TenantContextHolder.setTenantContext(tenantContext);
@@ -216,14 +222,14 @@ public class SysUserServiceImpl implements SysUserService {
         this.updateLastLoginAt(sysUserEntity.getId(), LocalDateTimeUtil.now());
 
         // 取账号完整信息
-        SysUserBO sysUserBO = this.entity2BO(sysUserEntity, false);
-        Map<Long, String> roleMap = sysRoleService.getRoleMapByUserId(sysUserBO.getId());
+        SysUserDTO sysUserDTO = this.convertEntity(sysUserEntity, false);
+        Map<Long, String> roleMap = sysRoleService.getRoleMapByUserId(sysUserDTO.getId());
 
         Map<Long, Set<String>> roleIdPermissionMap = sysMenuService.getRoleIdPermissionMap(roleMap.keySet());
 
         // 包装返回体；有的字段类型不一致, 单独转换
-        SysUserLoginBO ret = new SysUserLoginBO();
-        BeanUtil.copyProperties(sysUserBO, ret);
+        AdminSysUserLoginReply ret = new AdminSysUserLoginReply();
+        BeanUtil.copyProperties(sysUserDTO, ret);
 
         Set<String> permissions = roleIdPermissionMap.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
 
@@ -238,63 +244,50 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public VbenAdminUserInfoVO adminGetCurrentUserInfo() {
-        SysUserBO sysUserBO = this.getNonnullById(UserContextHolder.getUserId());
-        return VbenAdminUserInfoVO.builder()
-                .username(sysUserBO.getUsername())
-                .nickname(sysUserBO.getNickname())
-                .lastLoginAt(sysUserBO.getLastLoginAt())
-                .gender(sysUserBO.getGender())
-                .email(sysUserBO.getEmail())
-                .phoneNo(sysUserBO.getPhoneNo())
-                .avatar(sysUserBO.getAvatarUrl())
+    public MyProfileDTO adminGetMyProfile() {
+        SysUserDTO sysUserDTO = this.getNonnullById(UserContextHolder.getUserId());
+        return MyProfileDTO.builder()
+                .username(sysUserDTO.getUsername())
+                .nickname(sysUserDTO.getNickname())
+                .lastLoginAt(sysUserDTO.getLastLoginAt())
+                .gender(sysUserDTO.getGender())
+                .email(sysUserDTO.getEmail())
+                .phoneNo(sysUserDTO.getPhoneNo())
+                .avatar(sysUserDTO.getAvatarUrl())
                 .build();
     }
 
     @Override
-    public void adminResetUserPassword(AdminResetSysUserPasswordDTO dto) {
-        preUpdateCheck(dto.getUserId(), null);
-        SysUserEntity sysUserEntity = sysUserMapper.selectById(dto.getUserId());
+    public void adminResetUserPassword(AdminResetSysUserPwdRequest request) {
+        preUpdateCheck(request.getUserId(), null);
+        SysUserEntity sysUserEntity = sysUserMapper.selectById(request.getUserId());
 
         SysUserEntity templateEntity = new SysUserEntity();
         templateEntity
-                .setPwd(PwdUtil.encrypt(dto.getRandomPassword(), sysUserEntity.getPwdSalt()))
-                .setId(dto.getUserId());
+                .setPwd(PwdUtil.encrypt(request.getRandomPassword(), sysUserEntity.getPwdSalt()))
+                .setId(request.getUserId());
 
         sysUserMapper.updateById(templateEntity);
     }
 
     @Override
-    public void adminUpdateCurrentUserPassword(AdminUpdateCurrentSysUserPasswordDTO dto) {
+    public void adminUpdateCurrentUserPassword(AdminUpdateMyPwdRequest request) {
         SysUserEntity sysUserEntity = sysUserMapper.selectById(UserContextHolder.getUserId());
-        if (sysUserEntity == null || !sysUserEntity.getPwd().equals(PwdUtil.encrypt(dto.getOld(), sysUserEntity.getPwdSalt()))) {
+        if (sysUserEntity == null || !sysUserEntity.getPwd().equals(PwdUtil.encrypt(request.getOld(), sysUserEntity.getPwdSalt()))) {
             throw new BusinessException(SysErrorCodeEnum.A01004);
         }
 
         sysUserEntity
-                .setPwd(PwdUtil.encrypt(dto.getConfirmNeo(), sysUserEntity.getPwdSalt()))
+                .setPwd(PwdUtil.encrypt(request.getConfirmNeo(), sysUserEntity.getPwdSalt()))
                 .setId(UserContextHolder.getUserId());
 
         sysUserMapper.updateById(sysUserEntity);
     }
 
     @Override
-    public void adminBindRoles(AdminBindUserRoleRelationDTO dto) {
-        preBindUserRoleRelationCheck(dto);
-        sysUserRoleRelationService.cleanAndBind(dto.getUserId(), dto.getRoleIds());
-    }
-
-    @Override
-    public SysUserEntity getUserByPin(String pin) {
-        return sysUserMapper.getUserByPin(pin);
-    }
-
-    @Override
-    public Set<Long> listRelatedRoleIds(Long userId) {
-        if (ObjectUtil.isNull(userId)) {
-            return Collections.emptySet();
-        }
-        return sysRoleService.getRoleMapByUserId(userId).keySet();
+    public void adminBindRoles(AdminBindUserRolesRequest request) {
+        preBindUserRoleRelationCheck(request);
+        sysUserRoleRelationService.cleanAndBind(request.getUserId(), request.getRoleIds());
     }
 
     @Override
@@ -315,18 +308,18 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminUpdateCurrentUserInfo(AdminUpdateCurrentSysUserInfoDTO dto) {
-        SysUserEntity update = SysUserEntity.of(dto);
+    public void adminUpdateMyProfile(AdminUpdateMyProfileRequest request) {
+        SysUserEntity update = SysUserEntity.of(request);
         update.setId(UserContextHolder.getUserId());
         sysUserMapper.updateById(update);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminUpdateCurrentUserAvatar(AdminUpdateCurrentSysUserAvatarDTO dto) {
-        dto.securityCheck();
+    public void adminUpdateMyAvatar(AdminUpdateMyAvatarRequest request) {
+        request.securityCheck();
 
-        SysUserEntity update = SysUserEntity.of(dto);
+        SysUserEntity update = SysUserEntity.of(request);
         update.setId(UserContextHolder.getUserId());
         sysUserMapper.updateById(update);
     }
@@ -341,69 +334,56 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 实体转值对象
      *
-     * @param entity       实体
-     * @param fillDeptInfo 是否根据实体部门ID，查询关联部门信息并填充到BO
+     * @param fillDept 填充部门
      */
-    SysUserBO entity2BO(SysUserEntity entity, boolean fillDeptInfo) {
+    private SysUserDTO convertEntity(SysUserEntity entity, boolean fillDept) {
         if (entity == null) {
             return null;
         }
 
-        SysUserBO bo = new SysUserBO();
-        BeanUtil.copyProperties(entity, bo);
-
+        SysUserDTO ret = new SysUserDTO();
+        BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
-        bo.setUsername(entity.getPin());
-        if (fillDeptInfo) {
-            Optional.ofNullable(sysDeptService.getSpecifiedUserDeptContainer(bo.getId(), false))
+        if (fillDept) {
+            Optional.ofNullable(sysDeptService.getSpecifiedUserDeptContainer(ret.getId(), false))
                     .map(UserDeptContainer::primaryRelatedDept)
-                    .ifPresent(deptInfo -> bo.setDeptId(deptInfo.getId()).setDeptTitle(deptInfo.getTitle()));
+                    .ifPresent(deptInfo -> ret.setDeptId(deptInfo.getId()).setDeptName(deptInfo.getName()));
         }
-        return bo;
-    }
-
-    /**
-     * 实体转值对象
-     *
-     * @param entityList   实体 List
-     * @param fillDeptInfo 是否根据实体部门ID，查询关联部门信息并填充到BO List
-     */
-    List<SysUserBO> entityList2BOs(List<SysUserEntity> entityList, boolean fillDeptInfo) {
-        if (CollUtil.isEmpty(entityList)) {
-            return List.of();
-        }
-
-        // 深拷贝
-        List<SysUserBO> ret = new ArrayList<>(entityList.size());
-        entityList.forEach(
-                entity -> ret.add(this.entity2BO(entity, fillDeptInfo))
-        );
-
         return ret;
     }
 
     /**
      * 实体转值对象
      *
-     * @param entityPage   实体分页
-     * @param fillDeptInfo 是否根据实体部门ID，查询关联部门信息并填充到BO 分页
+     * @param fillDept 填充部门
      */
-    PageResult<SysUserBO> entityPage2BOPage(Page<SysUserEntity> entityPage, boolean fillDeptInfo) {
-        return new PageResult<SysUserBO>()
+    List<SysUserDTO> convertList(List<SysUserEntity> entityList, boolean fillDept) {
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+        return entityList.stream().map(entity -> convertEntity(entity, fillDept)).toList();
+    }
+
+    /**
+     * 实体转值对象
+     *
+     * @param fillDept 填充部门
+     */
+    PageResult<SysUserDTO> convertPage(Page<SysUserEntity> entityPage, boolean fillDept) {
+        return new PageResult<SysUserDTO>()
                 .setCurrent(entityPage.getCurrent())
                 .setSize(entityPage.getSize())
                 .setTotal(entityPage.getTotal())
-                .setRecords(this.entityList2BOs(entityPage.getRecords(), fillDeptInfo));
+                .setRecords(convertList(entityPage.getRecords(), fillDept));
     }
 
     /**
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysUserUpsertRequest request) {
-        SysUserEntity existingEntity = this.getUserByPin(request.getPin());
-
-        if (existingEntity != null && !existingEntity.getId().equals(request.getId())) {
-            throw new BusinessException(400, "已存在相同账号，请重新输入");
+        SysUserEntity entity = sysUserMapper.getUserByPin(request.getPin());
+        if (entity != null) {
+            throw new HasRepeatRecordException("已存在相同的账号");
         }
     }
 
@@ -426,10 +406,10 @@ public class SysUserServiceImpl implements SysUserService {
      * 返回[0]或有元素集合，表示有限制
      */
     Set<Long> determineVisibleDeptUserIds() {
-        Set<Long> visibleUserIds = Collections.emptySet();
+        Set<Long> visibleUserIds = Set.of();
         UserDeptContainer deptContainer = sysDeptService.getCurrentUserDeptContainer(true);
         if (deptContainer.hasVisibleDepts()) {
-            visibleUserIds = sysUserDeptRelationService.listUserIdsByDeptIds(deptContainer.getVisibleDeptIds());
+            visibleUserIds = sysUserDeptRelationService.listUserIdsByDepts(deptContainer.getVisibleDeptIds());
             if (CollUtil.isEmpty(visibleUserIds)) {
                 // 【可见部门】没有任何用户ID，直接返回[0]
                 return Collections.singleton(BigInteger.ZERO.longValue());
@@ -445,7 +425,7 @@ public class SysUserServiceImpl implements SysUserService {
      */
     Set<Long> determineInvisibleUserIds() {
         Set<Long> invisibleRoleIds = sysRoleService.determineInvisibleRoleIds();
-        return sysUserRoleRelationService.listUserIdsByRoleIds(invisibleRoleIds);
+        return sysUserRoleRelationService.listUserIdsByRoles(invisibleRoleIds);
     }
 
     /**
@@ -492,7 +472,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 编辑后台用户信息前检查
+     * 编辑系统用户信息前检查
      *
      * @param specifiedUserId 被操作用户ID
      * @param statusEnum      用户状态枚举，可以为null
@@ -523,7 +503,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 删除后台用户前检查
+     * 删除系统用户前检查
      */
     void preDeleteCheck(Collection<Long> ids) {
         if (CollUtil.contains(ids, UserContextHolder.getUserId())) {
@@ -548,10 +528,10 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 绑定后台用户与角色关联关系前检查
+     * 绑定系统用户与角色关联关系前检查
      * 防止越权访问漏洞
      */
-    void preBindUserRoleRelationCheck(AdminBindUserRoleRelationDTO dto) {
+    void preBindUserRoleRelationCheck(AdminBindUserRolesRequest dto) {
         UserRoleContainer currentUser = sysRoleService.getCurrentUserRoleContainer();
         // 是否对自己操作
         boolean selfFlag = Objects.equals(dto.getUserId(), UserContextHolder.getUserId());
@@ -585,11 +565,11 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 绑定后台用户与角色关联关系前检查
+     * 绑定系统用户与角色关联关系前检查
      * 超级管理员之外的用户，都需要校验自身角色范围是否满足输入值
      * 拆分子方法以降低Cognitive Complexity
      */
-    void currentUserNotSuperAdmin(AdminBindUserRoleRelationDTO dto, UserRoleContainer currentUser) {
+    void currentUserNotSuperAdmin(AdminBindUserRolesRequest dto, UserRoleContainer currentUser) {
         if (CollUtil.isNotEmpty(dto.getRoleIds()) && !currentUser.isSuperAdmin()) {
             boolean overRoles = !CollUtil.containsAll(currentUser.getRelatedRoleIds(), dto.getRoleIds());
             if (overRoles && currentUser.isNotAnyAdmin()) {

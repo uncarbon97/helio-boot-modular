@@ -53,7 +53,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
                         // 套餐名称
                         .like(CharSequenceUtil.isNotBlank(query.getName()), TenantPackageEntity::getName, CharSequenceUtil.cleanBlank(query.getName()))
                         // 状态
-                        .eq(ObjectUtil.isNotNull(query.getStatus()), TenantPackageEntity::getStatus, query.getStatus())
+                        .eq(Objects.nonNull(query.getStatus()), TenantPackageEntity::getStatus, query.getStatus())
                         .orderByDesc(TenantPackageEntity::getId)
         );
 
@@ -208,7 +208,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         );
 
         if (entity != null) {
-            throw new BusinessException(DefaultErrorCodeEnum.A00001, "已存在相同的【套餐编码】");
+            throw new BusinessException(DefaultErrorCodeEnum.A00001, "已存在相同的套餐编码");
         }
     }
 

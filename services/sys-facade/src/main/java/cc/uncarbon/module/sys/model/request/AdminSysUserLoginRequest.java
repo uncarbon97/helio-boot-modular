@@ -2,7 +2,6 @@ package cc.uncarbon.module.sys.model.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
@@ -14,13 +13,13 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-后台用户登录
+ * 系统用户登录
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysUserLoginDTO implements Serializable {
+public class AdminSysUserLoginRequest implements Serializable {
 
     @Schema(description = "账号", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(min = 5, max = 16, message = "【账号】最短5位，最长16位")

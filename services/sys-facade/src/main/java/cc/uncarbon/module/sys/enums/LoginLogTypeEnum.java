@@ -7,14 +7,14 @@ import lombok.Getter;
 
 
 /**
- * 系统用户状态枚举
+ * 登录日志类型枚举
  */
 @AllArgsConstructor
 @Getter
-public enum SysUserStatusEnum implements BaseEnum<Integer> {
+public enum LoginLogTypeEnum implements BaseEnum<Integer> {
 
-    BANNED(0, "封禁"),
-    ENABLED(1, "正常"),
+    LOGIN(1, "登录"),
+    LOGOUT(2, "登出"),
 
     ;@EnumValue
     private final Integer value;

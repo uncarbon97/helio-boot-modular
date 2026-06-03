@@ -5,7 +5,7 @@ import cc.uncarbon.module.adminapi.constant.AdminApiConstant;
 import cc.uncarbon.module.adminapi.model.response.AdminSelectOptionItemVO;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
-import cc.uncarbon.module.sys.model.valueobj.SysRoleBO;
+import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.impl.SysDeptServiceImpl;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
@@ -41,7 +41,7 @@ public class AdminSelectOptionsController {
     @GetMapping(value = "/select-options/roles")
     public ApiResult<List<AdminSelectOptionItemVO>> roles() {
         return ApiResult.success(
-                AdminSelectOptionItemVO.listOf(sysRoleService.adminSelectOptions(), SysRoleBO::getId, SysRoleBO::getTitle)
+                AdminSelectOptionItemVO.listOf(sysRoleService.adminSelectOptions(), SysRoleDTO::getId, SysRoleDTO::getTitle)
         );
     }
 

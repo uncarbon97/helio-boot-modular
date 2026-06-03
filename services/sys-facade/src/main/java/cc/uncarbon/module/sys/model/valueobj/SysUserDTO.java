@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
-import cc.uncarbon.framework.core.enums.GenderEnum;
+import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -13,13 +13,13 @@ import java.time.LocalDateTime;
 
 
 /**
- * 系统用户BO
+ * 系统用户
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysUserBO implements Serializable {
+public class SysUserDTO implements Serializable {
 
     @Schema(description = "主键ID")
     private Long id;

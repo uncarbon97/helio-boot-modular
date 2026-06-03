@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 
 /**
- * 系统管理-分页查询系统操作日志
+ * 分页查询系统操作日志
  */
 @Accessors(chain = true)
 @AllArgsConstructor

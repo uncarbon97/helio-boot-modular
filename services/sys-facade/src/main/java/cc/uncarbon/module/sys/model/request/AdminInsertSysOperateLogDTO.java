@@ -10,7 +10,7 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-新增系统操作日志
+ * 新增系统操作日志
  */
 @Accessors(chain = true)
 @AllArgsConstructor

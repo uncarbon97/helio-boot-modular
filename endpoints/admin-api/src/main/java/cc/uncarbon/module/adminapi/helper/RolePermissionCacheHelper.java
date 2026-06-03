@@ -1,16 +1,19 @@
 package cc.uncarbon.module.adminapi.helper;
 
-import cc.uncarbon.framework.core.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cn.hutool.core.collection.CollUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 将角色对应权限，缓存至 Redis
- * 参考文章: https://sa-token.cc/doc.html#/fun/jur-cache
+ * 参考文章: <a href="https://sa-token.cc/doc.html#/fun/jur-cache">...</a>
  *
  * @author Uncarbon
  */
@@ -28,8 +31,8 @@ public class RolePermissionCacheHelper {
      *
      * @return List<String>
      */
-    public List<String> getUserPermissions() {
-        Set<Long> rolesIds = UserContextHolder.getUserContext().getRolesIds();
+    public List<String> getCurrentUserPermissions() {
+        var rolesIds = UserContextHolder.getUserContext().getRoleIds();
         if (CollUtil.isEmpty(rolesIds)) {
             return List.of();
         }
@@ -49,12 +52,12 @@ public class RolePermissionCacheHelper {
     /**
      * 覆盖更新角色对应权限至 Redis
      *
-     * @param map key=角色ID value=权限集合
+     * @param mapping key=角色ID value=权限集合
      */
-    public void putCache(Map<Long, Set<String>> map) {
-        Set<Map.Entry<Long, Set<String>>> entries = map.entrySet();
+    public void putCache(Map<Long, Set<String>> mapping) {
+        Set<Map.Entry<Long, Set<String>>> entries = mapping.entrySet();
         entries.forEach(
-                entry -> this.putCache(entry.getKey(), entry.getValue())
+                entry -> putCache(entry.getKey(), entry.getValue())
         );
     }
 

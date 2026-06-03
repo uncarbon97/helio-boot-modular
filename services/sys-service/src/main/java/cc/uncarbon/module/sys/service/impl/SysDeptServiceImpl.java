@@ -43,18 +43,7 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     @Override
     public List<SysDeptDTO> adminList() {
-        return entityList2BOs(sysDeptMapper.selectSortedList());
-    }
-
-    @Override
-    public SysDeptDTO getById(Long id) {
-        SysDeptEntity entity = sysDeptMapper.selectById(id);
-        return this.entity2BO(entity);
-    }
-
-    @Override
-    public SysDeptDTO getNonnullById(Long id) throws NoRecordException {
-        return NoRecordException.throwIfNull(getById(id));
+        return convertList(sysDeptMapper.selectSortedList());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -107,11 +96,22 @@ public class SysDeptServiceImpl implements SysDeptService {
             if (currentUser.isNotAnyAdmin()) {
                 // 非管理员才会限制，只能看到本部门及以下
                 UserDeptContainer deptContainer = getCurrentUserDeptContainer(true);
-                return entityList2BOs(deptContainer.getVisibleDepts());
+                return convertList(deptContainer.getVisibleDepts());
             }
         }
         // 能看所有
         return adminList();
+    }
+
+    @Override
+    public SysDeptDTO getById(Long id) {
+        SysDeptEntity entity = sysDeptMapper.selectById(id);
+        return convertEntity(entity);
+    }
+
+    @Override
+    public SysDeptDTO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
     }
 
     @Override
@@ -121,13 +121,13 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     @Override
     public UserDeptContainer getSpecifiedUserDeptContainer(Long specifiedUserId, boolean queryVisibleDept) {
-        List<Long> userDeptIds = sysUserDeptRelationService.getUserDeptIds(specifiedUserId);
+        List<Long> userDeptIds = sysUserDeptRelationService.listDeptIdsByUser(specifiedUserId);
         List<SysDeptEntity> userDepts = null;
         if (CollUtil.isNotEmpty(userDeptIds)) {
-            userDepts = sysDeptMapper.selectBatchIds(userDeptIds);
+            userDepts = sysDeptMapper.selectByIds(userDeptIds);
         }
         if (CollUtil.isEmpty(userDepts)) {
-            userDepts = Collections.emptyList();
+            userDepts = List.of();
         }
         UserDeptContainer container = new UserDeptContainer(userDeptIds, userDepts);
 
@@ -148,38 +148,30 @@ public class SysDeptServiceImpl implements SysDeptService {
     /**
      * 实体转值对象
      */
-    private SysDeptDTO entity2BO(SysDeptEntity entity) {
+    private SysDeptDTO convertEntity(SysDeptEntity entity) {
         if (entity == null) {
             return null;
         }
 
-        SysDeptDTO bo = new SysDeptDTO();
-        BeanUtil.copyProperties(entity, bo);
-
+        SysDeptDTO ret = new SysDeptDTO();
+        BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
-        if (SysConstant.ROOT_PARENT_ID.equals(bo.getParentId())) {
+        if (SysConstant.ROOT_PARENT_ID.equals(ret.getParentId())) {
             // 返回前端时，不显示 parentId = 0
-            bo.setParentId(null);
+            ret.setParentId(null);
         }
 
-        return bo;
+        return ret;
     }
 
     /**
      * 实体转值对象
      */
-    private List<SysDeptDTO> entityList2BOs(List<SysDeptEntity> entityList) {
+    private List<SysDeptDTO> convertList(List<SysDeptEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-
-        // 深拷贝
-        List<SysDeptDTO> ret = new ArrayList<>(entityList.size());
-        entityList.forEach(
-                entity -> ret.add(this.entity2BO(entity))
-        );
-
-        return ret;
+        return entityList.stream().map(this::convertEntity).toList();
     }
 
     /**

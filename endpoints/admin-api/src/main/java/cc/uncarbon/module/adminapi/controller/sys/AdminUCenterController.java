@@ -5,10 +5,10 @@ import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.adminapi.util.AdminStpUtil;
-import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserAvatarDTO;
-import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserInfoDTO;
-import cc.uncarbon.module.sys.model.request.AdminUpdateCurrentSysUserPasswordDTO;
-import cc.uncarbon.module.sys.model.valueobj.VbenAdminUserInfoVO;
+import cc.uncarbon.module.sys.model.request.AdminUpdateMyAvatarRequest;
+import cc.uncarbon.module.sys.model.request.AdminUpdateMyProfileRequest;
+import cc.uncarbon.module.sys.model.request.AdminUpdateMyPwdRequest;
+import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,14 +32,14 @@ public class AdminUCenterController {
 
     @Operation(summary = "取当前用户信息资料")
     @PostMapping(value = "/info")
-    public ApiResult<VbenAdminUserInfoVO> getMyInfo() {
-        return ApiResult.success(sysUserService.adminGetCurrentUserInfo());
+    public ApiResult<MyProfileDTO> getMyInfo() {
+        return ApiResult.success(sysUserService.adminGetMyProfile());
     }
 
     // @SysOperateLog(value = "修改当前用户密码")
     @Operation(summary = "修改当前用户密码")
     @PostMapping(value = "/update-password")
-    public ApiResult<Void> updatePassword(@RequestBody @Valid AdminUpdateCurrentSysUserPasswordDTO request) {
+    public ApiResult<Void> updatePassword(@RequestBody @Valid AdminUpdateMyPwdRequest request) {
         if (!request.getConfirmNeo().equals(request.getNeo())) {
             throw new BusinessException(400, "密码与确认密码不同，请检查");
         }
@@ -53,15 +53,15 @@ public class AdminUCenterController {
 
     @Operation(summary = "更新当前用户信息资料")
     @PostMapping(value = "/update-info")
-    public ApiResult<Void> updateMyInfo(@RequestBody @Valid AdminUpdateCurrentSysUserInfoDTO request) {
-        sysUserService.adminUpdateCurrentUserInfo(request);
+    public ApiResult<Void> updateMyInfo(@RequestBody @Valid AdminUpdateMyProfileRequest request) {
+        sysUserService.adminUpdateMyProfile(request);
         return ApiResult.success();
     }
 
     @Operation(summary = "更新当前用户头像")
     @PostMapping(value = "/update-avatar")
-    public ApiResult<Void> updateMyAvatar(@RequestBody @Valid AdminUpdateCurrentSysUserAvatarDTO request) {
-        sysUserService.adminUpdateCurrentUserAvatar(request);
+    public ApiResult<Void> updateMyAvatar(@RequestBody @Valid AdminUpdateMyAvatarRequest request) {
+        sysUserService.adminUpdateMyAvatar(request);
         return ApiResult.success();
     }
 

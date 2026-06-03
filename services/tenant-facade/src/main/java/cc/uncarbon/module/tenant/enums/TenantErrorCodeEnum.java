@@ -6,7 +6,7 @@ import lombok.Getter;
 
 
 /**
- * 租户管理错误码枚举类
+ * 租户管理错误码枚举
  */
 @AllArgsConstructor
 @Getter

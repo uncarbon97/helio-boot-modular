@@ -13,13 +13,13 @@ import java.io.Serializable;
 
 
 /**
- * 系统管理-更新当前后台用户头像
+ * 更新当前系统用户头像
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminUpdateCurrentSysUserAvatarDTO implements Serializable {
+public class AdminUpdateMyAvatarRequest implements Serializable {
 
 
     @Schema(description = "头像URL", requiredMode = Schema.RequiredMode.REQUIRED)
