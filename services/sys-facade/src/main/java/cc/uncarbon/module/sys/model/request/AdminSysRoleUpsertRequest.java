@@ -1,6 +1,5 @@
 package cc.uncarbon.module.sys.model.request;
 
-import cc.uncarbon.module.sys.constant.SysConstant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -10,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 
 /**
@@ -25,24 +23,22 @@ public class AdminSysRoleUpsertRequest implements Serializable {
     @Schema(description = "主键ID", title = "仅修改时使用")
     private Long id;
 
-    @Schema(description = "所属租户ID", hidden = true, title = "仅新增时使用")
-    private Long tenantId;
-
     @Schema(description = "角色编码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 100, message = "角色编码最长100位")
+    @Size(max = 100, message = "角色编码最长{max}位")
     @NotBlank(message = "角色编码必填")
     private String code;
 
     @Schema(description = "角色名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 50, message = "角色名称最长50位")
+    @Size(max = 100, message = "角色名称最长{max}位")
     @NotBlank(message = "角色名称必填")
     private String name;
 
-    /**
-     * 是否用于创建新租户管理员角色
-     */
-    public boolean creatingNewTenantAdmin() {
-        return Objects.nonNull(tenantId) && SysConstant.TENANT_ADMIN_ROLE_CODE.equalsIgnoreCase(code);
+    @Schema(description = "角色描述", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 255, message = "角色描述最长{max}位")
+    private String description;
+
+    public boolean inCreating() {
+        return id == null;
     }
 
 }

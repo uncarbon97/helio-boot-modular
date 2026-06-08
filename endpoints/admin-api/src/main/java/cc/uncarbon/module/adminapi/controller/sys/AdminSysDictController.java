@@ -50,7 +50,7 @@ public class AdminSysDictController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增字典分类")
     @PostMapping(value = "/category/create")
-    public ApiResult<Void> insert(@RequestBody @Valid AdminSysDictCategoryUpsertRequest request) {
+    public ApiResult<Void> create(@RequestBody @Valid AdminSysDictCategoryUpsertRequest request) {
         sysDictService.adminCreateCategory(request);
 
         return ApiResult.success();
@@ -87,7 +87,7 @@ public class AdminSysDictController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增字典项")
     @PostMapping(value = "/item/create")
-    public ApiResult<Void> insert(@RequestBody @Valid AdminSysDictItemUpsertRequest request) {
+    public ApiResult<Void> create(@RequestBody @Valid AdminSysDictItemUpsertRequest request) {
         sysDictService.adminCreateItem(request);
 
         return ApiResult.success();

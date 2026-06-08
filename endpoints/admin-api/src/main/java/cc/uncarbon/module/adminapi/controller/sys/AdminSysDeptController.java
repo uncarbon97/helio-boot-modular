@@ -52,7 +52,7 @@ public class AdminSysDeptController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
-    public ApiResult<Void> insert(@RequestBody @Valid AdminSysDeptUpsertRequest request) {
+    public ApiResult<Void> create(@RequestBody @Valid AdminSysDeptUpsertRequest request) {
         sysDeptService.adminCreate(request);
 
         return ApiResult.success();

@@ -51,7 +51,7 @@ public class AdminTenantPackageController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
-    public ApiResult<Void> insert(@RequestBody @Valid AdminTenantPackageUpsertRequest request) {
+    public ApiResult<Void> create(@RequestBody @Valid AdminTenantPackageUpsertRequest request) {
         tenantPackageService.adminCreate(request);
 
         return ApiResult.success();

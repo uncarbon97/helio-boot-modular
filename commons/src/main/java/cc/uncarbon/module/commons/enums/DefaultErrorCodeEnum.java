@@ -20,7 +20,7 @@ public enum DefaultErrorCodeEnum implements ErrorCodeEnum {
 
     // A 开头错误码，表示一般性错误，如用户输入有误
     A00001("A00001", "重复数据"),
-    A00002("A00002", "无数据"),
+    A00002("A00002", "不存在数据"),
 
     ;private final String errorCode;
     private final String errorMsgFriendly;

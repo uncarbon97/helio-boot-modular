@@ -1,16 +1,22 @@
 package cc.uncarbon.module.tenant.service.impl;
 
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.sys.facade.TenantSysBridgeFacade;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
+import cc.uncarbon.module.tenant.enums.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.model.query.AdminTenantMetaListQuery;
-import cc.uncarbon.module.tenant.model.request.AdminCreateTenantRequest;
-import cc.uncarbon.module.tenant.model.request.AdminUpdateTenantMetaRequest;
+import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
+import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
-import cc.uncarbon.module.tenant.service.TenantMetaService;
+import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
+import cc.uncarbon.module.tenant.service.TenantPackageService;
+import cc.uncarbon.module.tenant.service.TenantService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -34,11 +40,13 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class TenantMetaServiceImpl implements TenantMetaService {
+public class TenantServiceImpl implements TenantService {
 
     private static final String LOG_PREFIX = "[租户管理][租户管理]";
 
     private final TenantMetaMapper tenantMetaMapper;
+    private final TenantPackageService tenantPackageService;
+    private final TenantSysBridgeFacade tenantSysBridgeFacade;
 
 
     @Override
@@ -62,21 +70,23 @@ public class TenantMetaServiceImpl implements TenantMetaService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public TenantMetaEntity adminCreate(AdminCreateTenantRequest request) {
+    public Long adminCreate(AdminTenantCreateRequest request) {
         log.info(LOG_PREFIX + "新增 >> {}", request);
         checkRepeat(request);
+        TenantPackageDTO pkg = checkPackage(request.getPackageId());
 
         TenantMetaEntity entity = new TenantMetaEntity();
         BeanUtil.copyProperties(request, entity);
 
         tenantMetaMapper.insert(entity);
 
-        return entity;
+        tenantSysBridgeFacade.appendTenantUser();
+        return entity.getId();
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminUpdate(AdminUpdateTenantMetaRequest request) {
+    public void adminUpdate(AdminTenantMetaUpdateRequest request) {
         log.info(LOG_PREFIX + "修改 >> {}", request);
         checkExistence(request.getId());
 
@@ -136,7 +146,6 @@ public class TenantMetaServiceImpl implements TenantMetaService {
 
         TenantMetaDTO ret = new TenantMetaDTO();
         BeanUtil.copyProperties(entity, ret);
-
         // 按需改写字段
         if (fillTenantAdminUser && Objects.nonNull(entity.getTenantAdminUserId())) {
             ret.setTenantAdminUser(sysUserMapper.getBaseInfoByUserId(entity.getTenantAdminUserId()));
@@ -175,7 +184,7 @@ public class TenantMetaServiceImpl implements TenantMetaService {
     /**
      * 检查是否存在重复
      */
-    private void checkRepeat(AdminCreateTenantRequest request) {
+    private void checkRepeat(AdminTenantCreateRequest request) {
         TenantMetaEntity entity = tenantMetaMapper.selectOne(
                 new LambdaQueryWrapper<TenantMetaEntity>()
                         .select(TenantMetaEntity::getId)
@@ -200,6 +209,20 @@ public class TenantMetaServiceImpl implements TenantMetaService {
                         .last(SQLSegment.LIMIT_1)
         );
         NoRecordException.throwIfFalse(exists);
+    }
+
+    /**
+     * 检查租户套餐
+     */
+    private TenantPackageDTO checkPackage(Long packageId) {
+       if (packageId != null) {
+           TenantPackageDTO pkg = tenantPackageService.getNonnullById(packageId);
+           if (pkg.getStatus() != EnabledStatusEnum.ENABLED) {
+               throw new BusinessException(TenantErrorCodeEnum.A03001);
+           }
+           return pkg;
+       }
+       return null;
     }
 
 }

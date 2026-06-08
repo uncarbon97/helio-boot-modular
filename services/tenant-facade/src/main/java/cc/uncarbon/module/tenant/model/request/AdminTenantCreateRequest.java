@@ -20,39 +20,39 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminCreateTenantRequest implements Serializable {
+public class AdminTenantCreateRequest implements Serializable {
 
 
     @Schema(description = "租户编码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 100, message = "【租户编码】最长100位")
-    @NotBlank(message = "【租户编码】必填")
+    @Size(max = 100, message = "租户编码最长{max}位")
+    @NotBlank(message = "租户编码必填")
     private String code;
 
     @Schema(description = "租户名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 50, message = "【租户名称】最长50位")
+    @Size(max = 100, message = "租户名称最长{max}位")
     @NotBlank(message = "租户名称必填")
     private String name;
 
     @Schema(description = "租户管理员账号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(min = 6, max = 16, message = "【租户管理员账号】最短6位，最长16位")
-    @NotBlank(message = "【租户管理员账号】必填")
+    @Size(min = 6, max = 16, message = "租户管理员账号最短{min}位，最长{max}位")
+    @NotBlank(message = "租户管理员账号必填")
     private String tenantAdminPin;
 
     @Schema(description = "租户管理员初始密码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(min = 8, max = 20, message = "【租户管理员初始密码】最短8位，最长20位")
-    @NotBlank(message = "【租户管理员初始密码】必填")
+    @Size(min = 8, max = 20, message = "租户管理员初始密码最短{min}位，最长{max}位")
+    @NotBlank(message = "租户管理员初始密码必填")
     private String tenantAdminPwd;
 
     @Schema(description = "租户管理员邮箱", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Pattern(message = "【租户管理员邮箱】格式不正确", regexp = RegexPool.EMAIL)
-    @Size(max = 255, message = "【租户管理员邮箱】最长255位")
-    @NotBlank(message = "【租户管理员邮箱】必填")
+    @Pattern(message = "租户管理员邮箱格式不正确", regexp = RegexPool.EMAIL)
+    @Size(max = 255, message = "租户管理员邮箱最长{max}位")
+    @NotBlank(message = "租户管理员邮箱必填")
     private String tenantAdminEmail;
 
     @Schema(description = "租户管理员手机号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Pattern(message = "【租户管理员手机号】格式不正确", regexp = RegexPool.MOBILE)
-    @Size(max = 20, message = "【租户管理员手机号】最长20位")
-    @NotBlank(message = "【租户管理员手机号】必填")
+    @Pattern(message = "租户管理员手机号格式不正确", regexp = RegexPool.MOBILE)
+    @Size(max = 20, message = "租户管理员手机号最长{max}位")
+    @NotBlank(message = "租户管理员手机号必填")
     private String tenantAdminPhoneNo;
 
     @Schema(description = "所属租户套餐ID")

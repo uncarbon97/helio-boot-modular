@@ -27,7 +27,7 @@ public class AdminSysMenuUpsertRequest implements Serializable {
     private Long id;
 
     @Schema(description = "菜单名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 50, message = "菜单名称最长50位")
+    @Size(max = 100, message = "菜单名称最长{max}位")
     @NotBlank(message = "菜单名称必填")
     private String name;
 
@@ -39,15 +39,15 @@ public class AdminSysMenuUpsertRequest implements Serializable {
     private MenuTypeEnum menuType;
 
     @Schema(description = "前端组件名称")
-    @Size(max = 50, message = "前端组件名称最长50位")
+    @Size(max = 255, message = "前端组件名称最长{max}位")
     private String component;
 
     @Schema(description = "菜单权限标识")
-    @Size(max = 255, message = "权限标识最长255位")
+    @Size(max = 255, message = "权限标识最长{max}位")
     private String permission;
 
     @Schema(description = "图标")
-    @Size(max = 255, message = "图标最长255位")
+    @Size(max = 255, message = "图标最长{max}位")
     private String icon;
 
     @Schema(description = "排序")

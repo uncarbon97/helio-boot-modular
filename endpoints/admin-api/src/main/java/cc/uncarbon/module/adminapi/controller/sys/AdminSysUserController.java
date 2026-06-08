@@ -62,7 +62,7 @@ public class AdminSysUserController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
-    public ApiResult<Void> insert(@RequestBody @Valid AdminSysUserUpsertRequest request) {
+    public ApiResult<Void> create(@RequestBody @Valid AdminSysUserUpsertRequest request) {
         request.setId(null).setTenantId(null).validate();
         sysUserService.adminCreate(request);
 

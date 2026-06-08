@@ -1,21 +1,20 @@
 package cc.uncarbon.module.tenant.service;
 
 
-import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.tenant.model.query.AdminTenantMetaListQuery;
-import cc.uncarbon.module.tenant.model.request.AdminCreateTenantRequest;
-import cc.uncarbon.module.tenant.model.request.AdminUpdateTenantMetaRequest;
+import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
+import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 
 import java.util.Collection;
 import java.util.List;
 
 /**
- * 租户主数据
+ * 租户
  */
-public interface TenantMetaService {
+public interface TenantService {
 
     /**
      * 后台管理-分页查询
@@ -25,12 +24,12 @@ public interface TenantMetaService {
     /**
      * 后台管理-新增
      */
-    TenantMetaEntity adminCreate(AdminCreateTenantRequest request);
+    Long adminCreate(AdminTenantCreateRequest request);
 
     /**
      * 后台管理-修改
      */
-    void adminUpdate(AdminUpdateTenantMetaRequest request);
+    void adminUpdate(AdminTenantMetaUpdateRequest request);
 
     /**
      * 后台管理-删除

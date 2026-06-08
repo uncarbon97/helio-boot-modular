@@ -5,8 +5,10 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.base.util.StreamFunction;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
+import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
 import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
@@ -73,8 +75,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Transactional(rollbackFor = Exception.class)
     public Long adminCreate(AdminSysRoleUpsertRequest request) {
         log.info(LOG_PREFIX + "新增 >> {}", request);
-        preInsertOrUpdateCheck(request);
         checkRepeat(request);
+        checkBeforeUpsert(request);
 
         request.setId(null);
         SysRoleEntity entity = new SysRoleEntity();
@@ -90,8 +92,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     public void adminUpdate(AdminSysRoleUpsertRequest request) {
         log.info(LOG_PREFIX + "修改 >> {}", request);
         checkExistence(request.getId());
-        preInsertOrUpdateCheck(request);
         checkRepeat(request);
+        checkBeforeUpsert(request);
 
         // 暂不检查该角色是否为当前用户关联的角色
 
@@ -298,31 +300,19 @@ public class SysRoleServiceImpl implements SysRoleService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysRoleUpsertRequest request) {
-        SysRoleEntity existingEntity = sysRoleMapper.selectOne(
-                new QueryWrapper<SysRoleEntity>()
-                        .lambda()
+        SysRoleEntity entity = sysRoleMapper.selectOne(
+                new LambdaQueryWrapper<SysRoleEntity>()
                         // 仅取主键ID
                         .select(SysRoleEntity::getId)
-                        // 名称相同
-                        .eq(SysRoleEntity::getName, request.getName())
+                        // 并非原地更新
+                        .ne(Objects.nonNull(request.getId()), SysRoleEntity::getId, request.getId())
+                        // 编码相同
+                        .eq(SysRoleEntity::getCode, request.getCode())
                         .last(SQLSegment.LIMIT_1)
         );
 
-        if (existingEntity != null && !existingEntity.getId().equals(request.getId())) {
-            throw new BusinessException(400, "已存在相同系统角色，请重新输入");
-        }
-
-        if (request.creatingNewTenantAdmin()) {
-            long qty = sysRoleMapper.selectCount(
-                    new QueryWrapper<SysRoleEntity>()
-                            .lambda()
-                            // 租户ID相同
-                            .eq(SysRoleEntity::getTenantId, request.getTenantId())
-                            // 角色编码相同
-                            .eq(SysRoleEntity::getCode, request.getCode())
-                            .last(SQLSegment.LIMIT_1)
-            );
-            SysErrorCodeEnum.NEED_DELETE_EXISTING_TENANT_ADMIN_ROLE.assertTrue(qty <= 0L, request.getTenantId());
+        if (entity != null) {
+            throw new HasRepeatRecordException("已存在相同的角色编码");
         }
     }
 
@@ -358,7 +348,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     /**
      * 新增/修改系统角色信息前检查
      */
-    private void preInsertOrUpdateCheck(AdminSysRoleUpsertRequest request) {
+    private void checkBeforeUpsert(AdminSysRoleUpsertRequest request) {
         if (SysConstant.SUPER_ADMIN_ROLE_VALUE.equalsIgnoreCase(request.getCode())) {
             // 角色编码不能为SuperAdmin
             throw new BusinessException(SysErrorCodeEnum.A01010, SysConstant.SUPER_ADMIN_ROLE_VALUE);

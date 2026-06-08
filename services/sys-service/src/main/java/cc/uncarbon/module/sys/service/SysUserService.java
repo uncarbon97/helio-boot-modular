@@ -5,7 +5,7 @@ import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
-import cc.uncarbon.module.sys.model.valueobj.AdminSysUserLoginReply;
+import cc.uncarbon.module.sys.model.response.AdminSysUserLoginResult;
 import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 
 import java.util.Collection;
@@ -47,7 +47,7 @@ public interface SysUserService {
     /**
      * 后台管理-登录
      */
-    AdminSysUserLoginReply adminLogin(AdminSysUserLoginRequest request);
+    AdminSysUserLoginResult adminLogin(AdminSysUserLoginRequest request);
 
     /**
      * 后台管理-取当前用户资料

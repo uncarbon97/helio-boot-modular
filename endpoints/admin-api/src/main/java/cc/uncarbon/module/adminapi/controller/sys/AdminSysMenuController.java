@@ -51,7 +51,7 @@ public class AdminSysMenuController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
-    public ApiResult<Void> insert(@RequestBody @Valid AdminSysMenuUpsertRequest request) {
+    public ApiResult<Void> create(@RequestBody @Valid AdminSysMenuUpsertRequest request) {
         sysMenuService.adminCreate(request);
 
         return ApiResult.success();

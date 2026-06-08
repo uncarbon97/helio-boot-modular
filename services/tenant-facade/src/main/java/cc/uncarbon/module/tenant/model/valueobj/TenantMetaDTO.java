@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 
 /**
- * 租户主数据信息
+ * 租户主数据
  */
 @Accessors(chain = true)
 @AllArgsConstructor

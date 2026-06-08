@@ -26,19 +26,20 @@ public class AdminTenantPackageUpsertRequest implements Serializable {
     private Long id;
 
     @Schema(description = "套餐编码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 100, message = "【套餐编码】最长100位")
-    @NotBlank(message = "【套餐编码】必填")
+    @Size(max = 100, message = "套餐编码最长{max}位")
+    @NotBlank(message = "套餐编码必填")
     private String code;
 
     @Schema(description = "套餐名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 50, message = "【套餐名称】最长50位")
-    @NotBlank(message = "【套餐名称】必填")
+    @Size(max = 100, message = "套餐名称最长{max}位")
+    @NotBlank(message = "套餐名称必填")
     private String name;
 
     @Schema(description = "状态")
     private EnabledStatusEnum status;
 
     @Schema(description = "套餐描述")
+    @Size(max = 255, message = "套餐描述最长{max}位")
     private String description;
 
     @Schema(description = "菜单ID数组")

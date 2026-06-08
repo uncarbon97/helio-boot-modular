@@ -35,8 +35,8 @@ public class AdminSysUserLoginRequest implements Serializable {
     @NotNull(message = "记住我必填")
     private Boolean rememberMe;
 
-    @Schema(description = "租户ID(可选，启用多租户后有效)")
-    private Long tenantId;
+    @Schema(description = "租户编码")
+    private String tenantCode;
 
     @Schema(description = "验证码唯一标识(可选)")
     private String captchaId;

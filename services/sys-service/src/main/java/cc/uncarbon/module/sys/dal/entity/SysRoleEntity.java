@@ -3,6 +3,9 @@ package cc.uncarbon.module.sys.dal.entity;
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.constant.SysConstant;
+import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.text.StrPool;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -15,6 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
+import java.util.List;
 
 
 /**
@@ -55,6 +59,16 @@ public class SysRoleEntity extends AbstractTenantGenericEntity {
 	@Schema(description = "角色特殊标记")
 	@TableField(value = "flags")
 	private String flags;
+
+	/**
+	 * 解析角色特殊标记为 {@link SysRoleFlagEnum} 集合
+	 */
+	public List<SysRoleFlagEnum> resolveFlags() {
+		if (CharSequenceUtil.isEmpty(flags)) {
+			return List.of();
+		}
+		CharSequenceUtil.split(flags, StrPool.COMMA).stream().map()
+	}
 
 	/**
 	 * 角色实例可被视为超级管理员

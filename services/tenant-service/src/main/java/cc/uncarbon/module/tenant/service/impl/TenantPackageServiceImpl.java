@@ -14,9 +14,7 @@ import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
 import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -165,7 +163,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
         if (fillMenu) {
             dto.setMenuIds(
-                    tenantPackageMenuRelationService.listMenuIdsByPackageId(Collections.singleton(dto.getId()))
+                    tenantPackageMenuRelationService.listMenuIdsByPackage(dto.getId())
             );
         }
         return dto;

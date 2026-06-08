@@ -22,7 +22,7 @@ public enum TenantErrorCodeEnum implements ErrorCodeEnum {
     /*
      A 开头错误码，表示一般性错误，如用户输入有误
      */
-    // INVALID_TENANT(400, "所属租户无效"),
+    A03001("A03001", "租户套餐非启用状态"),
     // DISABLED_TENANT(400, "所属租户已禁用"),
 
     // CANNOT_DELETE_TENANT_ADMIN_ROLE(403, "为减少脏数据，不建议直接删除租户管理员角色，需通过【删除租户】关联删除"),

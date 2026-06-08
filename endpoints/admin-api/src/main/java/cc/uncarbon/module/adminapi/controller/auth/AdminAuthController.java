@@ -14,7 +14,7 @@ import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.request.AdminSysUserLoginRequest;
-import cc.uncarbon.module.sys.model.valueobj.AdminSysUserLoginReply;
+import cc.uncarbon.module.sys.model.response.AdminSysUserLoginResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
 import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
 import cn.dev33.satoken.annotation.SaCheckLogin;
@@ -45,7 +45,7 @@ public class AdminAuthController {
         // 登录验证码核验；前端项目搜索关键词「Helium: 登录验证码」
         // AdminApiErrorEnum.CAPTCHA_VALIDATE_FAILED.assertTrue(captchaHelper.validate(dto.getCaptchaId(), dto.getCaptchaAnswer()))
 
-        AdminSysUserLoginReply loginReply = sysUserService.adminLogin(request);
+        AdminSysUserLoginResult loginReply = sysUserService.adminLogin(request);
 
         // 构造用户上下文
         UserContext userContext = UserContext.builder()

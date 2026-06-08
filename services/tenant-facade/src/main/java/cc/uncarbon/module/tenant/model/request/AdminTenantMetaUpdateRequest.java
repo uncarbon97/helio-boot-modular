@@ -19,7 +19,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminUpdateTenantMetaRequest implements Serializable {
+public class AdminTenantMetaUpdateRequest implements Serializable {
 
 
     @Schema(description = "主键ID", title = "仅修改时使用")

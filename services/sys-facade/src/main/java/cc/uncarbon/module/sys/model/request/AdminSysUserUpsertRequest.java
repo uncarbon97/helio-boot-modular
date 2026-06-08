@@ -1,6 +1,5 @@
 package cc.uncarbon.module.sys.model.request;
 
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cn.hutool.core.lang.RegexPool;
@@ -35,7 +34,7 @@ public class AdminSysUserUpsertRequest implements Serializable {
     private Long tenantId;
 
     @Schema(description = "账号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(min = 6, max = 16, message = "账号最短6位，最长16位")
+    @Size(min = 6, max = 16, message = "账号最短{min}位，最长{max}位")
     @NotBlank(message = "账号必填")
     private String pin;
 
@@ -43,7 +42,7 @@ public class AdminSysUserUpsertRequest implements Serializable {
     private String passwordOfNewUser;
 
     @Schema(description = "昵称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 100, message = "昵称最长100位")
+    @Size(max = 20, message = "昵称最长{max}位")
     @NotBlank(message = "昵称必填")
     private String nickname;
 
@@ -57,13 +56,13 @@ public class AdminSysUserUpsertRequest implements Serializable {
 
     @Schema(description = "邮箱", requiredMode = Schema.RequiredMode.REQUIRED)
     @Pattern(message = "邮箱格式有误", regexp = RegexPool.EMAIL)
-    @Size(max = 255, message = "邮箱最长255位")
+    @Size(max = 255, message = "邮箱最长{max}位")
     @NotBlank(message = "邮箱必填")
     private String email;
 
     @Schema(description = "手机号", requiredMode = Schema.RequiredMode.REQUIRED)
     @Pattern(message = "手机号格式有误", regexp = RegexPool.MOBILE)
-    @Size(max = 20, message = "手机号最长20位")
+    @Size(max = 20, message = "手机号最长{max}位")
     @NotBlank(message = "手机号必填")
     private String phoneNo;
 
@@ -75,9 +74,9 @@ public class AdminSysUserUpsertRequest implements Serializable {
         boolean isUpdate = Objects.nonNull(id);
         if (!isUpdate) {
             int passwordOfNewUserLen = CharSequenceUtil.length(passwordOfNewUser);
-            if (passwordOfNewUserLen < 8 || passwordOfNewUserLen > 20) {
-                throw new BusinessException("密码最短8位，最长20位");
-            }
+//            if (passwordOfNewUserLen < 8 || passwordOfNewUserLen > 20) {
+//                throw new BusinessException("密码最短8位，最长20位");
+//            }
         }
     }
 

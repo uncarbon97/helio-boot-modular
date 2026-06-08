@@ -25,7 +25,7 @@ public class AdminSysDeptUpsertRequest implements Serializable {
     private Long id;
 
     @Schema(description = "部门名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 50, message = "部门名称最长50位")
+    @Size(max = 100, message = "部门名称最长{max}位")
     @NotBlank(message = "部门名称必填")
     private String name;
 

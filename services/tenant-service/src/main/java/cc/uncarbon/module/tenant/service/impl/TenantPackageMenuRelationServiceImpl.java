@@ -27,7 +27,7 @@ public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRe
 
 
     @Override
-    public List<Long> listMenuIdsByPackageId(long packageId) {
+    public List<Long> listMenuIdsByPackage(long packageId) {
         return tenantPackageMenuRelationMapper.listMenuIdsByPackage(packageId);
     }
 

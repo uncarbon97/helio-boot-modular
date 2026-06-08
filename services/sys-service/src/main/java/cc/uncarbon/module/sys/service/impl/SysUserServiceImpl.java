@@ -19,7 +19,7 @@ import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
 import cc.uncarbon.module.sys.model.interior.UserRoleContainer;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
-import cc.uncarbon.module.sys.model.valueobj.AdminSysUserLoginReply;
+import cc.uncarbon.module.sys.model.response.AdminSysUserLoginResult;
 import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.*;
@@ -169,7 +169,7 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public SysUserDTO getById(Long id) {
-        dataScopeCheck(Collections.singleton(id));
+        checkDataScope(Collections.singleton(id));
 
         SysUserEntity entity = sysUserMapper.selectById(id);
         return this.convertEntity(entity, true);
@@ -181,15 +181,15 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public AdminSysUserLoginReply adminLogin(AdminSysUserLoginRequest request) {
+    public AdminSysUserLoginResult adminLogin(AdminSysUserLoginRequest request) {
         /*
         如果启用了多租户功能，并且前端指定了租户ID，则先查库确认租户是否有效
         注意：数据源级多租户，登录前【必须】主动指定租户ID，如: dto.setTenantId(101L)
          */
         // ConcurrentHashMap 的 value 不能为 null，还是 new 一个吧
         TenantContext tenantContext = new SimpleTenantContext();
-        if (isTenantEnabled && Objects.nonNull(request.getTenantId())) {
-            tenantContext = this.checkAndGetTenantContext(request.getTenantId());
+        if (isTenantEnabled && Objects.nonNull(request.getTenantCode())) {
+            tenantContext = this.checkAndGetTenantContext(request.getTenantCode());
             // 验证通过，将所属租户写入租户上下文，使得 SQL 拦截器可以正确执行
             TenantContextHolder.setTenantContext(tenantContext);
         }
@@ -228,7 +228,7 @@ public class SysUserServiceImpl implements SysUserService {
         Map<Long, Set<String>> roleIdPermissionMap = sysMenuService.getRoleIdPermissionMap(roleMap.keySet());
 
         // 包装返回体；有的字段类型不一致, 单独转换
-        AdminSysUserLoginReply ret = new AdminSysUserLoginReply();
+        AdminSysUserLoginResult ret = new AdminSysUserLoginResult();
         BeanUtil.copyProperties(sysUserDTO, ret);
 
         Set<String> permissions = roleIdPermissionMap.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
@@ -431,7 +431,7 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 数据越权检查
      */
-    void dataScopeCheck(Collection<Long> userIds) {
+    void checkDataScope(Collection<Long> userIds) {
         Set<Long> visibleUserIds = determineVisibleDeptUserIds();
         Set<Long> invisibleUserIds = determineInvisibleUserIds();
         if (CollUtil.isNotEmpty(visibleUserIds) && !CollUtil.containsAll(visibleUserIds, userIds)
@@ -498,7 +498,7 @@ public class SysUserServiceImpl implements SysUserService {
             throw new BusinessException(SysErrorCodeEnum.A01021);
         }
 
-        dataScopeCheck(Collections.singleton(specifiedUserId));
+        checkDataScope(Collections.singleton(specifiedUserId));
         // 暂未实现角色层级，一律平级
     }
 
@@ -523,7 +523,7 @@ public class SysUserServiceImpl implements SysUserService {
             throw new BusinessException(SysErrorCodeEnum.A01021);
         }
 
-        dataScopeCheck(ids);
+        checkDataScope(ids);
         // 暂未实现角色层级，一律平级
     }
 
@@ -561,7 +561,7 @@ public class SysUserServiceImpl implements SysUserService {
         // 超级管理员之外的用户，都需要校验自身角色范围是否满足输入值
         currentUserNotSuperAdmin(dto, currentUser);
 
-        dataScopeCheck(Collections.singleton(dto.getUserId()));
+        checkDataScope(Collections.singleton(dto.getUserId()));
     }
 
     /**

@@ -1,4 +1,4 @@
-package cc.uncarbon.module.sys.model.valueobj;
+package cc.uncarbon.module.sys.model.response;
 
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,7 +20,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminSysUserLoginReply implements Serializable {
+public class AdminSysUserLoginResult implements Serializable {
 
     @Schema(description = "用户ID")
     private Long id;
