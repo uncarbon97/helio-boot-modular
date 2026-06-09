@@ -146,7 +146,6 @@ public class OssFileInfoService {
             entity.setDirectUrl(fileInfo.getUrl());
         }
         ossFileInfoMapper.insert(entity);
-
         return this.entity2BO(entity);
     }
 

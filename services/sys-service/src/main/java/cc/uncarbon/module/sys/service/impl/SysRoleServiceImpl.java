@@ -1,21 +1,24 @@
 package cc.uncarbon.module.sys.service.impl;
 
-import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.base.util.StreamFunction;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
-import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
 import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
-import cc.uncarbon.module.sys.model.interior.UserRoleContainer;
+import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
+import cc.uncarbon.module.sys.helper.UserRoleHelper;
+import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
-import cc.uncarbon.module.sys.model.request.AdminBindRoleMenuRelationDTO;
+import cc.uncarbon.module.sys.model.request.AdminBindRoleMenusRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
+import cc.uncarbon.module.sys.model.request.AppendTenantRoleRequest;
+import cc.uncarbon.module.sys.model.response.AppendTenantRoleResult;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
@@ -45,16 +48,19 @@ import java.util.stream.Collectors;
 public class SysRoleServiceImpl implements SysRoleService {
 
     private static final String LOG_PREFIX = "[系统管理][角色管理]";
+    private static final Set<String> UNACCEPTABLE_ROLE_CODES = Set.of(
+            SysConstant.SUPER_ADMIN_ROLE_CODE, SysConstant.TENANT_ADMIN_ROLE_CODE);
 
     private final SysRoleMapper sysRoleMapper;
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
     private final SysMenuService sysMenuService;
+    private final UserRoleHelper userRoleHelper;
 
 
     @Override
     public PageResult<SysRoleDTO> adminList(AdminSysRoleListQuery query) {
-        Set<Long> invisibleRoleIds = determineInvisibleRoleIds();
+        Set<Long> invisibleRoleIds = userRoleHelper.listInvisibleRoleIds();
         Page<SysRoleEntity> entityPage = sysRoleMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
                 new LambdaQueryWrapper<SysRoleEntity>()
@@ -71,29 +77,28 @@ public class SysRoleServiceImpl implements SysRoleService {
         return convertPage(entityPage, true);
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public Long adminCreate(AdminSysRoleUpsertRequest request) {
         log.info(LOG_PREFIX + "新增 >> {}", request);
         checkRepeat(request);
-        checkBeforeUpsert(request);
+        checkBeforeCreate(request);
 
         request.setId(null);
         SysRoleEntity entity = new SysRoleEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysRoleMapper.insert(entity);
-
         return entity.getId();
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void adminUpdate(AdminSysRoleUpsertRequest request) {
         log.info(LOG_PREFIX + "修改 >> {}", request);
         checkExistence(request.getId());
         checkRepeat(request);
-        checkBeforeUpsert(request);
+        checkBeforeUpdate(request);
 
         // 暂不检查该角色是否为当前用户关联的角色
 
@@ -103,11 +108,11 @@ public class SysRoleServiceImpl implements SysRoleService {
         sysRoleMapper.updateById(entity);
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
-        preDeleteCheck(ids);
+        checkBeforeDelete(ids);
         sysRoleMapper.deleteByIds(ids);
     }
 
@@ -122,19 +127,13 @@ public class SysRoleServiceImpl implements SysRoleService {
         return NoRecordException.throwIfNull(getById(id));
     }
 
-    /**
-     * 后台管理-绑定角色与菜单关联关系
-     *
-     * @return 新菜单ID集合对应的权限名
-     */
-    @Override
     @Transactional(rollbackFor = Exception.class)
-    public Set<String> adminBindMenus(AdminBindRoleMenuRelationDTO dto) {
-        preBindRoleMenuRelationCheck(dto);
-        Set<String> newPermissions = sysMenuService.listPermissionsByMenuIds(dto.getMenuIds());
-        sysRoleMenuRelationService.cleanAndBind(dto.getRoleId(), dto.getMenuIds());
-
-        return newPermissions;
+    @Override
+    public Set<String> adminBindMenus(AdminBindRoleMenusRequest request) {
+        checkExistence(request.getRoleId());
+        checkBeforeBindRoleMenuRelation(request);
+        sysRoleMenuRelationService.cleanAndBind(request.getRoleId(), request.getMenuIds());
+        return sysMenuService.listPermissionsByMenuIds(request.getMenuIds());
     }
 
     /**
@@ -142,7 +141,7 @@ public class SysRoleServiceImpl implements SysRoleService {
      */
     @Override
     public List<SysRoleDTO> adminSelectOptions() {
-        Set<Long> invisibleRoleIds = determineInvisibleRoleIds();
+        Set<Long> invisibleRoleIds = userRoleHelper.listInvisibleRoleIds();
         List<SysRoleEntity> entityList = sysRoleMapper.selectList(
                 new QueryWrapper<SysRoleEntity>()
                         .lambda()
@@ -157,22 +156,44 @@ public class SysRoleServiceImpl implements SysRoleService {
         return convertList(entityList, false);
     }
 
+    @Override
+    public AppendTenantRoleResult appendTenantRole(AppendTenantRoleRequest request) {
+        try {
+            TenantContextHolder.setIgnored(true);
+
+            SysRoleEntity entity = new SysRoleEntity();
+            BeanUtil.copyProperties(request, entity);
+            // 按需改写字段
+            if (request.isTenantAdmin()) {
+                entity
+                        .setCode(SysConstant.SUPER_ADMIN_ROLE_CODE)
+                        .setName("主管理员")
+                        .setDescription("具有所有功能权限和全部数据可见范围")
+                        .assignFlags(List.of(SysRoleFlagEnum.BUILTIN));
+            }
+
+            sysRoleMapper.insert(entity);
+            return new AppendTenantRoleResult(entity.getId(), request.isTenantAdmin());
+        } finally {
+            TenantContextHolder.setIgnored(false);
+        }
+    }
+
     /**
      * 后台管理-删除指定租户的特定角色
      *
      * @param tenantIds 租户IDs，非主键ID，必填
      * @param roleCodes 角色值集合，可以为空
      */
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void adminDeleteTenantRoles(Collection<Long> tenantIds, Collection<String> roleCodes) {
         if (CollUtil.isEmpty(tenantIds)) {
             return;
         }
 
         sysRoleMapper.delete(
-                new QueryWrapper<SysRoleEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<SysRoleEntity>()
                         // 租户ID
                         .in(SysRoleEntity::getTenantId, tenantIds)
                         // 值相符
@@ -188,7 +209,7 @@ public class SysRoleServiceImpl implements SysRoleService {
      */
     @Override
     public Map<Long, String> getRoleMapByUserId(Long userId) {
-        Set<Long> roleIds = sysUserRoleRelationService.listRoleIdsByUser(userId);
+        List<Long> roleIds = sysUserRoleRelationService.listRoleIdsByUser(userId);
 
         if (CollUtil.isEmpty(roleIds)) {
             return Map.of();
@@ -203,31 +224,6 @@ public class SysRoleServiceImpl implements SysRoleService {
         ).stream().collect(Collectors.toMap(SysRoleEntity::getId, SysRoleEntity::getCode, StreamFunction.keepExisting()));
     }
 
-    /**
-     * 取当前用户关联角色信息
-     * 仅内部使用
-     */
-    @Override
-    public UserRoleContainer getCurrentUserRoleContainer() {
-        return getSpecifiedUserRoleContainer(UserContextHolder.getUserId());
-    }
-
-    /**
-     * 取指定用户关联角色信息
-     * 仅内部使用
-     */
-    @Override
-    public UserRoleContainer getSpecifiedUserRoleContainer(Long specifiedUserId) {
-        Set<Long> userRoleIds = sysUserRoleRelationService.listRoleIdsByUser(specifiedUserId);
-        List<SysRoleEntity> userRoles = null;
-        if (CollUtil.isNotEmpty(userRoleIds)) {
-            userRoles = sysRoleMapper.selectByIds(userRoleIds);
-        }
-        if (CollUtil.isEmpty(userRoles)) {
-            userRoles = List.of();
-        }
-        return new UserRoleContainer(userRoleIds, userRoles);
-    }
 
     /*
     ----------------------------------------------------------------
@@ -246,10 +242,11 @@ public class SysRoleServiceImpl implements SysRoleService {
         }
 
         SysRoleDTO ret = new SysRoleDTO();
-        BeanUtil.copyProperties(entity, ret);
+        BeanUtil.copyProperties(entity, ret, "flags");
         // 按需改写字段
+        ret.setFlags(entity.resolveFlags());
         if (fillMenu) {
-            ret.setMenuIds(sysRoleMenuRelationService.listMenuIdsByRoleIds(Collections.singleton(ret.getId())));
+            ret.setMenuIds(sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(ret.getId())));
         }
 
         return ret;
@@ -261,13 +258,10 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @param fillMenu 是否填充菜单
      */
     private List<SysRoleDTO> convertList(List<SysRoleEntity> entityList, boolean fillMenu) {
-        // 深拷贝
-        List<SysRoleDTO> ret = new ArrayList<>(entityList.size());
-        entityList.forEach(
-                entity -> ret.add(convertEntity(entity, fillMenu))
-        );
-
-        return ret;
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+        return entityList.stream().map(item -> convertEntity(item, fillMenu)).toList();
     }
 
     /**
@@ -317,111 +311,73 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 确定不可见角色IDs
-     * 租户管理员：列表中不显示超级管理员角色
-     * 普通角色：列表中不显示超级管理员、租户管理员角色
-     *
-     * @return mutable Set，支持外部改变元素
+     * 新增前检查
      */
-    private Set<Long> determineInvisibleRoleIds() {
-        UserRoleContainer currentUser = getCurrentUserRoleContainer();
-        // 超级管理员：不限制
-        if (currentUser.isSuperAdmin()) {
-            return new HashSet<>();
-        }
-        // 租户管理员：列表中不显示超级管理员角色
-        if (currentUser.isTenantAdmin()) {
-            return CollUtil.newHashSet(SysConstant.SUPER_ADMIN_ROLE_ID);
-        }
-        // 普通角色：列表中不显示超级管理员、租户管理员角色
-        Set<Long> ret = sysRoleMapper.selectList(
-                new LambdaQueryWrapper<SysRoleEntity>()
-                        // 仅取主键ID
-                        .select(SysRoleEntity::getId)
-                        // 值相符
-                        .eq(SysRoleEntity::getCode, SysConstant.TENANT_ADMIN_ROLE_VALUE)
-        ).stream().map(SysRoleEntity::getId).collect(Collectors.toSet());
-        ret.add(SysConstant.SUPER_ADMIN_ROLE_ID);
-        return ret;
-    }
-
-    /**
-     * 新增/修改系统角色信息前检查
-     */
-    private void checkBeforeUpsert(AdminSysRoleUpsertRequest request) {
-        if (SysConstant.SUPER_ADMIN_ROLE_VALUE.equalsIgnoreCase(request.getCode())) {
-            // 角色编码不能为SuperAdmin
-            throw new BusinessException(SysErrorCodeEnum.A01010, SysConstant.SUPER_ADMIN_ROLE_VALUE);
-        }
-        if (SysConstant.TENANT_ADMIN_ROLE_VALUE.equalsIgnoreCase(request.getCode()) && !request.creatingNewTenantAdmin()) {
-            // 除非是新增租户时，同时新增租户管理员角色，否则角色编码不能为Admin
-            throw new BusinessException(SysErrorCodeEnum.A01010, SysConstant.TENANT_ADMIN_ROLE_VALUE);
-        }
-
-        boolean isUpdating = Objects.nonNull(request.getId());
-        if (isUpdating) {
-            SysRoleEntity existingRole = sysRoleMapper.selectById(request.getId());
-            SysErrorCodeEnum.A01001.assertNotNull(existingRole);
-            if (existingRole.isSuperAdmin() || existingRole.isTenantAdmin()) {
-                // 原来角色编码为SuperAdmin或Admin的，不能被改变
-                throw new BusinessException(SysErrorCodeEnum.A01010, existingRole.getCode());
-            }
+    private void checkBeforeCreate(AdminSysRoleUpsertRequest request) {
+        if (CollUtil.contains(UNACCEPTABLE_ROLE_CODES, request.getCode())) {
+            throw new BusinessException(SysErrorCodeEnum.A01010, request.getCode());
         }
     }
 
     /**
-     * 删除系统角色前检查
+     * 修改前检查
      */
-    private void preDeleteCheck(Collection<Long> ids) {
-        if (CollUtil.contains(ids, SysConstant.SUPER_ADMIN_ROLE_ID)) {
-            throw new BusinessException(SysErrorCodeEnum.A01011);
+    private void checkBeforeUpdate(AdminSysRoleUpsertRequest request) {
+        SysRoleEntity entity = sysRoleMapper.selectById(request.getId());
+        denyBuiltinOp(entity, SysErrorCodeEnum.A01013);
+        if (CollUtil.contains(UNACCEPTABLE_ROLE_CODES, request.getCode())) {
+            throw new BusinessException(SysErrorCodeEnum.A01010, request.getCode());
+        }
+    }
+
+    /**
+     * 删除前检查
+     */
+    private void checkBeforeDelete(Collection<Long> ids) {
+        List<SysRoleEntity> entityList = sysRoleMapper.selectByIds(ids);
+        for (SysRoleEntity entity : entityList) {
+            denyBuiltinOp(entity, SysErrorCodeEnum.A01011);
         }
 
-        List<SysRoleEntity> existingEntityList = sysRoleMapper.selectByIds(ids);
-        for (SysRoleEntity item : existingEntityList) {
-            if (item.isSuperAdmin()) {
-                throw new BusinessException(SysErrorCodeEnum.A01011);
-            }
-
-            if (item.isTenantAdmin()) {
-                throw new BusinessException(SysErrorCodeEnum.CANNOT_DELETE_TENANT_ADMIN_ROLE);
-            }
-        }
-
-        UserRoleContainer currentUser = getCurrentUserRoleContainer();
-        if (CollUtil.containsAny(currentUser.getRelatedRoleIds(), ids)) {
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (CollUtil.containsAny(me.getRelatedRoleIds(), ids)) {
             throw new BusinessException(SysErrorCodeEnum.A01012);
         }
     }
 
     /**
-     * 绑定系统角色与菜单关联关系前检查
+     * 绑定角色与菜单关联关系前检查
      * 防止越权访问漏洞
      */
-    private void preBindRoleMenuRelationCheck(AdminBindRoleMenuRelationDTO dto) {
-        UserRoleContainer currentUser = getCurrentUserRoleContainer();
-        if (SysConstant.SUPER_ADMIN_ROLE_ID.equals(dto.getRoleId())) {
-            throw new BusinessException(SysErrorCodeEnum.A01013);
-        }
+    private void checkBeforeBindRoleMenuRelation(AdminBindRoleMenusRequest request) {
+        SysRoleEntity entity = sysRoleMapper.selectById(request.getRoleId());
+        denyBuiltinOp(entity, SysErrorCodeEnum.A01013);
 
-        if (CollUtil.contains(currentUser.getRelatedRoleIds(), dto.getRoleId())) {
-            // 不能动自身角色
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (CollUtil.contains(me.getRelatedRoleIds(), request.getRoleId())) {
             throw new BusinessException(SysErrorCodeEnum.A01014);
         }
 
-        // 有且只有当前用户为超级管理员，才可以为租户管理员绑定菜单
-        SysRoleEntity targetRole = sysRoleMapper.selectById(dto.getRoleId());
-        if (targetRole.isTenantAdmin() && !currentUser.isSuperAdmin()) {
-            throw new BusinessException(SysErrorCodeEnum.CANNOT_BIND_MENUS_FOR_TENANT_ADMIN_ROLE);
-        }
-
-        if (CollUtil.isNotEmpty(dto.getMenuIds()) && !currentUser.isSuperAdmin()) {
+        if (CollUtil.isNotEmpty(request.getMenuIds()) && !me.isSuperAdmin()) {
             // 超级管理员之外的角色，都需要校验自身菜单范围是否满足输入值
-            Set<Long> visibleMenuIds = sysRoleMenuRelationService.listMenuIdsByRoleIds(currentUser.getRelatedRoleIds());
-            if (!CollUtil.containsAll(visibleMenuIds, dto.getMenuIds())) {
+            Set<Long> visibleMenuIds = sysRoleMenuRelationService.listMenuIdsByRoles(me.getRelatedRoleIds());
+            if (!CollUtil.containsAll(visibleMenuIds, request.getMenuIds())) {
                 // 可能存在超自身权限赋权
                 throw new BusinessException(SysErrorCodeEnum.A01015);
             }
+        }
+    }
+
+    /**
+     * 阻止对 {@link SysRoleFlagEnum#BUILTIN} 角色的操作
+     */
+    private static void denyBuiltinOp(SysRoleEntity entity, SysErrorCodeEnum errorCode) {
+        if (entity == null) {
+            return;
+        }
+        List<SysRoleFlagEnum> roleFlags = entity.resolveFlags();
+        if (CollUtil.contains(roleFlags, SysRoleFlagEnum.BUILTIN)) {
+            throw new BusinessException(errorCode);
         }
     }
 }

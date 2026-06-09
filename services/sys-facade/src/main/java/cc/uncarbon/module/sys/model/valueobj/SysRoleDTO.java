@@ -1,5 +1,7 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +11,7 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 
 
 /**
@@ -34,6 +37,15 @@ public class SysRoleDTO implements Serializable {
 
     @Schema(description = "角色名称")
     private String name;
+
+    @Schema(description = "角色描述")
+    private String description;
+
+    @Schema(description = "状态")
+    private EnabledStatusEnum status;
+
+    @Schema(description = "角色特殊标记")
+    private List<SysRoleFlagEnum> flags;
 
     @Schema(description = "可见菜单Ids")
     private Collection<Long> menuIds;

@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
+import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 
@@ -56,7 +56,7 @@ public interface SysDeptService {
      *
      * @param queryVisibleDept 是否要进一步查询可见部门
      */
-    UserDeptContainer getCurrentUserDeptContainer(boolean queryVisibleDept);
+    UserDeptScope getCurrentUserDept(boolean queryVisibleDept);
 
     /**
      * 取指定用户关联部门信息
@@ -64,6 +64,6 @@ public interface SysDeptService {
      *
      * @param queryVisibleDept 是否要进一步查询可见部门
      */
-    UserDeptContainer getSpecifiedUserDeptContainer(Long specifiedUserId, boolean queryVisibleDept);
+    UserDeptScope getSpecifiedUserDept(Long specifiedUserId, boolean queryVisibleDept);
 
 }

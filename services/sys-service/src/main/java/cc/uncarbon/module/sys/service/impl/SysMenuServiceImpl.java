@@ -106,7 +106,6 @@ public class SysMenuServiceImpl implements SysMenuService {
         BeanUtil.copyProperties(request, entity);
 
         sysMenuMapper.insert(entity);
-
         return entity.getId();
     }
 
@@ -158,60 +157,44 @@ public class SysMenuServiceImpl implements SysMenuService {
         return listByIds(visibleMenuIds, MenuTypeEnum.all());
     }
 
-    /**
-     * 根据角色Ids，获取角色ID 对应的权限名 Map
-     *
-     * @return map key=角色ID value=权限名集合
-     */
     @Override
-    public Map<Long, Set<String>> getRoleIdPermissionMap(Collection<Long> roleIds) {
+    public Map<Long, Set<String>> getPermissionMapByRole(Collection<Long> roleIds) {
         if (CollUtil.isEmpty(roleIds)) {
             return Map.of();
         }
-
         Map<Long, Set<String>> ret = new HashMap<>(roleIds.size(), 1);
+        for (Long roleId : roleIds) {
+            Set<String> permissions;
 
-        roleIds.forEach(
-                roleId -> {
-                    Set<String> permissions;
-
-                    if (SysConstant.SUPER_ADMIN_ROLE_ID.equals(roleId)) {
-                        // 超级管理员读取所有权限，不管有没有被禁用
-                        permissions = sysMenuMapper.selectList(null).stream()
-                                .map(SysMenuEntity::getPermission)
-                                .filter(CharSequenceUtil::isNotEmpty)
-                                .collect(Collectors.toSet());
-                    } else {
-                        // 非超级管理员则通过角色ID，关联查询拥有的菜单，菜单上有权限名
-
-                        Set<Long> menuIds = sysRoleMenuRelationService.listMenuIdsByRoleIds(Collections.singleton(roleId));
-                        if (CollUtil.isEmpty(menuIds)) {
-                            permissions = Set.of();
-                        } else {
-                            permissions = sysMenuMapper.selectList(
-                                            new QueryWrapper<SysMenuEntity>()
-                                                    .lambda()
-                                                    .select(SysMenuEntity::getPermission)
-                                                    .in(SysMenuEntity::getId, menuIds)
-                                                    .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
-                                    )
-                                    .stream()
-                                    .map(SysMenuEntity::getPermission)
-                                    .filter(StrUtil::isNotEmpty)
-                                    .collect(Collectors.toSet());
-                        }
-                    }
-
-                    ret.put(roleId, permissions);
+            if (SysConstant.SUPER_ADMIN_ROLE_ID.equals(roleId)) {
+                // 超级管理员读取所有权限，不管有没有被禁用
+                permissions = sysMenuMapper.selectList(null).stream()
+                        .map(SysMenuEntity::getPermission)
+                        .filter(CharSequenceUtil::isNotEmpty)
+                        .collect(Collectors.toSet());
+            } else {
+                // 查询角色关联菜单
+                Set<Long> menuIds = sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(roleId));
+                if (CollUtil.isEmpty(menuIds)) {
+                    permissions = Set.of();
+                } else {
+                    permissions = sysMenuMapper.selectList(
+                                    new LambdaQueryWrapper<SysMenuEntity>()
+                                            .select(SysMenuEntity::getPermission)
+                                            .in(SysMenuEntity::getId, menuIds)
+                                            .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
+                            )
+                            .stream()
+                            .map(SysMenuEntity::getPermission)
+                            .filter(StrUtil::isNotEmpty)
+                            .collect(Collectors.toSet());
                 }
-        );
-
+            }
+            ret.put(roleId, permissions);
+        }
         return ret;
     }
 
-    /**
-     * 根据菜单ID集合，取权限名集合
-     */
     @Override
     public Set<String> listPermissionsByMenuIds(Collection<Long> menuIds) {
         if (CollUtil.isEmpty(menuIds)) {
@@ -219,13 +202,11 @@ public class SysMenuServiceImpl implements SysMenuService {
         }
 
         return sysMenuMapper.selectList(
-                new QueryWrapper<SysMenuEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<SysMenuEntity>()
                         .select(SysMenuEntity::getPermission)
                         .in(SysMenuEntity::getId, menuIds)
-        ).stream().map(SysMenuEntity::getPermission).filter(StrUtil::isNotEmpty).collect(Collectors.toSet());
+        ).stream().map(SysMenuEntity::getPermission).filter(CharSequenceUtil::isNotEmpty).collect(Collectors.toSet());
     }
-
 
     /*
     ----------------------------------------------------------------
@@ -289,7 +270,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     private Set<Long> listCurrentUserVisibleMenuIds() {
         // 1. 取当前账号拥有角色Ids
         var roleIds = UserContextHolder.getUserContext().getRolesIds();
-        SysErrorCodeEnum.A01005.assertNotEmpty(roleIds);
+        SysErrorCodeEnum.A01006.assertNotEmpty(roleIds);
 
         // 2. 得到所有可用的 菜单ID-上级菜单ID map，备用
         Map<Long, Long> allMenuMap = sysMenuMapper.selectList(
@@ -305,7 +286,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         }
 
         // 4. 根据现有角色，获取直接关联的菜单ID
-        Set<Long> directlyRelatedMenuIds = sysRoleMenuRelationService.listMenuIdsByRoleIds(roleIds);
+        Set<Long> directlyRelatedMenuIds = sysRoleMenuRelationService.listMenuIdsByRoles(roleIds);
         SysErrorCodeEnum.A01006.assertNotEmpty(directlyRelatedMenuIds);
 
         // 5. 因为直接关联的菜单ID，可能不包含父级菜单，使得级联关系缺失，这里得给他补上

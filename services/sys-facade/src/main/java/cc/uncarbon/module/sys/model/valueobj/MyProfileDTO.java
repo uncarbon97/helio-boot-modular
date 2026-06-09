@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
-import cc.uncarbon.framework.core.enums.GenderEnum;
+import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 
 /**
- * 系统用户 for VbenAdmin
+ * 用户资料
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -39,6 +39,6 @@ public class MyProfileDTO implements Serializable {
     private String phoneNo;
 
     @Schema(description = "头像URL")
-    private String avatar;
+    private String avatarUrl;
 
 }

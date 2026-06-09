@@ -34,7 +34,7 @@ public class AdminSysUserUpsertRequest implements Serializable {
     private Long tenantId;
 
     @Schema(description = "账号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(min = 6, max = 16, message = "账号最短{min}位，最长{max}位")
+    @Size(min = 5, max = 16, message = "账号最短{min}位，最长{max}位")
     @NotBlank(message = "账号必填")
     private String pin;
 

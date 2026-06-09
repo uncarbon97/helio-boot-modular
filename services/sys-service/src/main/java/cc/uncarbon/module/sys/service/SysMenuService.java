@@ -55,9 +55,9 @@ public interface SysMenuService {
     SysMenuInfo getNonnullById(Long id) throws NoRecordException;
 
     /**
-     * 根据角色Ids，获取角色ID 对应的权限名 Map
+     * 列举角色可见的菜单权限串集合
      */
-    Map<Long, Set<String>> getRoleIdPermissionMap(Collection<Long> roleIds);
+    Map<Long, Set<String>> getPermissionMapByRole(Collection<Long> roleIds);
 
     /**
      * 根据菜单ID集合，取权限名集合

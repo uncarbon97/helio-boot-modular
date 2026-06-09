@@ -1,12 +1,13 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.io.Serializable;
-import java.util.Collection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.util.Collection;
 
 
 /**
@@ -19,11 +20,8 @@ import lombok.experimental.Accessors;
 @Data
 public class SysUserLoginVO implements Serializable {
 
-    @Schema(description = "token名称")
-    private String tokenName;
-
     @Schema(description = "token值")
-    private String tokenValue;
+    private String token;
 
     @Schema(description = "对应角色")
     private Collection<String> roles;

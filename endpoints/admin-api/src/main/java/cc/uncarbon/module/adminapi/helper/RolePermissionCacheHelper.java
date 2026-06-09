@@ -56,9 +56,7 @@ public class RolePermissionCacheHelper {
      */
     public void putCache(Map<Long, Set<String>> mapping) {
         Set<Map.Entry<Long, Set<String>>> entries = mapping.entrySet();
-        entries.forEach(
-                entry -> putCache(entry.getKey(), entry.getValue())
-        );
+        entries.forEach(entry -> putCache(entry.getKey(), entry.getValue()));
     }
 
     /**

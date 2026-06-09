@@ -1,17 +1,16 @@
-package cc.uncarbon.module.sys.model.interior;
+package cc.uncarbon.module.sys.model.internal;
 
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cn.hutool.core.collection.CollUtil;
 import lombok.Getter;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
- * 用户关联部门容器
+ * 用户关联部门
  */
 @Getter
-public class UserDeptContainer {
+public class UserDeptScope {
 
     /**
      * 直接关联的部门IDs
@@ -36,7 +35,7 @@ public class UserDeptContainer {
     private List<SysDeptEntity> visibleDepts;
 
 
-    public UserDeptContainer(List<Long> relatedDeptIds, List<SysDeptEntity> relatedDepts) {
+    public UserDeptScope(List<Long> relatedDeptIds, List<SysDeptEntity> relatedDepts) {
         this.relatedDeptIds = relatedDeptIds;
         this.relatedDepts = relatedDepts;
         this.visibleDeptIds = relatedDeptIds;

@@ -8,7 +8,7 @@ import cc.uncarbon.module.commons.model.request.IdsRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
-import cc.uncarbon.module.sys.model.request.AdminBindRoleMenuRelationDTO;
+import cc.uncarbon.module.sys.model.request.AdminBindRoleMenusRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysRoleService;
@@ -92,7 +92,7 @@ public class AdminSysRoleController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bindMenus")
     @Operation(summary = "绑定角色与菜单关联关系")
     @PostMapping(value = "/bind-menus")
-    public ApiResult<Void> bindMenus(@RequestBody @Valid AdminBindRoleMenuRelationDTO request) {
+    public ApiResult<Void> bindMenus(@RequestBody @Valid AdminBindRoleMenusRequest request) {
         Set<String> newPermissions = sysRoleService.adminBindMenus(request);
 
         // 覆盖更新缓存

@@ -9,9 +9,9 @@ import java.util.Set;
 public interface SysRoleMenuRelationService {
 
     /**
-     * 根据角色Ids取菜单Ids
+     * 列举角色关联的菜单IDs
      */
-    Set<Long> listMenuIdsByRoleIds(Collection<Long> roleIds);
+    Set<Long> listMenuIdsByRoles(Collection<Long> roleIds);
 
     /**
      * 绑定角色与菜单关联关系，增量更新

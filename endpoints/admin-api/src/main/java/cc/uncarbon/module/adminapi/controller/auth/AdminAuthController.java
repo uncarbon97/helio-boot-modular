@@ -1,6 +1,7 @@
 package cc.uncarbon.module.adminapi.controller.auth;
 
 
+import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
 import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
@@ -8,12 +9,13 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.helper.CaptchaHelper;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
-import cc.uncarbon.module.adminapi.model.internal.AdminCaptchaContainer;
-import cc.uncarbon.module.adminapi.model.response.AdminCaptchaVO;
+import cc.uncarbon.module.adminapi.model.internal.AdminCaptchaScope;
+import cc.uncarbon.module.adminapi.model.response.AdminAuthChallengeVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
-import cc.uncarbon.module.sys.model.request.AdminSysUserLoginRequest;
+import cc.uncarbon.module.sys.model.request.AdminPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.AdminSysUserLoginResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
 import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
@@ -40,49 +42,45 @@ public class AdminAuthController {
 
 
     @Operation(summary = "登录")
-    @PostMapping(value = "/login")
-    public ApiResult<SysUserLoginVO> login(@RequestBody @Valid AdminSysUserLoginRequest request) {
+    @PostMapping(value = "/password-login")
+    public ApiResult<SysUserLoginVO> login(@RequestBody @Valid AdminPasswordLoginRequest request) {
         // 登录验证码核验；前端项目搜索关键词「Helium: 登录验证码」
         // AdminApiErrorEnum.CAPTCHA_VALIDATE_FAILED.assertTrue(captchaHelper.validate(dto.getCaptchaId(), dto.getCaptchaAnswer()))
 
-        AdminSysUserLoginResult loginReply = sysUserService.adminLogin(request);
+        AdminSysUserLoginResult loginResult = sysUserService.adminPasswordLogin(request);
 
         // 构造用户上下文
-        UserContext userContext = UserContext.builder()
-                .userId(loginReply.getId())
-                .userName(loginReply.getUsername())
-                .userPhoneNo(loginReply.getPhoneNo())
-                .userTypeStr("ADMIN_USER")
-                .extraData(null)
-                .rolesIds(loginReply.getRoleIds())
-                .roles(loginReply.getRoles())
-                .build();
+        UserContext userContext = new SimpleUserContext()
+                .setUserId(loginResult.getId())
+                .setUserPin(loginResult.getPin())
+                .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER.getValue())
+                .setRoleIds(loginResult.getRoleIds())
+                .setRoleCodes(loginResult.getRoleCodes())
+                .setUserPhoneNo(loginResult.getPhoneNo())
+                .setUserNickname(loginResult.getNickname());
 
         // 注册到 SA-Token ，并附加一些业务字段
-        final StpLogic adminStpUtil = StpKit.ADMIN;
-        adminStpUtil.login(loginReply.getId(), request.getRememberMe());
-        adminStpUtil.getSession().set(UserContext.CAMEL_NAME, userContext);
-        adminStpUtil.getSession().set(TenantContext.CAMEL_NAME, loginReply.getTenantContext());
+        final StpLogic stpUtil = StpKit.ADMIN;
+        stpUtil.login(loginResult.getId(), false);
+        stpUtil.getSession().set(UserContext.CAMEL_NAME, userContext);
+        stpUtil.getSession().set(TenantContext.CAMEL_NAME, loginResult.getTenantContext());
 
         // 更新角色-权限缓存
-        rolePermissionCacheHelper.putCache(loginReply.getRoleIdPermissionMap());
+        rolePermissionCacheHelper.putCache(loginResult.getRolePermissionMap());
 
-        // 返回登录token
-        SysUserLoginVO tokenInfo = SysUserLoginVO.builder()
-                .tokenName(adminStpUtil.getTokenName())
-                .tokenValue(adminStpUtil.getTokenValue())
-                .roles(loginReply.getRoles())
-                .permissions(loginReply.getPermissions())
-                .build();
-
-        return ApiResult.success("登录成功", tokenInfo);
+        // 返回用户态
+        SysUserLoginVO tokenInfo = new SysUserLoginVO()
+                .setToken(stpUtil.getTokenValue())
+                .setRoles(loginResult.getRoleCodes())
+                .setPermissions(loginResult.getPermissions());
+        return ApiResult.success(tokenInfo);
     }
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
     @Operation(summary = "登出")
     @PostMapping(value = "/logout")
     public ApiResult<Void> logout() {
-        AdminStpUtil.logout();
+        StpKit.ADMIN.logout();
         UserContextHolder.clear();
         TenantContextHolder.clear();
 
@@ -90,11 +88,11 @@ public class AdminAuthController {
     }
 
     @Operation(summary = "获取验证码")
-    @GetMapping(value = "/captcha")
-    public ApiResult<AdminCaptchaVO> captcha() {
+    @PostMapping(value = "/challenge")
+    public ApiResult<AdminAuthChallengeVO> captcha() {
         // 核验方法：captchaHelper.validate
-        AdminCaptchaContainer captchaContainer = captchaHelper.generate();
-        return ApiResult.success(new AdminCaptchaVO(captchaContainer));
+        AdminCaptchaScope captcha = captchaHelper.generate();
+        return ApiResult.success(new AdminAuthChallengeVO(captcha));
     }
 
 }

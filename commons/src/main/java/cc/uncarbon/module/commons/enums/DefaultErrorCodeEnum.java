@@ -6,23 +6,24 @@ import lombok.Getter;
 
 
 /**
- * 默认错误码枚举类
+ * 默认错误码枚举
+ * 错误码格式 [A][BB][CCC]
+ * [BB] 本枚举内固定为 00，表示不区分子模块
+ * [CCC] 按具体错误区分
  */
 @AllArgsConstructor
 @Getter
 public enum DefaultErrorCodeEnum implements ErrorCodeEnum {
 
     /*
-    错误码格式 [A][BB][CCC]
-    [BB] 本枚举内固定为 00，表示不区分子模块
-    [CCC] 按具体错误区分
+     A 开头错误码，表示一般性错误，如用户输入有误
      */
+    A00001("重复数据"),
+    A00002("不存在数据"),
 
-    // A 开头错误码，表示一般性错误，如用户输入有误
-    A00001("A00001", "重复数据"),
-    A00002("A00002", "不存在数据"),
+    ;private final String errorMsgFriendly;
 
-    ;private final String errorCode;
-    private final String errorMsgFriendly;
-
+    public String getErrorCode() {
+        return name();
+    }
 }

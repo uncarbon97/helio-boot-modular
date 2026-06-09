@@ -6,7 +6,9 @@ import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.sys.facade.TenantSysBridgeFacade;
+import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
+import cc.uncarbon.module.sys.model.request.AppendTenantRoleRequest;
+import cc.uncarbon.module.sys.model.response.AppendTenantRoleResult;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.enums.TenantErrorCodeEnum;
@@ -46,7 +48,7 @@ public class TenantServiceImpl implements TenantService {
 
     private final TenantMetaMapper tenantMetaMapper;
     private final TenantPackageService tenantPackageService;
-    private final TenantSysBridgeFacade tenantSysBridgeFacade;
+    private final TenantUserRoleFacade tenantUserRoleFacade;
 
 
     @Override
@@ -80,7 +82,13 @@ public class TenantServiceImpl implements TenantService {
 
         tenantMetaMapper.insert(entity);
 
-        tenantSysBridgeFacade.appendTenantUser();
+        // 在 sys 模块增加角色、用户等
+        var appendRoleResult = tenantUserRoleFacade.appendTenantRole(new AppendTenantRoleRequest()
+                .setTenantId(entity.getId())
+                .setStatus(EnabledStatusEnum.ENABLED)
+                .setTenantAdmin(true)
+        );
+        tenantUserRoleFacade.appendTenantUser();
         return entity.getId();
     }
 

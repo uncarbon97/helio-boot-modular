@@ -1,14 +1,14 @@
 package cc.uncarbon.module.tenant.biz;
 
 import cc.uncarbon.module.tenant.facade.TenantFacade;
-import cc.uncarbon.module.tenant.model.valueobj.TenantLoginValidateResult;
+import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cc.uncarbon.module.tenant.service.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * 系统租户Facade接口实现类
+ * 租户门面
  */
 @RequiredArgsConstructor
 @Service
@@ -75,9 +75,9 @@ public class TenantFacadeImpl implements TenantFacade {
 //        tenantMetaService.adminUpdate(request);
 //
 //        if (request.getStatus() == EnabledStatusEnum.DISABLED) {
-//            Long tenantId = CollUtil.getFirst(determineTenantIdsByPrimaryKeys(Collections.singleton(request.getId())).values());
+//            Long tenantId = CollUtil.getFirst(determineTenantIdsByPrimaryKeys(Set.of(request.getId())).values());
 //            if (Objects.nonNull(tenantId)) {
-//                List<Long> tenantSysUserIds = sysUserService.listUserIdsByTenantId(tenantId, Collections.singleton(EnabledStatusEnum.ENABLED));
+//                List<Long> tenantSysUserIds = sysUserService.listUserIdsByTenantId(tenantId, Set.of(EnabledStatusEnum.ENABLED));
 //                return new TenantMetaKickOutUsersBO(tenantSysUserIds);
 //            }
 //        }
@@ -93,12 +93,12 @@ public class TenantFacadeImpl implements TenantFacade {
 //            // TODO: 需要 TenantErrorCodeEnum 提供 CANNOT_DELETE_PRIVILEGED_TENANT
 //
 //            // 删除租户管理员角色、租户
-//            sysRoleService.adminDeleteTenantRoles(tenantIds, Collections.singleton(SysConstant.TENANT_ADMIN_ROLE_CODE));
+//            sysRoleService.adminDeleteTenantRoles(tenantIds, Set.of(SysConstant.TENANT_ADMIN_ROLE_CODE));
 //            tenantMetaService.adminDelete(ids);
 //
 //            // 查出需要强制登出的用户
 //            List<Long> tenantSysUserIds = tenantIds.stream()
-//                    .map(tenantId -> sysUserService.listUserIdsByTenantId(tenantId, Collections.singleton(EnabledStatusEnum.ENABLED)))
+//                    .map(tenantId -> sysUserService.listUserIdsByTenantId(tenantId, Set.of(EnabledStatusEnum.ENABLED)))
 //                    .flatMap(Collection::stream).toList();
 //            return new TenantMetaKickOutUsersBO(tenantSysUserIds);
 //        }
@@ -106,7 +106,7 @@ public class TenantFacadeImpl implements TenantFacade {
 //    }
 
     @Override
-    public TenantLoginValidateResult validateLoginByCode(String tenantCode) {
+    public TenantValidateResult validateByCode(String tenantCode) {
         return null;
     }
 

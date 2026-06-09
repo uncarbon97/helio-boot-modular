@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -21,14 +22,29 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
 
     /**
      * 取用户实体，忽略行级租户拦截器
+     *
      * @param pin 账号
-     * @return SysUserEntity
      */
     @InterceptorIgnore(tenantLine = "true")
     SysUserEntity getUserByPin(@Param(value = "pin") String pin);
 
+    default SysUserEntity getByPin(String pin) {
+
+    }
+
+    /**
+     * 更新最后一次登录时刻
+     */
+    default void updateLastLoginAt(long userId, LocalDateTime lastLoginAt) {
+        SysUserEntity update = new SysUserEntity();
+        update.setLastLoginAt(lastLoginAt)
+                .setId(userId);
+        updateById(update);
+    }
+
     /**
      * 取用户基本信息，忽略行级租户拦截器
+     *
      * @param userId 用户ID
      * @return SysUserBaseInfoBO
      */
@@ -37,6 +53,7 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
 
     /**
      * 查询所有用户IDs
+     *
      * @param statusEnums 仅保留符合指定状态的，可以为null
      */
     default List<Long> selectIds(Collection<EnabledStatusEnum> statusEnums) {

@@ -26,8 +26,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
@@ -80,7 +80,7 @@ public class AdminSysUserController {
         // 新状态是禁用，异步强制登出
         if (request.getStatus() == SysUserStatusEnum.BANNED) {
             SpringUtil.publishEvent(new KickOutSysUsersEvent(
-                    new KickOutSysUsersEvent.EventData(Collections.singleton(request.getId()))
+                    new KickOutSysUsersEvent.EventData(Set.of(request.getId()))
             ));
         }
 
@@ -123,7 +123,7 @@ public class AdminSysUserController {
 
         // 异步强制登出，以更新对应权限；可以视业务需要决定是否删除该代码
         SpringUtil.publishEvent(new KickOutSysUsersEvent(
-                new KickOutSysUsersEvent.EventData(Collections.singleton(request.getUserId()))
+                new KickOutSysUsersEvent.EventData(Set.of(request.getUserId()))
         ));
 
         return ApiResult.success();

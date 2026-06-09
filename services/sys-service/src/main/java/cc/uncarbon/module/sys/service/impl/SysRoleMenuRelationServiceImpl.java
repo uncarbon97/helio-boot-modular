@@ -27,7 +27,7 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
 
 
     @Override
-    public Set<Long> listMenuIdsByRoleIds(Collection<Long> roleIds) {
+    public Set<Long> listMenuIdsByRoles(Collection<Long> roleIds) {
         if (CollUtil.isEmpty(roleIds)) {
             return Set.of();
         }
@@ -46,8 +46,8 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
         return ret;
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void cleanAndBind(Long roleId, Collection<Long> menuIds) {
         var menuIdsQuery =
                 new LambdaQueryWrapper<SysRoleMenuRelationEntity>()

@@ -229,7 +229,7 @@ class SysDataDictUnitTest {
     @Test
     void testAdminDelete() {
         // 主键ID列表
-        List<Long> ids = Collections.singletonList(classifiedId);
+        List<Long> ids = Set.ofList(classifiedId);
         sysDictService.adminDeleteCategory(ids);
         log.info("\n\n\n删除完成 >> ids={}", ids);
     }

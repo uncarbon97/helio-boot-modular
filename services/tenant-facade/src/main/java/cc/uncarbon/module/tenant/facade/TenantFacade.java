@@ -1,15 +1,15 @@
 package cc.uncarbon.module.tenant.facade;
 
-import cc.uncarbon.module.tenant.model.valueobj.TenantLoginValidateResult;
+import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 
 /**
- * 系统租户解耦层，用于解决循环依赖
+ * 租户门面
  */
 public interface TenantFacade {
 
     /**
-     * 根据租户编码查询租户信息
+     * 校验传入的租户编码
      */
-    TenantLoginValidateResult validateLoginByCode(String tenantCode);
+    TenantValidateResult validateByCode(String tenantCode);
 
 }

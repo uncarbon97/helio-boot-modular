@@ -5,24 +5,25 @@ import cc.uncarbon.module.sys.model.request.AppendTenantRoleRequest;
 import cc.uncarbon.module.sys.model.request.AppendTenantUserRequest;
 import cc.uncarbon.module.sys.model.request.BindTenantUserRoleRelationRequest;
 import cc.uncarbon.module.sys.model.response.AppendTenantRoleResult;
+import cc.uncarbon.module.sys.model.response.AppendTenantUserResult;
 
 import java.util.Collection;
 import java.util.List;
 
 /**
- * 租户-系统管理桥接门面
+ * 租户用户、角色门面
  */
-public interface TenantSysBridgeFacade {
+public interface TenantUserRoleFacade {
 
     /**
-     * 增加租户相关的系统角色
+     * 增加租户角色
      */
     AppendTenantRoleResult appendTenantRole(AppendTenantRoleRequest request);
 
     /**
-     * 增加租户相关的系统用户
+     * 增加租户用户
      */
-    void appendTenantUser(AppendTenantUserRequest request);
+    AppendTenantUserResult appendTenantUser(AppendTenantUserRequest request);
 
     /**
      * 绑定租户相关的系统用户-系统角色关联关系

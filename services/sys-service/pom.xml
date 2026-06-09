@@ -19,7 +19,7 @@
     <version>${revision}</version>
 
     <properties>
-
+        <tenant.version>${revision}</tenant.version>
     </properties>
 
     <dependencies>
@@ -35,6 +35,12 @@
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>commons</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>tenant-facade</artifactId>
+            <version>${tenant.version}</version>
         </dependency>
 
 

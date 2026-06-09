@@ -34,7 +34,7 @@ public class AdminTenantCreateRequest implements Serializable {
     private String name;
 
     @Schema(description = "租户管理员账号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(min = 6, max = 16, message = "租户管理员账号最短{min}位，最长{max}位")
+    @Size(min = 5, max = 16, message = "租户管理员账号最短{min}位，最长{max}位")
     @NotBlank(message = "租户管理员账号必填")
     private String tenantAdminPin;
 

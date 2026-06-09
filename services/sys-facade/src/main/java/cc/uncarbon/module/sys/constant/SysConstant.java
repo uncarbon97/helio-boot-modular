@@ -19,18 +19,18 @@ public final class SysConstant {
     public static final String VBEN_ADMIN_BLANK_VIEW = "LAYOUT";
 
     /**
-     * 超级管理员角色ID
+     * 固定超级管理员角色ID
      */
     public static final Long SUPER_ADMIN_ROLE_ID = 1L;
 
     /**
-     * 超级管理员角色编码（固定）
+     * 固定超级管理员角色编码
      */
     public static final String SUPER_ADMIN_ROLE_CODE = "SuperAdmin";
 
     /**
-     * 租户管理员角色编码
-     * 为了外显美观没有在前面增加Tenant字样
+     * 固定租户管理员角色编码
+     * 为了外显美观，没有在前面增加 Tenant 字样
      */
     public static final String TENANT_ADMIN_ROLE_CODE = "Admin";
 

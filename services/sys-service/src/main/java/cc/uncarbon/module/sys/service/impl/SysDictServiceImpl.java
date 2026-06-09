@@ -64,8 +64,8 @@ public class SysDictServiceImpl implements SysDictService {
         return convertPage(entityPage);
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public Long adminCreateCategory(AdminSysDictCategoryUpsertRequest request) {
         log.info(LOG_PREFIX + "新增分类 >> {}", request);
         checkRepeat(request);
@@ -78,8 +78,8 @@ public class SysDictServiceImpl implements SysDictService {
         return entity.getId();
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void adminUpdateCategory(AdminSysDictCategoryUpsertRequest request) {
         log.info(LOG_PREFIX + "修改分类 >> {}", request);
         checkCategoryExistence(request.getId());
@@ -91,8 +91,8 @@ public class SysDictServiceImpl implements SysDictService {
         sysDictCategoryMapper.updateById(entity);
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void adminDeleteCategory(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除分类 >> {}", ids);
         sysDictCategoryMapper.deleteByIds(ids);
@@ -121,8 +121,8 @@ public class SysDictServiceImpl implements SysDictService {
      *
      * @return 主键ID
      */
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public Long adminCreateItem(AdminSysDictItemUpsertRequest request) {
         log.info(LOG_PREFIX + "新增字典项 >> {}", request);
         checkRepeat(request);
@@ -138,8 +138,8 @@ public class SysDictServiceImpl implements SysDictService {
     /**
      * 后台管理-修改字典项
      */
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void adminUpdateItem(AdminSysDictItemUpsertRequest request) {
         log.info(LOG_PREFIX + "修改字典项 >> {}", request);
         checkItemExistence(request.getId());
@@ -154,8 +154,8 @@ public class SysDictServiceImpl implements SysDictService {
     /**
      * 后台管理-删除字典项
      */
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void adminDeleteItem(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除字典项 >> {}", ids);
         sysDictItemMapper.delete(

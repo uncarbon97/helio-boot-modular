@@ -58,8 +58,8 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         return convertPage(entityPage, false);
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public Long adminCreate(AdminTenantPackageUpsertRequest request) {
         log.info(LOG_PREFIX + "新增 >> {}", request);
         checkRepeat(request);
@@ -76,8 +76,8 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         return entity.getId();
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void adminUpdate(AdminTenantPackageUpsertRequest request) {
         log.info(LOG_PREFIX + "修改 >> {}", request);
         checkExistence(request.getId());
@@ -119,15 +119,15 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 //        }
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
         tenantPackageMapper.deleteByIds(ids);
     }
 
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public Set<String> adminBindMenus(AdminBindPackageMenuRelationDTO dto) {
         tenantPackageMenuRelationService.cleanAndBind(dto.getPackageId(), dto.getMenuIds());
         return Set.of();

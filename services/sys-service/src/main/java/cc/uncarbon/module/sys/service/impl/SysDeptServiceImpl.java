@@ -6,8 +6,8 @@ import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDeptMapper;
-import cc.uncarbon.module.sys.model.interior.UserDeptContainer;
-import cc.uncarbon.module.sys.model.interior.UserRoleContainer;
+import cc.uncarbon.module.sys.model.internal.UserDeptScope;
+import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 import cc.uncarbon.module.sys.service.SysDeptService;
@@ -61,7 +61,6 @@ public class SysDeptServiceImpl implements SysDeptService {
         BeanUtil.copyProperties(request, entity);
 
         sysDeptMapper.insert(entity);
-
         return entity.getId();
     }
 
@@ -92,10 +91,10 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     public List<SysDeptDTO> adminSelectOptions(boolean inferiorsOnly) {
         if (inferiorsOnly) {
-            UserRoleContainer currentUser = sysRoleService.getCurrentUserRoleContainer();
-            if (currentUser.isNotAnyAdmin()) {
+            UserRoleScope me = sysRoleService.getCurrentUserRole();
+            if (me.isNotAnyAdmin()) {
                 // 非管理员才会限制，只能看到本部门及以下
-                UserDeptContainer deptContainer = getCurrentUserDeptContainer(true);
+                UserDeptScope deptContainer = getCurrentUserDept(true);
                 return convertList(deptContainer.getVisibleDepts());
             }
         }
@@ -115,12 +114,12 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     @Override
-    public UserDeptContainer getCurrentUserDeptContainer(boolean queryVisibleDept) {
-        return getSpecifiedUserDeptContainer(UserContextHolder.getUserId(), queryVisibleDept);
+    public UserDeptScope getCurrentUserDept(boolean queryVisibleDept) {
+        return getSpecifiedUserDept(UserContextHolder.getUserId(), queryVisibleDept);
     }
 
     @Override
-    public UserDeptContainer getSpecifiedUserDeptContainer(Long specifiedUserId, boolean queryVisibleDept) {
+    public UserDeptScope getSpecifiedUserDept(Long specifiedUserId, boolean queryVisibleDept) {
         List<Long> userDeptIds = sysUserDeptRelationService.listDeptIdsByUser(specifiedUserId);
         List<SysDeptEntity> userDepts = null;
         if (CollUtil.isNotEmpty(userDeptIds)) {
@@ -129,14 +128,14 @@ public class SysDeptServiceImpl implements SysDeptService {
         if (CollUtil.isEmpty(userDepts)) {
             userDepts = List.of();
         }
-        UserDeptContainer container = new UserDeptContainer(userDeptIds, userDepts);
+        UserDeptScope scope = new UserDeptScope(userDeptIds, userDepts);
 
-        if (queryVisibleDept && container.hasRelatedDepts()) {
+        if (queryVisibleDept && scope.hasRelatedDepts()) {
             List<SysDeptEntity> allDepts = sysDeptMapper.selectSortedList();
-            List<SysDeptEntity> inferiors = determineAllInferiors(allDepts, container.primaryRelatedDept());
-            container.updateVisibleDepts(inferiors);
+            List<SysDeptEntity> inferiors = determineAllInferiors(allDepts, scope.primaryRelatedDept());
+            scope.updateVisibleDepts(inferiors);
         }
-        return container;
+        return scope;
     }
 
     /*

@@ -4,8 +4,10 @@ import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.text.StrPool;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -19,6 +21,7 @@ import lombok.experimental.Accessors;
 
 import java.io.Serial;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -67,21 +70,34 @@ public class SysRoleEntity extends AbstractTenantGenericEntity {
 		if (CharSequenceUtil.isEmpty(flags)) {
 			return List.of();
 		}
-		CharSequenceUtil.split(flags, StrPool.COMMA).stream().map()
+		return CharSequenceUtil.split(flags, StrPool.COMMA).stream()
+				.map(SysRoleFlagEnum::of).filter(Objects::nonNull).toList();
+	}
+
+	/**
+	 * 指定角色特殊标记
+	 */
+	public SysRoleEntity assignFlags(List<SysRoleFlagEnum> flags) {
+		if (CollUtil.isEmpty(flags)) {
+			this.flags = StrUtil.EMPTY;
+		} else {
+			this.flags = CollUtil.join(flags, StrPool.COMMA);
+		}
+		return this;
 	}
 
 	/**
 	 * 角色实例可被视为超级管理员
 	 */
 	public boolean isSuperAdmin() {
-		return SysConstant.SUPER_ADMIN_ROLE_ID.equals(getId()) || SysConstant.SUPER_ADMIN_ROLE_CODE.equalsIgnoreCase(getCode());
+		return SysConstant.SUPER_ADMIN_ROLE_CODE.equals(getCode());
 	}
 
 	/**
 	 * 角色实例可被视为租户管理员
 	 */
 	public boolean isTenantAdmin() {
-		return SysConstant.TENANT_ADMIN_ROLE_CODE.equalsIgnoreCase(getCode());
+		return SysConstant.TENANT_ADMIN_ROLE_CODE.equals(getCode());
 	}
 
 }

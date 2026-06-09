@@ -4,9 +4,10 @@ import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
-import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.model.response.AdminSysUserLoginResult;
+import cc.uncarbon.module.sys.model.response.AppendTenantUserResult;
 import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 
 import java.util.Collection;
 
@@ -47,7 +48,7 @@ public interface SysUserService {
     /**
      * 后台管理-登录
      */
-    AdminSysUserLoginResult adminLogin(AdminSysUserLoginRequest request);
+    AdminSysUserLoginResult adminPasswordLogin(AdminPasswordLoginRequest request);
 
     /**
      * 后台管理-取当前用户资料
@@ -78,5 +79,10 @@ public interface SysUserService {
      * 后台管理-更新当前用户头像
      */
     void adminUpdateMyAvatar(AdminUpdateMyAvatarRequest request);
+
+    /**
+     * 增加租户用户
+     */
+    AppendTenantUserResult appendTenantUser(AppendTenantUserRequest request);
 
 }

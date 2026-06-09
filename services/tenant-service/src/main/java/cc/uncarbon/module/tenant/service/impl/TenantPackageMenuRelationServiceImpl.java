@@ -37,8 +37,8 @@ public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRe
      * @param packageId 套餐ID
      * @param menuIds   新菜单ID集合
      */
-    @Override
     @Transactional(rollbackFor = Exception.class)
+    @Override
     public void cleanAndBind(long packageId, Collection<Long> menuIds) {
         var menuIdsQuery = new LambdaQueryWrapper<TenantPackageMenuRelationEntity>()
                 .select(TenantPackageMenuRelationEntity::getMenuId)

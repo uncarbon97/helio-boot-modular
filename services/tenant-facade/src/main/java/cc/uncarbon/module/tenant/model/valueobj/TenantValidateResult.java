@@ -1,5 +1,6 @@
 package cc.uncarbon.module.tenant.model.valueobj;
 
+import cc.uncarbon.framework.helium.base.enums.ErrorCodeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,24 +17,26 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class TenantLoginValidateResult implements Serializable {
-
-    @Schema(description = "租户编码")
-    private String code;
-
-    @Schema(description = "租户名称")
-    private String name;
+public class TenantValidateResult implements Serializable {
 
     /**
      * 租户是否有效
      * 如果未使用多租户特性，会直接返回 true
      */
-    private boolean validated;
+    private boolean valid;
 
     /**
-     * 是否忽略
-     * 如果未使用多租户特性，会直接返回 true
+     * 校验失败错误枚举
      */
-    private boolean tenantIgnored;
+    private ErrorCodeEnum errorCode;
+
+    @Schema(description = "租户ID")
+    private Long tenantId;
+
+    @Schema(description = "租户编码")
+    private String tenantCode;
+
+    @Schema(description = "租户名称")
+    private String tenantName;
 
 }

@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.model.request;
 
 
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,7 +11,7 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 
 /**
- * 增加租户相关的系统角色
+ * 增加租户角色
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -27,5 +28,11 @@ public class AppendTenantRoleRequest implements Serializable {
 
     @Schema(description = "角色名称", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
+
+    @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED)
+    private EnabledStatusEnum status;
+
+    @Schema(description = "是否是租户管理员", requiredMode = Schema.RequiredMode.REQUIRED)
+    private boolean tenantAdmin;
 
 }

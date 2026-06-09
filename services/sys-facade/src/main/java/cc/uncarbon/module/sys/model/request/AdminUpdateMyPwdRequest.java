@@ -12,7 +12,7 @@ import java.io.Serializable;
 
 
 /**
- * 当前用户-修改密码
+ * 后台管理-修改当前用户密码
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -21,17 +21,17 @@ import java.io.Serializable;
 public class AdminUpdateMyPwdRequest implements Serializable {
 
     @Schema(description = "原密码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "【原密码】必填")
+    @NotBlank(message = "原密码必填")
     private String old;
 
     @Schema(description = "新密码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(min = 8, max = 20, message = "【新密码】最短8位，最长20位")
-    @NotBlank(message = "【新密码】必填")
+    @Size(min = 8, max = 20, message = "新密码最短{min}位，最长{max}位")
+    @NotBlank(message = "新密码必填")
     private String neo;
 
-    @Schema(description = "确认新密码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(min = 8, max = 20, message = "【确认密码】最短8位，最长20位")
-    @NotBlank(message = "【确认密码】必填")
+    @Schema(description = "确认密码", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(min = 8, max = 20, message = "确认密码最短{min}位，最长{max}位")
+    @NotBlank(message = "确认密码必填")
     private String confirmNeo;
 
 }

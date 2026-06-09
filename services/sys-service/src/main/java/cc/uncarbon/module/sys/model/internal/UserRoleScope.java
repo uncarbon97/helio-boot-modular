@@ -1,21 +1,20 @@
-package cc.uncarbon.module.sys.model.interior;
+package cc.uncarbon.module.sys.model.internal;
 
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.Set;
 
 /**
- * 用户关联角色容器
+ * 用户关联角色
  */
 @Getter
-public class UserRoleContainer {
+public class UserRoleScope {
 
     /**
      * 直接关联的角色IDs
      */
-    private final Set<Long> relatedRoleIds;
+    private final List<Long> relatedRoleIds;
 
     /**
      * 直接关联的角色实例集合
@@ -33,12 +32,12 @@ public class UserRoleContainer {
     private final boolean tenantAdmin;
 
     /**
-     * 非级管理员or租户管理员
+     * 非超级管理员or租户管理员
      */
     private final boolean notAnyAdmin;
 
 
-    public UserRoleContainer(Set<Long> relatedRoleIds, List<SysRoleEntity> relatedRoles) {
+    public UserRoleScope(List<Long> relatedRoleIds, List<SysRoleEntity> relatedRoles) {
         this.relatedRoleIds = relatedRoleIds;
         this.relatedRoles = relatedRoles;
         this.superAdmin = relatedRoles.stream().anyMatch(SysRoleEntity::isSuperAdmin);
