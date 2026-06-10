@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysMenuInfo implements Serializable {
+public class SysMenuDTO implements Serializable {
 
     @Schema(description = "主键ID")
     private Long id;

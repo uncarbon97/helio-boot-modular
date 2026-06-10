@@ -14,6 +14,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.NonNull;
@@ -48,8 +49,7 @@ public class OssFileInfoService {
     public PageResult<OssFileInfoBO> adminList(AdminFileInfoQuery dto) {
         Page<OssFileInfoEntity> entityPage = ossFileInfoMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new QueryWrapper<OssFileInfoEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<OssFileInfoEntity>()
                         // 原始文件名
                         .like(CharSequenceUtil.isNotBlank(dto.getOriginalFilename()), OssFileInfoEntity::getOriginalFilename, CharSequenceUtil.cleanBlank(dto.getOriginalFilename()))
                         // 扩展名
@@ -112,11 +112,9 @@ public class OssFileInfoService {
      * 根据 MD5 取文件信息
      */
     public OssFileInfoBO getOneByMd5(String md5) {
-        OssFileInfoEntity entity = ossFileInfoMapper.selectOne(
-                new QueryWrapper<OssFileInfoEntity>()
-                        .lambda()
-                        .eq(OssFileInfoEntity::getMd5, md5)
-                        .last(SQLSegment.LIMIT_1)
+        OssFileInfoEntity entity = ossFileInfoMapper.selectOne(new LambdaQueryWrapper<OssFileInfoEntity>()
+                .eq(OssFileInfoEntity::getMd5, md5)
+                .last(SQLSegment.LIMIT_1)
         );
 
         return this.entity2BO(entity);
@@ -179,6 +177,7 @@ public class OssFileInfoService {
 
     /**
      * 是否为本地存储平台
+     *
      * @param storagePlatform 存储平台名
      */
     public static boolean isLocalPlatform(String storagePlatform) {

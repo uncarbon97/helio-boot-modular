@@ -5,8 +5,8 @@ import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
 import cc.uncarbon.module.sys.model.request.AdminBindRoleMenusRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
-import cc.uncarbon.module.sys.model.request.AppendTenantRoleRequest;
-import cc.uncarbon.module.sys.model.response.AppendTenantRoleResult;
+import cc.uncarbon.module.sys.model.request.CreateTenantRoleRequest;
+import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 
 import java.util.Collection;
@@ -62,9 +62,9 @@ public interface SysRoleService {
     List<SysRoleDTO> adminSelectOptions();
 
     /**
-     * 增加租户角色
+     * 新增租户角色
      */
-    AppendTenantRoleResult appendTenantRole(AppendTenantRoleRequest request);
+    CreateTenantRoleResult createTenantRole(CreateTenantRoleRequest request);
 
     /**
      * 后台管理-删除指定租户的特定角色

@@ -44,7 +44,7 @@ public class TenantMetaDTO implements Serializable {
     @Schema(description = "所属租户套餐ID")
     private Long packageId;
 
-    @Schema(description = "租户管理员用户基本信息")
-    private SysUserBaseInfoBO adminUser;
+    @Schema(description = "租户管理员用户资料")
+    private TenantUserBasicProfileDTO adminUserProfile;
 
 }

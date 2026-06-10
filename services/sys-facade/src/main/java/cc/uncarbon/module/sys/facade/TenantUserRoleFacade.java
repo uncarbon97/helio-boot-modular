@@ -1,11 +1,12 @@
 package cc.uncarbon.module.sys.facade;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
-import cc.uncarbon.module.sys.model.request.AppendTenantRoleRequest;
-import cc.uncarbon.module.sys.model.request.AppendTenantUserRequest;
 import cc.uncarbon.module.sys.model.request.BindTenantUserRoleRelationRequest;
-import cc.uncarbon.module.sys.model.response.AppendTenantRoleResult;
-import cc.uncarbon.module.sys.model.response.AppendTenantUserResult;
+import cc.uncarbon.module.sys.model.request.CreateTenantRoleRequest;
+import cc.uncarbon.module.sys.model.request.CreateTenantUserRequest;
+import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
+import cc.uncarbon.module.sys.model.response.CreateTenantUserResult;
+import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,19 +17,24 @@ import java.util.List;
 public interface TenantUserRoleFacade {
 
     /**
-     * 增加租户角色
+     * 新增租户角色
      */
-    AppendTenantRoleResult appendTenantRole(AppendTenantRoleRequest request);
+    CreateTenantRoleResult createTenantRole(CreateTenantRoleRequest request);
 
     /**
-     * 增加租户用户
+     * 新增租户用户
      */
-    AppendTenantUserResult appendTenantUser(AppendTenantUserRequest request);
+    CreateTenantUserResult createTenantUser(CreateTenantUserRequest request);
 
     /**
      * 绑定租户相关的系统用户-系统角色关联关系
      */
     void bindTenantUserRoleRelation(BindTenantUserRoleRelationRequest request);
+
+    /**
+     * 查询租户用户基本资料
+     */
+    TenantUserBasicProfile getTenantUserBasicProfile(long tenantId, long userId);
 
     /**
      * 系统管理 - 取租户用户IDs

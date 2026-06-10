@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.helper.CaptchaHelper;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
@@ -16,9 +17,9 @@ import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.request.AdminPasswordLoginRequest;
-import cc.uncarbon.module.sys.model.response.AdminSysUserLoginResult;
+import cc.uncarbon.module.sys.model.response.AdminLoginResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
-import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
+import cc.uncarbon.module.sys.service.AdminLoginService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpLogic;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +27,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 
 @Tag(name = "系统管理-鉴权接口")
@@ -36,7 +40,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class AdminAuthController {
 
-    private final SysUserServiceImpl sysUserService;
+    private final AdminLoginService adminLoginService;
     private final RolePermissionCacheHelper rolePermissionCacheHelper;
     private final CaptchaHelper captchaHelper;
 
@@ -47,7 +51,7 @@ public class AdminAuthController {
         // 登录验证码核验；前端项目搜索关键词「Helium: 登录验证码」
         // AdminApiErrorEnum.CAPTCHA_VALIDATE_FAILED.assertTrue(captchaHelper.validate(dto.getCaptchaId(), dto.getCaptchaAnswer()))
 
-        AdminSysUserLoginResult loginResult = sysUserService.adminPasswordLogin(request);
+        AdminLoginResult loginResult = adminLoginService.passwordLogin(request, VisitorContextHolder.getVisitorContext());
 
         // 构造用户上下文
         UserContext userContext = new SimpleUserContext()

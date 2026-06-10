@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
-import cc.uncarbon.module.sys.model.valueobj.SysMenuInfo;
+import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,7 +17,7 @@ public interface SysMenuService {
     /**
      * 后台管理-列表
      */
-    List<SysMenuInfo> adminList();
+    List<SysMenuDTO> adminList();
 
     /**
      * 后台管理-新增
@@ -35,32 +35,32 @@ public interface SysMenuService {
     void adminDelete(Collection<Long> ids);
 
     /**
-     * 后台管理-取侧边菜单
-     */
-    List<SysMenuInfo> adminListSideMenu();
-
-    /**
-     * 后台管理-取所有可见菜单
-     */
-    List<SysMenuInfo> adminListVisibleMenu();
-
-    /**
      * 根据 ID 取详情
      */
-    SysMenuInfo getById(Long id);
+    SysMenuDTO getById(Long id);
 
     /**
      * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
-    SysMenuInfo getNonnullById(Long id) throws NoRecordException;
+    SysMenuDTO getNonnullById(Long id) throws NoRecordException;
+
+    /**
+     * 后台管理-取侧边菜单
+     */
+    List<SysMenuDTO> adminListSideMenus();
+
+    /**
+     * 后台管理-取可用菜单
+     */
+    List<SysMenuDTO> adminListAvailableMenus();
 
     /**
      * 列举角色可见的菜单权限串集合
      */
-    Map<Long, Set<String>> getPermissionMapByRole(Collection<Long> roleIds);
+    Map<Long, Set<String>> getPermissionsByRole(Collection<Long> roleIds);
 
     /**
-     * 根据菜单ID集合，取权限名集合
+     * 列举菜单对应的权限串集合
      */
-    Set<String> listPermissionsByMenuIds(Collection<Long> menuIds);
+    Set<String> listPermissionsByMenus(Collection<Long> menuIds);
 }

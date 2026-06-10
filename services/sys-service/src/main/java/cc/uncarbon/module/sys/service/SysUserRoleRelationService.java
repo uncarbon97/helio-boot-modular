@@ -1,5 +1,7 @@
 package cc.uncarbon.module.sys.service;
 
+import cc.uncarbon.module.sys.model.request.BindTenantUserRoleRelationRequest;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -23,5 +25,10 @@ public interface SysUserRoleRelationService {
      * 根据用户ID，查询关联的角色IDs
      */
     List<Long> listRoleIdsByUser(Long userId);
+
+    /**
+     * 绑定租户相关的系统用户-系统角色关联关系
+     */
+    void bindTenantUserRoleRelation(BindTenantUserRoleRelationRequest request);
 
 }

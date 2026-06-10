@@ -69,12 +69,11 @@ public class UserRoleHelper {
             return CollUtil.newHashSet(SysConstant.SUPER_ADMIN_ROLE_ID);
         }
         // 普通角色：列表中不显示超级管理员、租户管理员角色
-        Set<Long> ret = sysRoleMapper.selectList(
-                new LambdaQueryWrapper<SysRoleEntity>()
-                        // 仅取主键ID
-                        .select(SysRoleEntity::getId)
-                        // 值相符
-                        .eq(SysRoleEntity::getCode, SysConstant.TENANT_ADMIN_ROLE_CODE)
+        Set<Long> ret = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
+                // 仅取主键ID
+                .select(SysRoleEntity::getId)
+                // 值相符
+                .eq(SysRoleEntity::getCode, SysConstant.TENANT_ADMIN_ROLE_CODE)
         ).stream().map(SysRoleEntity::getId).collect(Collectors.toSet());
         ret.add(SysConstant.SUPER_ADMIN_ROLE_ID);
         return ret;

@@ -20,7 +20,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CreateSysLoginLogRequest implements Serializable {
+public class SysLoginLogCreateRequest implements Serializable {
 
     @Schema(description = "登录日志类型", requiredMode = Schema.RequiredMode.REQUIRED)
     private LoginLogTypeEnum loginLogType;

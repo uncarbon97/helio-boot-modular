@@ -10,17 +10,20 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 
 /**
- * 增加租户用户
+ * 新增租户用户
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AppendTenantUserRequest implements Serializable {
+public class CreateTenantUserRequest implements Serializable {
 
 
-    @Schema(description = "所属租户ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "租户ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private long tenantId;
+
+    @Schema(description = "租户编码", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String tenantCode;
 
     @Schema(description = "租户名称", requiredMode = Schema.RequiredMode.REQUIRED)
     private String tenantName;

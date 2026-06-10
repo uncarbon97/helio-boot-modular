@@ -20,7 +20,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminSysUserLoginResult implements Serializable {
+public class AdminLoginResult implements Serializable {
 
     @Schema(description = "用户ID")
     private Long id;

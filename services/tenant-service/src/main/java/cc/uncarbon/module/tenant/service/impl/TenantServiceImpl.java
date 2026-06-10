@@ -7,8 +7,9 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
-import cc.uncarbon.module.sys.model.request.AppendTenantRoleRequest;
-import cc.uncarbon.module.sys.model.response.AppendTenantRoleResult;
+import cc.uncarbon.module.sys.model.request.BindTenantUserRoleRelationRequest;
+import cc.uncarbon.module.sys.model.request.CreateTenantRoleRequest;
+import cc.uncarbon.module.sys.model.request.CreateTenantUserRequest;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.enums.TenantErrorCodeEnum;
@@ -23,10 +24,10 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,8 +56,7 @@ public class TenantServiceImpl implements TenantService {
     public PageResult<TenantMetaDTO> adminList(AdminTenantMetaListQuery query) {
         Page<TenantMetaEntity> entityPage = tenantMetaMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new QueryWrapper<TenantMetaEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<TenantMetaEntity>()
                         // 租户编码
                         .like(Objects.nonNull(query.getCode()), TenantMetaEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
                         // 租户名称
@@ -82,13 +82,7 @@ public class TenantServiceImpl implements TenantService {
 
         tenantMetaMapper.insert(entity);
 
-        // 在 sys 模块增加角色、用户等
-        var appendRoleResult = tenantUserRoleFacade.appendTenantRole(new AppendTenantRoleRequest()
-                .setTenantId(entity.getId())
-                .setStatus(EnabledStatusEnum.ENABLED)
-                .setTenantAdmin(true)
-        );
-        tenantUserRoleFacade.appendTenantUser();
+        initTenant(request, entity, pkg);
         return entity.getId();
     }
 
@@ -155,8 +149,8 @@ public class TenantServiceImpl implements TenantService {
         TenantMetaDTO ret = new TenantMetaDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
-        if (fillTenantAdminUser && Objects.nonNull(entity.getTenantAdminUserId())) {
-            ret.setTenantAdminUser(sysUserMapper.getBaseInfoByUserId(entity.getTenantAdminUserId()));
+        if (fillTenantAdminUser && entity.getAdminUserId() != null) {
+            ret.setAdminUserProfile(sysUserMapper.getBaseInfoByUserId(entity.getTenantAdminUserId()));
         }
 
         return ret;
@@ -193,12 +187,11 @@ public class TenantServiceImpl implements TenantService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminTenantCreateRequest request) {
-        TenantMetaEntity entity = tenantMetaMapper.selectOne(
-                new LambdaQueryWrapper<TenantMetaEntity>()
-                        .select(TenantMetaEntity::getId)
-                        // 租户编码相同
-                        .eq(TenantMetaEntity::getCode, request.getCode())
-                        .last(SQLSegment.LIMIT_1)
+        TenantMetaEntity entity = tenantMetaMapper.selectOne(new LambdaQueryWrapper<TenantMetaEntity>()
+                .select(TenantMetaEntity::getId)
+                // 租户编码相同
+                .eq(TenantMetaEntity::getCode, request.getCode())
+                .last(SQLSegment.LIMIT_1)
         );
 
         if (entity != null) {
@@ -223,14 +216,57 @@ public class TenantServiceImpl implements TenantService {
      * 检查租户套餐
      */
     private TenantPackageDTO checkPackage(Long packageId) {
-       if (packageId != null) {
-           TenantPackageDTO pkg = tenantPackageService.getNonnullById(packageId);
-           if (pkg.getStatus() != EnabledStatusEnum.ENABLED) {
-               throw new BusinessException(TenantErrorCodeEnum.A03001);
-           }
-           return pkg;
-       }
-       return null;
+        if (packageId != null) {
+            TenantPackageDTO pkg = tenantPackageService.getNonnullById(packageId);
+            if (pkg.getStatus() != EnabledStatusEnum.ENABLED) {
+                throw new BusinessException(TenantErrorCodeEnum.A03001);
+            }
+            return pkg;
+        }
+        return null;
+    }
+
+    /**
+     * 初始化新租户
+     */
+    private void initTenant(@NonNull AdminTenantCreateRequest request,
+                            @NonNull TenantMetaEntity entity,
+                            @NonNull TenantPackageDTO pkg) {
+        long tenantId = entity.getId();
+        String tenantCode = entity.getCode();
+
+        // 创建租户管理员角色
+        var tenantRole = tenantUserRoleFacade.createTenantRole(new CreateTenantRoleRequest()
+                .setTenantId(tenantId)
+                .setTenantCode(tenantCode)
+                .setStatus(EnabledStatusEnum.ENABLED)
+                .setTenantAdmin(true)
+        );
+
+        // TODO 根据租户套餐，绑定租户管理员角色-菜单关联关系
+
+        // 创建租户管理员用户
+        var tenantUser = tenantUserRoleFacade.createTenantUser(new CreateTenantUserRequest()
+                .setTenantId(tenantId)
+                .setTenantCode(tenantCode)
+                .setTenantName(entity.getName())
+                .setPin(request.getTenantAdminPin())
+                .setPwdPlain(request.getTenantAdminPwd())
+                .setEmail(request.getTenantAdminEmail())
+                .setPhoneNo(request.getTenantAdminPhoneNo())
+                .setTenantAdmin(true)
+        );
+
+        // 绑定租户管理员用户-角色关联关系
+        tenantUserRoleFacade.bindTenantUserRoleRelation(new BindTenantUserRoleRelationRequest()
+                .setTenantId(tenantId)
+                .setTenantCode(tenantCode)
+                .setUserId(tenantUser.getNewUserId())
+                .setRoleIds(List.of(tenantRole.getNewRoleId()))
+        );
+
+        // 更新租户主数据，把租户管理员用户ID 记下来
+        tenantMetaMapper.updateAdminUserId(tenantId, tenantUser.getNewUserId());
     }
 
 }

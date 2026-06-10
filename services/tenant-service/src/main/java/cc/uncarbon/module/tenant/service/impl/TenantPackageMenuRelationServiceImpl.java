@@ -5,13 +5,14 @@ import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMenuRelationMapper;
 import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -50,11 +51,9 @@ public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRe
         }
 
         // 先删除不再需要的关联关系
-        tenantPackageMenuRelationMapper.delete(
-                new QueryWrapper<TenantPackageMenuRelationEntity>()
-                        .lambda()
-                        .eq(TenantPackageMenuRelationEntity::getPackageId, packageId)
-                        .notIn(TenantPackageMenuRelationEntity::getMenuId, menuIds)
+        tenantPackageMenuRelationMapper.delete(new LambdaQueryWrapper<TenantPackageMenuRelationEntity>()
+                .eq(TenantPackageMenuRelationEntity::getPackageId, packageId)
+                .notIn(TenantPackageMenuRelationEntity::getMenuId, menuIds)
         );
 
         // 取出需要增量更新的部分

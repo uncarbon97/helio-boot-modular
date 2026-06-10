@@ -14,10 +14,9 @@ import java.util.List;
 public interface TenantPackageMenuRelationMapper extends BaseMapper<TenantPackageMenuRelationEntity> {
 
     default List<Long> listMenuIdsByPackage(long packageId) {
-        return selectList(
-                new LambdaQueryWrapper<TenantPackageMenuRelationEntity>()
-                        .select(TenantPackageMenuRelationEntity::getMenuId)
-                        .eq(TenantPackageMenuRelationEntity::getPackageId, packageId)
+        return selectList(new LambdaQueryWrapper<TenantPackageMenuRelationEntity>()
+                .select(TenantPackageMenuRelationEntity::getMenuId)
+                .eq(TenantPackageMenuRelationEntity::getPackageId, packageId)
         ).stream().map(TenantPackageMenuRelationEntity::getMenuId).toList();
     }
 }

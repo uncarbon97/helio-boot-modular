@@ -16,7 +16,6 @@ import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +43,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
     public PageResult<TenantPackageDTO> adminList(AdminTenantPackageListQuery query) {
         Page<TenantPackageEntity> entityPage = tenantPackageMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new QueryWrapper<TenantPackageEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<TenantPackageEntity>()
                         // 套餐编码
                         .like(CharSequenceUtil.isNotBlank(query.getCode()), TenantPackageEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
                         // 套餐名称
@@ -195,14 +193,13 @@ public class TenantPackageServiceImpl implements TenantPackageService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminTenantPackageUpsertRequest request) {
-        TenantPackageEntity entity = tenantPackageMapper.selectOne(
-                new LambdaQueryWrapper<TenantPackageEntity>()
-                        .select(TenantPackageEntity::getId)
-                        // 并非原地更新
-                        .ne(Objects.nonNull(request.getId()), TenantPackageEntity::getId, request.getId())
-                        // 套餐编码相同
-                        .eq(TenantPackageEntity::getCode, request.getCode())
-                        .last(SQLSegment.LIMIT_1)
+        TenantPackageEntity entity = tenantPackageMapper.selectOne(new LambdaQueryWrapper<TenantPackageEntity>()
+                .select(TenantPackageEntity::getId)
+                // 并非原地更新
+                .ne(Objects.nonNull(request.getId()), TenantPackageEntity::getId, request.getId())
+                // 套餐编码相同
+                .eq(TenantPackageEntity::getCode, request.getCode())
+                .last(SQLSegment.LIMIT_1)
         );
 
         if (entity != null) {

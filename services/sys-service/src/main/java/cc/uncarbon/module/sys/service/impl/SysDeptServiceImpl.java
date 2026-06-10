@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDeptMapper;
+import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
@@ -39,6 +40,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     private final SysDeptMapper sysDeptMapper;
     private final SysUserDeptRelationService sysUserDeptRelationService;
     private final SysRoleService sysRoleService;
+    private final UserRoleHelper userRoleHelper;
 
 
     @Override
@@ -91,7 +93,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     public List<SysDeptDTO> adminSelectOptions(boolean inferiorsOnly) {
         if (inferiorsOnly) {
-            UserRoleScope me = sysRoleService.getCurrentUserRole();
+            UserRoleScope me = userRoleHelper.getCurrentUserRole();
             if (me.isNotAnyAdmin()) {
                 // 非管理员才会限制，只能看到本部门及以下
                 UserDeptScope deptContainer = getCurrentUserDept(true);

@@ -20,8 +20,11 @@ import java.util.Collection;
 public class BindTenantUserRoleRelationRequest implements Serializable {
 
 
-    @Schema(description = "所属租户ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "租户ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private long tenantId;
+
+    @Schema(description = "租户编码", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String tenantCode;
 
     @Schema(description = "用户ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private long userId;

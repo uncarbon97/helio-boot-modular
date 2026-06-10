@@ -3,7 +3,7 @@ package cc.uncarbon.module.sys.service;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;
-import cc.uncarbon.module.sys.model.request.CreateSysLoginLogRequest;
+import cc.uncarbon.module.sys.model.request.SysLoginLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysLoginLogDTO;
 
 /**
@@ -19,7 +19,7 @@ public interface SysLoginLogService {
     /**
      * 新增
      */
-    Long create(CreateSysLoginLogRequest request);
+    Long create(SysLoginLogCreateRequest request);
 
     /**
      * 根据 ID 取详情

@@ -28,10 +28,9 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
 
     @Override
     public List<Long> listDeptIdsByUser(Long userId) {
-        SysUserDeptRelationEntity entity = sysUserDeptRelationMapper.selectOne(
-                new LambdaQueryWrapper<SysUserDeptRelationEntity>()
-                        .eq(SysUserDeptRelationEntity::getUserId, userId)
-                        .last(SQLSegment.LIMIT_1)
+        SysUserDeptRelationEntity entity = sysUserDeptRelationMapper.selectOne(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+                .eq(SysUserDeptRelationEntity::getUserId, userId)
+                .last(SQLSegment.LIMIT_1)
         );
 
         if (entity == null) {
@@ -43,9 +42,8 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void cleanAndBind(Long userId, Long deptId) {
-        sysUserDeptRelationMapper.delete(
-                new LambdaQueryWrapper<SysUserDeptRelationEntity>()
-                        .eq(SysUserDeptRelationEntity::getUserId, userId)
+        sysUserDeptRelationMapper.delete(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+                .eq(SysUserDeptRelationEntity::getUserId, userId)
         );
 
         if (Objects.nonNull(deptId)) {
@@ -60,11 +58,10 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
             return Set.of();
         }
 
-        return sysUserDeptRelationMapper.selectList(
-                new LambdaQueryWrapper<SysUserDeptRelationEntity>()
-                        // 只要用户ID
-                        .select(SysUserDeptRelationEntity::getUserId)
-                        .in(SysUserDeptRelationEntity::getDeptId, deptIds)
+        return sysUserDeptRelationMapper.selectList(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+                // 只要用户ID
+                .select(SysUserDeptRelationEntity::getUserId)
+                .in(SysUserDeptRelationEntity::getDeptId, deptIds)
         ).stream().map(SysUserDeptRelationEntity::getUserId).collect(Collectors.toSet());
     }
 

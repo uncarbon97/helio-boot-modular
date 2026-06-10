@@ -4,6 +4,7 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.base.util.StreamFunction;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -17,8 +18,8 @@ import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
 import cc.uncarbon.module.sys.model.request.AdminBindRoleMenusRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
-import cc.uncarbon.module.sys.model.request.AppendTenantRoleRequest;
-import cc.uncarbon.module.sys.model.response.AppendTenantRoleResult;
+import cc.uncarbon.module.sys.model.request.CreateTenantRoleRequest;
+import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
@@ -28,7 +29,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -133,7 +133,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         checkExistence(request.getRoleId());
         checkBeforeBindRoleMenuRelation(request);
         sysRoleMenuRelationService.cleanAndBind(request.getRoleId(), request.getMenuIds());
-        return sysMenuService.listPermissionsByMenuIds(request.getMenuIds());
+        return sysMenuService.listPermissionsByMenus(request.getMenuIds());
     }
 
     /**
@@ -142,24 +142,23 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public List<SysRoleDTO> adminSelectOptions() {
         Set<Long> invisibleRoleIds = userRoleHelper.listInvisibleRoleIds();
-        List<SysRoleEntity> entityList = sysRoleMapper.selectList(
-                new QueryWrapper<SysRoleEntity>()
-                        .lambda()
-                        // 只取特定字段
-                        .select(SysRoleEntity::getId, SysRoleEntity::getName)
-                        // 不显示特定角色
-                        .notIn(CollUtil.isNotEmpty(invisibleRoleIds), SysRoleEntity::getId, invisibleRoleIds)
-                        // 排序
-                        .orderByAsc(SysRoleEntity::getId)
+        List<SysRoleEntity> entityList = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
+                // 只取特定字段
+                .select(SysRoleEntity::getId, SysRoleEntity::getName)
+                // 不显示特定角色
+                .notIn(CollUtil.isNotEmpty(invisibleRoleIds), SysRoleEntity::getId, invisibleRoleIds)
+                // 排序
+                .orderByAsc(SysRoleEntity::getId)
         );
         // 无需填充菜单IDs
         return convertList(entityList, false);
     }
 
     @Override
-    public AppendTenantRoleResult appendTenantRole(AppendTenantRoleRequest request) {
+    public CreateTenantRoleResult createTenantRole(CreateTenantRoleRequest request) {
         try {
-            TenantContextHolder.setIgnored(true);
+            TenantContextHolder.setTenantContext(new SimpleTenantContext(
+                    request.getTenantId(), request.getTenantCode(), null));
 
             SysRoleEntity entity = new SysRoleEntity();
             BeanUtil.copyProperties(request, entity);
@@ -173,9 +172,9 @@ public class SysRoleServiceImpl implements SysRoleService {
             }
 
             sysRoleMapper.insert(entity);
-            return new AppendTenantRoleResult(entity.getId(), request.isTenantAdmin());
+            return new CreateTenantRoleResult(entity.getId(), request.isTenantAdmin());
         } finally {
-            TenantContextHolder.setIgnored(false);
+            TenantContextHolder.clear();
         }
     }
 
@@ -216,11 +215,9 @@ public class SysRoleServiceImpl implements SysRoleService {
         }
 
         // 根据角色Ids取 map
-        return sysRoleMapper.selectList(
-                new QueryWrapper<SysRoleEntity>()
-                        .lambda()
-                        .select(SysRoleEntity::getId, SysRoleEntity::getCode)
-                        .in(SysRoleEntity::getId, roleIds)
+        return sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
+                .select(SysRoleEntity::getId, SysRoleEntity::getCode)
+                .in(SysRoleEntity::getId, roleIds)
         ).stream().collect(Collectors.toMap(SysRoleEntity::getId, SysRoleEntity::getCode, StreamFunction.keepExisting()));
     }
 
@@ -294,15 +291,14 @@ public class SysRoleServiceImpl implements SysRoleService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysRoleUpsertRequest request) {
-        SysRoleEntity entity = sysRoleMapper.selectOne(
-                new LambdaQueryWrapper<SysRoleEntity>()
-                        // 仅取主键ID
-                        .select(SysRoleEntity::getId)
-                        // 并非原地更新
-                        .ne(Objects.nonNull(request.getId()), SysRoleEntity::getId, request.getId())
-                        // 编码相同
-                        .eq(SysRoleEntity::getCode, request.getCode())
-                        .last(SQLSegment.LIMIT_1)
+        SysRoleEntity entity = sysRoleMapper.selectOne(new LambdaQueryWrapper<SysRoleEntity>()
+                // 仅取主键ID
+                .select(SysRoleEntity::getId)
+                // 并非原地更新
+                .ne(Objects.nonNull(request.getId()), SysRoleEntity::getId, request.getId())
+                // 编码相同
+                .eq(SysRoleEntity::getCode, request.getCode())
+                .last(SQLSegment.LIMIT_1)
         );
 
         if (entity != null) {

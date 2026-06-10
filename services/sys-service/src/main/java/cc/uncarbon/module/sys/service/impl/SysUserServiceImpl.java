@@ -20,21 +20,20 @@ import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
-import cc.uncarbon.module.sys.model.response.AdminSysUserLoginResult;
-import cc.uncarbon.module.sys.model.response.AppendTenantUserResult;
+import cc.uncarbon.module.sys.model.response.CreateTenantUserResult;
 import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
-import cc.uncarbon.module.sys.service.*;
+import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
+import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
+import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
+import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
-import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
@@ -58,13 +56,10 @@ public class SysUserServiceImpl implements SysUserService {
     private static final String LOG_PREFIX = "[系统管理][用户]";
 
     private final SysUserMapper sysUserMapper;
-    private final SysRoleService sysRoleService;
     private final SysDeptServiceImpl sysDeptService;
-    private final SysMenuService sysMenuService;
     private final SysUserDeptRelationService sysUserDeptRelationService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
-    private final SysLoginLogService sysLoginLogService;
     private final UserRoleHelper userRoleHelper;
 
     // RPC
@@ -93,8 +88,7 @@ public class SysUserServiceImpl implements SysUserService {
         Set<Long> invisibleUserIds = userRoleHelper.listInvisibleUserIds();
         Page<SysUserEntity> entityPage = sysUserMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new QueryWrapper<SysUserEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<SysUserEntity>()
                         // 手机号
                         .like(CharSequenceUtil.isNotBlank(query.getPhoneNo()), SysUserEntity::getPhoneNo, CharSequenceUtil.cleanBlank(query.getPhoneNo()))
                         // 根据【手动选择的部门ID】筛选用户
@@ -169,53 +163,6 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public AdminSysUserLoginResult adminPasswordLogin(AdminPasswordLoginRequest request) {
-        TenantValidateResult tenant = tenantFacade.validateByCode(request.getTenantCode());
-        if (!tenant.isValid()) {
-            throw new BusinessException(tenant.getErrorCode());
-        }
-
-        try {
-            // 切换租户态
-            SimpleTenantContext tenantContext =
-                    new SimpleTenantContext(tenant.getTenantId(), tenant.getTenantName(), tenant.getTenantCode());
-            TenantContextHolder.setTenantContext(tenantContext);
-
-            // 不要直接提示「账号不存在」or「密码不正确」，避免撞库攻击
-            SysUserEntity entity = sysUserMapper.getUserByPin(request.getPin());
-            if (entity == null) {
-                throw new BusinessException(SysErrorCodeEnum.A01001);
-            }
-
-            if (!PwdUtil.encrypt(request.getPwd(), entity.getPwdSalt()).equals(entity.getPwd())) {
-                throw new BusinessException(SysErrorCodeEnum.A01001);
-            }
-
-            if (SysUserStatusEnum.BANNED == entity.getStatus()) {
-                throw new BusinessException(SysErrorCodeEnum.A01004);
-            }
-
-            // 登录日志
-            sysUserMapper.updateLastLoginAt(entity.getId(), LocalDateTimeUtil.now());
-
-
-            UserRoleScope userRole = userRoleHelper.getSpecifiedUserRole(entity.getId());
-            Map<Long, Set<String>> permByRole = sysMenuService.getPermissionMapByRole(userRole.getRelatedRoleIds());
-
-            AdminSysUserLoginResult ret = new AdminSysUserLoginResult();
-            BeanUtil.copyProperties(entity, ret);
-            ret.setRoleIds(userRole.getRelatedRoleIds())
-                    .setRoleCodes(userRole.getRelatedRoles().stream().map(SysRoleEntity::getCode).toList())
-                    .setPermissions(permByRole.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()))
-                    .setRolePermissionMap(permByRole)
-                    .setTenantContext(tenantContext);
-            return ret;
-        } finally {
-            TenantContextHolder.clear();
-        }
-    }
-
-    @Override
     public MyProfileDTO adminGetMyProfile() {
         SysUserDTO me = this.getNonnullById(UserContextHolder.getUserId());
         MyProfileDTO ret = new MyProfileDTO();
@@ -278,9 +225,10 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public AppendTenantUserResult appendTenantUser(AppendTenantUserRequest request) {
+    public CreateTenantUserResult createTenantUser(CreateTenantUserRequest request) {
         try {
-            TenantContextHolder.setIgnored(true);
+            TenantContextHolder.setTenantContext(new SimpleTenantContext(
+                    request.getTenantId(), request.getTenantCode(), null));
 
             SysUserEntity entity = new SysUserEntity();
             BeanUtil.copyProperties(request, entity);
@@ -296,9 +244,9 @@ public class SysUserServiceImpl implements SysUserService {
                         .setStatus(SysUserStatusEnum.ENABLED);
             }
             sysUserMapper.insert(entity);
-            return new AppendTenantUserResult(entity.getId(), request.isTenantAdmin());
+            return new CreateTenantUserResult(entity.getId(), request.isTenantAdmin());
         } finally {
-            TenantContextHolder.setIgnored(false);
+            TenantContextHolder.clear();
         }
     }
 
@@ -359,7 +307,7 @@ public class SysUserServiceImpl implements SysUserService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysUserUpsertRequest request) {
-        SysUserEntity entity = sysUserMapper.getUserByPin(request.getPin());
+        SysUserEntity entity = sysUserMapper.getByPin(request.getPin());
         if (entity != null) {
             throw new HasRepeatRecordException("已存在相同的账号");
         }

@@ -24,10 +24,9 @@ public interface SysUserRoleRelationMapper extends BaseMapper<SysUserRoleRelatio
         if (userId == null) {
             return List.of();
         }
-        return selectList(
-                new LambdaQueryWrapper<SysUserRoleRelationEntity>()
-                        .select(SysUserRoleRelationEntity::getRoleId)
-                        .eq(SysUserRoleRelationEntity::getUserId, userId)
+        return selectList(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+                .select(SysUserRoleRelationEntity::getRoleId)
+                .eq(SysUserRoleRelationEntity::getUserId, userId)
         ).stream().map(SysUserRoleRelationEntity::getRoleId).toList();
     }
 
@@ -39,10 +38,9 @@ public interface SysUserRoleRelationMapper extends BaseMapper<SysUserRoleRelatio
             return Set.of();
         }
 
-        return selectList(
-                new LambdaQueryWrapper<SysUserRoleRelationEntity>()
-                        .select(SysUserRoleRelationEntity::getUserId)
-                        .in(SysUserRoleRelationEntity::getRoleId, roleIds)
+        return selectList(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+                .select(SysUserRoleRelationEntity::getUserId)
+                .in(SysUserRoleRelationEntity::getRoleId, roleIds)
         ).stream().map(SysUserRoleRelationEntity::getUserId).collect(Collectors.toSet());
     }
 }

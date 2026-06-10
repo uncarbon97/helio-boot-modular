@@ -4,8 +4,8 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
-import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDictCategoryMapper;
@@ -21,7 +21,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -53,8 +52,7 @@ public class SysDictServiceImpl implements SysDictService {
     public PageResult<SysDictCategoryDTO> adminListCategory(AdminSysDictCategoryListQuery query) {
         Page<SysDictCategoryEntity> entityPage = sysDictCategoryMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new QueryWrapper<SysDictCategoryEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<SysDictCategoryEntity>()
                         // 分类编码
                         .eq(CharSequenceUtil.isNotBlank(query.getCode()), SysDictCategoryEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
                         // 排序
@@ -105,8 +103,7 @@ public class SysDictServiceImpl implements SysDictService {
     public PageResult<SysDictItemDTO> adminListItem(AdminSysDictItemListQuery query) {
         Page<SysDictItemEntity> entityPage = sysDictItemMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new QueryWrapper<SysDictItemEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<SysDictItemEntity>()
                         // 分类ID
                         .eq(SysDictItemEntity::getCategoryId, query.getCategoryId())
                         // 排序
@@ -158,10 +155,8 @@ public class SysDictServiceImpl implements SysDictService {
     @Override
     public void adminDeleteItem(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除字典项 >> {}", ids);
-        sysDictItemMapper.delete(
-                new QueryWrapper<SysDictItemEntity>()
-                        .lambda()
-                        .in(SysDictItemEntity::getId, ids)
+        sysDictItemMapper.delete(new LambdaQueryWrapper<SysDictItemEntity>()
+                .in(SysDictItemEntity::getId, ids)
         );
     }
 
@@ -178,15 +173,13 @@ public class SysDictServiceImpl implements SysDictService {
             return List.of();
         }
         return convertList(
-                sysDictItemMapper.selectList(
-                        new QueryWrapper<SysDictItemEntity>()
-                                .lambda()
-                                // 分类ID
-                                .eq(SysDictItemEntity::getCategoryId, category.getId())
-                                // 状态
-                                .eq(SysDictItemEntity::getStatus, EnabledStatusEnum.ENABLED)
-                                // 排序
-                                .orderByAsc(SysDictItemEntity::getSort)
+                sysDictItemMapper.selectList(new LambdaQueryWrapper<SysDictItemEntity>()
+                        // 分类ID
+                        .eq(SysDictItemEntity::getCategoryId, category.getId())
+                        // 状态
+                        .eq(SysDictItemEntity::getStatus, EnabledStatusEnum.ENABLED)
+                        // 排序
+                        .orderByAsc(SysDictItemEntity::getSort)
                 )
         );
     }
@@ -273,16 +266,14 @@ public class SysDictServiceImpl implements SysDictService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysDictCategoryUpsertRequest request) throws BusinessException {
-        SysDictCategoryEntity entity = sysDictCategoryMapper.selectOne(
-                new QueryWrapper<SysDictCategoryEntity>()
-                        .lambda()
-                        // 仅取主键ID
-                        .select(SysDictCategoryEntity::getId)
-                        // 并非原地更新
-                        .ne(Objects.nonNull(request.getId()), SysDictCategoryEntity::getId, request.getId())
-                        // 分类编码相同
-                        .eq(SysDictCategoryEntity::getCode, request.getCode())
-                        .last(SQLSegment.LIMIT_1)
+        SysDictCategoryEntity entity = sysDictCategoryMapper.selectOne(new LambdaQueryWrapper<SysDictCategoryEntity>()
+                // 仅取主键ID
+                .select(SysDictCategoryEntity::getId)
+                // 并非原地更新
+                .ne(Objects.nonNull(request.getId()), SysDictCategoryEntity::getId, request.getId())
+                // 分类编码相同
+                .eq(SysDictCategoryEntity::getCode, request.getCode())
+                .last(SQLSegment.LIMIT_1)
         );
 
         if (entity != null) {
@@ -294,16 +285,15 @@ public class SysDictServiceImpl implements SysDictService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysDictItemUpsertRequest request) throws BusinessException {
-        SysDictItemEntity entity = sysDictItemMapper.selectOne(
-                new LambdaQueryWrapper<SysDictItemEntity>()
-                        .select(SysDictItemEntity::getId)
-                        // 并非原地更新
-                        .ne(Objects.nonNull(request.getId()), SysDictItemEntity::getId, request.getId())
-                        // 分类ID相同
-                        .eq(SysDictItemEntity::getCategoryId, request.getCategoryId())
-                        // 字典项编码相同
-                        .eq(SysDictItemEntity::getCode, request.getCode())
-                        .last(SQLSegment.LIMIT_1)
+        SysDictItemEntity entity = sysDictItemMapper.selectOne(new LambdaQueryWrapper<SysDictItemEntity>()
+                .select(SysDictItemEntity::getId)
+                // 并非原地更新
+                .ne(Objects.nonNull(request.getId()), SysDictItemEntity::getId, request.getId())
+                // 分类ID相同
+                .eq(SysDictItemEntity::getCategoryId, request.getCategoryId())
+                // 字典项编码相同
+                .eq(SysDictItemEntity::getCode, request.getCode())
+                .last(SQLSegment.LIMIT_1)
         );
 
         if (entity != null) {

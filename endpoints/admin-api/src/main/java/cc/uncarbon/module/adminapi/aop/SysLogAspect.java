@@ -7,7 +7,7 @@ import cc.uncarbon.module.sys.annotation.SysOperateLog;
 import cc.uncarbon.module.sys.enums.SysLogStatusEnum;
 import cc.uncarbon.module.sys.extension.SysLogAspectExtension;
 import cc.uncarbon.module.sys.extension.impl.DefaultSysLogAspectExtension;
-import cc.uncarbon.module.sys.model.request.CreateSysLoginLogRequest;
+import cc.uncarbon.module.sys.model.request.SysLoginLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.IPLocationBO;
 import cc.uncarbon.module.sys.service.SysLoginLogService;
 import cn.dev33.satoken.spring.SpringMVCUtil;
@@ -153,7 +153,7 @@ public class SysLogAspect {
                 extensionInstance = ReflectUtil.newInstance(extensionClazz);
             }
 
-            CreateSysLoginLogRequest dto = buildInsertDTO(joinPoint, annotation, aspectContext);
+            SysLoginLogCreateRequest dto = buildInsertDTO(joinPoint, annotation, aspectContext);
             setParamInDTO(joinPoint, dto);
 
             if (e != null) {
@@ -245,8 +245,8 @@ public class SysLogAspect {
     /**
      * 构造新增DTO
      */
-    private static CreateSysLoginLogRequest buildInsertDTO(JoinPoint joinPoint, SysOperateLog annotation, AspectContext aspectContext) {
-        return new CreateSysLoginLogRequest()
+    private static SysLoginLogCreateRequest buildInsertDTO(JoinPoint joinPoint, SysOperateLog annotation, AspectContext aspectContext) {
+        return new SysLoginLogCreateRequest()
                 // 记录操作人
                 .setUserId(UserContextHolder.getUserId())
                 .setUsername(UserContextHolder.getUserName())
@@ -267,7 +267,7 @@ public class SysLogAspect {
     /**
      * 记录请求参数，设置dto的param字段
      */
-    private static void setParamInDTO(JoinPoint joinPoint, CreateSysLoginLogRequest dto) {
+    private static void setParamInDTO(JoinPoint joinPoint, SysLoginLogCreateRequest dto) {
         Map<Object, Object> afterMasked = new LinkedHashMap<>(32, 1);
         String params = Arrays.stream(joinPoint.getArgs()).map(
                 item -> {

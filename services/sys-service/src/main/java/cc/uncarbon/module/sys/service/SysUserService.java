@@ -4,8 +4,7 @@ import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
-import cc.uncarbon.module.sys.model.response.AdminSysUserLoginResult;
-import cc.uncarbon.module.sys.model.response.AppendTenantUserResult;
+import cc.uncarbon.module.sys.model.response.CreateTenantUserResult;
 import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 
@@ -46,11 +45,6 @@ public interface SysUserService {
     SysUserDTO getNonnullById(Long id) throws NoRecordException;
 
     /**
-     * 后台管理-登录
-     */
-    AdminSysUserLoginResult adminPasswordLogin(AdminPasswordLoginRequest request);
-
-    /**
      * 后台管理-取当前用户资料
      */
     MyProfileDTO adminGetMyProfile();
@@ -81,8 +75,8 @@ public interface SysUserService {
     void adminUpdateMyAvatar(AdminUpdateMyAvatarRequest request);
 
     /**
-     * 增加租户用户
+     * 新增租户用户
      */
-    AppendTenantUserResult appendTenantUser(AppendTenantUserRequest request);
+    CreateTenantUserResult createTenantUser(CreateTenantUserRequest request);
 
 }

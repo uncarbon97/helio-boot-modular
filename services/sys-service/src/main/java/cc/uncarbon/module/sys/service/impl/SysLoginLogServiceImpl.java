@@ -7,7 +7,7 @@ import cc.uncarbon.module.commons.resoler.IPLocationResolver;
 import cc.uncarbon.module.sys.dal.entity.SysLoginLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysLoginLogMapper;
 import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;
-import cc.uncarbon.module.sys.model.request.CreateSysLoginLogRequest;
+import cc.uncarbon.module.sys.model.request.SysLoginLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysLoginLogDTO;
 import cc.uncarbon.module.sys.service.SysLoginLogService;
 import cn.hutool.core.bean.BeanUtil;
@@ -15,7 +15,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,8 +50,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
     public PageResult<SysLoginLogDTO> adminList(AdminSysLoginLogListQuery query) {
         Page<SysLoginLogEntity> entityPage = sysLoginLogMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new QueryWrapper<SysLoginLogEntity>()
-                        .lambda()
+                new LambdaQueryWrapper<SysLoginLogEntity>()
                         // 用户账号
                         .like(CharSequenceUtil.isNotBlank(query.getUserPin()), SysLoginLogEntity::getUserPin, CharSequenceUtil.cleanBlank(query.getUserPin()))
                         // 状态
@@ -67,7 +66,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Long create(CreateSysLoginLogRequest request) {
+    public Long create(SysLoginLogCreateRequest request) {
         SysLoginLogEntity entity = new SysLoginLogEntity();
         BeanUtil.copyProperties(request, entity);
         // 按需改写字段

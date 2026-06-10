@@ -1,7 +1,6 @@
-package cc.uncarbon.module.sys.model.valueobj;
+package cc.uncarbon.module.tenant.model.valueobj;
 
-import cc.uncarbon.framework.core.enums.GenderEnum;
-import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
+import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,23 +11,19 @@ import java.io.Serializable;
 
 
 /**
- * 系统用户BO
- * 仅保留基本信息
+ * 租户用户基本资料
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysUserBaseInfoBO implements Serializable {
+public class TenantUserBasicProfileDTO implements Serializable {
 
     @Schema(description = "账号")
     private String pin;
 
     @Schema(description = "昵称")
     private String nickname;
-
-    @Schema(description = "状态")
-    private SysUserStatusEnum status;
 
     @Schema(description = "性别")
     private GenderEnum gender;
