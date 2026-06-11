@@ -1,7 +1,7 @@
 package cc.uncarbon.module.commons.satoken;
 
+import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cn.dev33.satoken.stp.StpLogic;
-import cn.dev33.satoken.stp.StpUtil;
 
 /**
  * StpLogic 门面类，管理项目中所有的 StpLogic 账号体系
@@ -11,13 +11,15 @@ import cn.dev33.satoken.stp.StpUtil;
 public class StpKit {
 
     /**
-     * 默认原生会话对象
-     */
-    public static final StpLogic DEFAULT = StpUtil.stpLogic;
-
-    /**
      * 管理 Admin 账户体系下所有账号的登录、权限认证
+     * 关联 {@link ApiPathPrefix#ADMIN} 前缀
      */
     public static final StpLogic ADMIN = new StpLogic(StpLoginType.ADMIN);
+
+    /**
+     * 管理 App 账户体系下所有账号的登录、权限认证
+     * 关联 {@link ApiPathPrefix#APP} 前缀
+     */
+    public static final StpLogic APP = new StpLogic(StpLoginType.APP);
 
 }

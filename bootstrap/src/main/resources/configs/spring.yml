@@ -1,0 +1,33 @@
+# Spring Boot 相关的配置，都写在本文件内
+---
+
+server:
+  port: 7003
+
+spring:
+  application:
+    name: helium-monolith
+  #  messages:
+  #    # 国际化资源目录，一般不做修改
+  #    basename: i18n/messages
+  task:
+    # spring-schedule
+    scheduling:
+      pool:
+        # 线程池容量
+        size: 8
+    # spring-async
+    execution:
+      pool:
+        # 线程池容量
+        core-size: 8
+  servlet:
+    multipart:
+      # 文件上传大小限制（两个一起配）
+      # 如果还用了 Nginx 等反向代理，需要在反向代理的配置中也放宽请求体大小限制
+      max-file-size: 1024MB
+      max-request-size: 1024MB
+  web:
+    resources:
+      # 不为工程中的资源文件建立映射
+      add-mappings: false

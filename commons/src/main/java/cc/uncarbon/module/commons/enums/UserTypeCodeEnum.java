@@ -12,9 +12,13 @@ import lombok.Getter;
 @Getter
 public enum UserTypeCodeEnum implements BaseEnum<String> {
 
-    ADMIN_USER("ADMIN_USER", "系统管理用户"),
+    ADMIN_USER("后台管理用户"),
+    APP_USER("C端用户"),
 
-    ;private final String value;
-    private final String label;
+    ;private final String label;
 
+    @Override
+    public String getValue() {
+        return name();
+    }
 }

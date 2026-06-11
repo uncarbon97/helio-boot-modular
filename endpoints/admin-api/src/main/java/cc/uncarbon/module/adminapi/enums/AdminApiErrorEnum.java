@@ -27,7 +27,4 @@ public enum AdminApiErrorEnum implements ErrorCodeEnum {
 
     ;private final String errorMsgFriendly;
 
-    public String getErrorCode() {
-        return name();
-    }
 }

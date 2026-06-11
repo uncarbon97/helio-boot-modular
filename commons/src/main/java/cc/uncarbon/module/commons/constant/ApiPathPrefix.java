@@ -15,8 +15,18 @@ public final class ApiPathPrefix {
     public static final String ADMIN = "/admin";
 
     /**
+     * admin-api 前缀匹配符
+     */
+    public static final String ADMIN_PATTERN = ADMIN + "/**";
+
+    /**
      * app-api 前缀
      */
     public static final String APP = "/app";
+
+    /**
+     * app-api 前缀匹配符
+     */
+    public static final String APP_PATTERN = APP + "/**";
 
 }

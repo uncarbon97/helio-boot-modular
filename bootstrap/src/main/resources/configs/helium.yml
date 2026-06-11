@@ -1,0 +1,33 @@
+# Helium Starter 相关的配置，都写在本文件内
+---
+
+"helium.db":
+  ## ID 生成器
+  idgen:
+    snowflake:
+      # 雪花ID-数据中心ID
+      datacenter-id: ${DATACENTER_ID:0}
+      # 雪花ID-起始日期-可以选用项目开工的日期-这个一旦确定就不要改动了
+      epoch-date: '2026-07-17'
+  ## Mybatis-plus
+  mybatis-plus:
+    optimistic-lock:
+      # 是否开启乐观锁
+      enabled: true
+
+---
+"helium.openapi3":
+  nextdoc4j:
+    enabled: true
+
+---
+"helium.tenant":
+  # 多租户策略（隔离级别）
+  strategy: LINE
+  # 【行级】多租户忽略的表
+  ignored-tables:
+    - sys_menu
+    - sys_tenant
+    - sys_role_menu_relation
+    - sys_user_dept_relation
+    - sys_user_role_relation

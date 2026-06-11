@@ -13,14 +13,14 @@
 
     <groupId>cc.uncarbon.module</groupId>
     <artifactId>helium-monolith</artifactId>
-    <description>Helium 快速开发平台脚手架 Monolith-style</description>
+    <description>Helium 快速开发平台脚手架</description>
     <version>${revision}</version>
 
     <properties>
         <!-- 当前工程内，所有Maven模块统一版本号 -->
         <revision>4.0.1-SNAPSHOT</revision>
         <!-- 根据实际开发的 JDK 版本确定 -->
-        <java.version>21</java.version>
+        <java.version>25</java.version>
 
         <!-- 固定跨模块共享代码版本 -->
         <commons.version>0.0.0-SNAPSHOT</commons.version>

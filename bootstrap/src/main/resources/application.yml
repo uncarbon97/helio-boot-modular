@@ -1,125 +1,25 @@
+--- # Spring Boot
 spring:
-  application:
-    name: helium-boot
   profiles:
     # 可通过命令行参数实现多环境切换配置文件
     active: dev
-  datasource:
-    driver-class-name: ${helium.crud.db-driver-class}
-    username: ${helium.crud.db-username}
-    password: ${helium.crud.db-password}
-    url: jdbc:${helium.crud.db-type}://${helium.crud.db-host}:${helium.crud.db-port}/${helium.crud.db-name}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-  cache:
-    type: redis
-    redis:
-      cache-null-values: true
-  messages:
-    # 国际化资源目录，一般不做修改
-    basename: i18n/messages
-  task:
-    # spring-schedule 线程池容量
-    scheduling:
-      pool:
-        size: 8
-    # spring-async 线程池容量
-    execution:
-      pool:
-        core-size: 8
-  servlet:
-    multipart:
-      # 文件上传大小限制（两个一起配）
-      # 如果还用了 Nginx 等反向代理，需要在反向代理的配置中也放宽请求体大小限制
-      max-file-size: 1024MB
-      max-request-size: 1024MB
-  # 不为工程中的资源文件建立映射
-  web:
-    resources:
-      add-mappings: false
+  config:
+    import:
+      # 通过子配置拆分，提高可读性
+      - classpath:configs/spring.yml
+      - classpath:configs/helium.yml
+      - classpath:configs/dependencies.yml
 
-helium:
-  crud:
-    id-generator:
-      # 使用雪花算法作为主键ID生成策略
-      strategy: SNOWFLAKE
-      # 雪花ID-数据中心ID
-      datacenter-id: ${DATACENTER_ID:0}
-      # 雪花ID-起始日期-可以选用项目开工的日期-这个一旦确定就不要改动了
-      epoch-date: '2021-07-17'
-    optimistic-lock:
-      # 是否开启乐观锁
-      enabled: true
-  security:
-    exclude-routes:
-      # 放行路由, 不进行登录校验
-      # 图标
-      - /favicon.ico
-      # SpringDoc 接口
-      - /v3/api-docs
-      # SpringMVC 404
-      - /error
-      # C端登录接口
-      - /app/api/v1/auth/login
-  tenant:
-    # 是否开启多租户，详情请见文档【进阶使用-多租户】
-    enabled: false
-    # 多租户隔离级别
-    isolate-level: LINE
-    ignored-tables:
-      # 以下表不参与【行级】多租户 SQL 拦截器条件拼接
-      - sys_menu
-      - sys_tenant
-      - sys_role_menu_relation
-      - sys_user_dept_relation
-      - sys_user_role_relation
-  i18n:
-    # 是否对返回消息启用国际化翻译
-    enabled: false
-
-knife4j:
-  # 保持true
-  enable: true
-  basic:
-    enable: true
-    username: helium
-    password: helium
-springdoc:
-  # 平铺显示复合入参对象
-  default-flat-param-object: true
-
-server:
-  port: 7003
-
-mybatis-plus:
-  # XML扫描，支持统配符 * 或者 , 分割
-  mapper-locations: classpath*:/mapper/**/*.xml, classpath*:/**/mapper/xml/*.xml
-  global-config:
-    # 启动时不打印字符画
-    banner: false
-
+--- # 指定日志级别
 logging:
   level:
-    # 指定日志级别，开发、测试环境建议为 DEBUG，生产环境建议为 INFO
     cc.uncarbon.framework: INFO
     cc.uncarbon.module: INFO
-    # 单元测试日志级别
     cc.uncarbon.test: INFO
 
-# 详细配置文档：https://sa-token.cc/doc.html#/use/config
-sa-token:
-  # token名称
-  token-name: Authorization
-  # token风格
-  token-style: tik
-  # 是否允许同一账号并发登录
-  is-concurrent: false
-  # 打印banner
-  is-print: false
-  # 是否尝试从请求体里读取token
-  is-read-body: false
-  # 是否尝试从cookie里读取token
-  is-read-cookie: false
-  # 有效期解释：https://sa-token.cc/doc.html#/fun/token-timeout
-  # token 有效期，单位=秒；默认30天，-1代表永不过期
-  timeout: 2592000
-  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结
-  active-timeout: -1
+--- # app-api
+app-api:
+  # 不进行登录校验的路由
+  no-auth-paths:
+    # 登录
+    - /app/v1/auth/login

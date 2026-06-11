@@ -1,10 +1,10 @@
-package cc.uncarbon.module.appapi.web;
+package cc.uncarbon.module.appapi.controller;
 
 
-import cc.uncarbon.framework.helium.web.model.reponse.ApiResult;
-import cc.uncarbon.module.appapi.constant.AppApiConstant;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@Tag(name = "APP鉴权接口")
-@RequestMapping(AppApiConstant.HTTP_API_URL_PREFIX + "/api/v1")
+@Tag(name = "APP-鉴权接口")
+@RequestMapping(ApiPathPrefix.APP + "/v1/auth")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
@@ -25,9 +25,8 @@ public class AppAuthController {
      */
 
     @Operation(summary = "登录")
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public ApiResult<Void> login() {
-        // 可参考 admin 的 AdminAuthController#login
         return ApiResult.success();
     }
 

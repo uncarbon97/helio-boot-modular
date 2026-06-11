@@ -23,7 +23,4 @@ public enum FileErrorCodeEnum implements ErrorCodeEnum {
 
     ;private final String errorMsgFriendly;
 
-    public String getErrorCode() {
-        return name();
-    }
 }

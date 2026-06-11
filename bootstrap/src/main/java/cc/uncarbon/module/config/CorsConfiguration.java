@@ -5,7 +5,8 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * 因可能个别项目需要特别的跨域设置，单拎出来放在这
+ * 跨域设置
+ * 因可能个别项目需要单独设置，单拎出来放在这
  *
  * @author Uncarbon
  */

@@ -16,6 +16,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 
 /**
+ * 异步任务线程池配置类
+ *
  * @author Uncarbon
  */
 @Slf4j
@@ -23,6 +25,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 @RequiredArgsConstructor
 public class AsyncConfiguration implements AsyncConfigurer {
+
+    private static final String LOG_PREFIX = "[异步任务线程池]";
+    private static final String EXECUTOR_NAME = "defaultTaskExecutor";
 
     private final TaskExecutionProperties taskExecutionProperties;
 
@@ -32,14 +37,15 @@ public class AsyncConfiguration implements AsyncConfigurer {
      * 加 @Primary 注解以确保依赖注入时，获取到的是这个Bean
      */
     @Primary
-    @Bean(name = "taskExecutor")
+    @Bean(name = EXECUTOR_NAME)
     public ThreadPoolTaskExecutor taskExecutor() {
-        final String threadNamePrefix = "taskExecutor-";
+        final String threadNamePrefix = EXECUTOR_NAME + "-";
 
         if (log.isDebugEnabled()) {
-            log.debug("[异步任务线程池] 创建默认线程池【taskExecutor】，该线程池参数可通过 spring.task.execution 调节 >> "
+            log.debug(LOG_PREFIX + "创建默认线程池 {}，该线程池参数可通过 spring.task.execution 调节 >> "
                             + "corePoolSize核心线程池大小={}, maxPoolSize最大线程数={}, queueCapacity队列容量={}"
                             + ", rejectedExecutionHandler拒绝策略={}",
+                    EXECUTOR_NAME,
                     taskExecutionProperties.getPool().getCoreSize(),
                     taskExecutionProperties.getPool().getMaxSize(),
                     taskExecutionProperties.getPool().getQueueCapacity(),
@@ -73,6 +79,6 @@ public class AsyncConfiguration implements AsyncConfigurer {
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return (ex, method, params) ->
-                log.error("[异步任务线程池] 执行异步任务【{}】时出错 >> 堆栈\t\n", method, ex);
+                log.error(LOG_PREFIX + "执行异步任务 {} 时出错 >> 堆栈\t\n", method, ex);
     }
 }

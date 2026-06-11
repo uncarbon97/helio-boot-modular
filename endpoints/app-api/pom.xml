@@ -23,6 +23,13 @@
         <!-- 引用下游服务 -->
 
 
+        <!-- 引用其他契约 -->
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>commons</artifactId>
+        </dependency>
+
+
         <!-- 引用框架基础包/启动包 -->
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
@@ -47,6 +54,11 @@
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-web-security</artifactId>
         </dependency>
 
 

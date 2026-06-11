@@ -1,45 +1,31 @@
-helium:
-  crud:
-    # JDBC驱动类名，根据数据库类型自行修改
-    db-driver-class: com.mysql.cj.jdbc.Driver
-    # 数据库类型
-    db-type: mysql
-    # 数据库连接主机
-    db-host: 127.0.0.1
-    # 数据库端口
-    db-port: 3306
-    # 数据库登录账号
-    db-username: root
-    # 数据库登录密码
-    db-password: root
-    # 数据库名
-    db-name: helium_boot
-  web:
-    logging:
-      # 是否启用 Web 访问日志切面；开发、测试环境可以开启，生产环境不开启
-      enabled: false
-
 spring:
+  datasource:
+    dynamic:
+      datasource:
+        primary: master
+        # 主数据源
+        master:
+          url: jdbc:${MASTER_DB_TYPE:mysql}://${MASTER_DB_HOST:127.0.0.1}:${MASTER_DB_PORT:3306}/${MASTER_DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+          username: ${MASTER_DB_USERNAME:helium}
+          password: ${MASTER_DB_PASSWORD:helium}
   data:
     redis:
-      # Redis连接主机
+      # 连接主机
       host: 127.0.0.1
-      # Redis连接端口
+      # 连接端口
       port: 6379
-      # Redis登录密码；如果没有设置密码，请注释掉下面这行，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
+      # 登录密码；如果没有设置密码，请注释掉下面这行，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
       password:
-      # Redis数据库序号
+      # 数据库序号
       database: 1
 
-knife4j:
-  # 生产环境务必设为true
-  production: false
-
+---
 mybatis-plus:
   configuration:
     # 生产环境下建议去除该配置项，不在控制台打印SQL
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+---
 dromara:
   x-file-storage:
     # 文档：https://x-file-storage.xuyanwu.cn/

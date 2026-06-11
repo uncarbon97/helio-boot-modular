@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@Tag(name = "系统管理-鉴权接口")
+@Tag(name = "后台管理-鉴权接口")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/auth")
 @RequiredArgsConstructor
 @RestController
@@ -51,7 +51,7 @@ public class AdminAuthController {
         // 登录验证码核验；前端项目搜索关键词「Helium: 登录验证码」
         // AdminApiErrorEnum.CAPTCHA_VALIDATE_FAILED.assertTrue(captchaHelper.validate(dto.getCaptchaId(), dto.getCaptchaAnswer()))
 
-        AdminLoginResult loginResult = adminLoginService.passwordLogin(request, VisitorContextHolder.getVisitorContext());
+        AdminLoginResult loginResult = adminLoginService.passwordLogin(request, VisitorContextHolder.get());
 
         // 构造用户上下文
         UserContext userContext = new SimpleUserContext()
