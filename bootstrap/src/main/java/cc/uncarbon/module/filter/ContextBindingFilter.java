@@ -68,6 +68,18 @@ public class ContextBindingFilter extends OncePerRequestFilter {
     }
 
     @Nullable
+    private StpLogic resolveStpLogic(HttpServletRequest servletRequest) {
+        // 根据路径前缀，确认对应的 StpLogic
+        String path = servletRequest.getRequestURI();
+        if (pathMatcher.match(ApiPathPrefix.ADMIN_PATTERN, path)) {
+            return StpKit.ADMIN;
+        } else if (pathMatcher.match(ApiPathPrefix.APP_PATTERN, path)) {
+            return StpKit.APP;
+        }
+        return null;
+    }
+
+    @Nullable
     private UserContext resolveUser(@Nullable StpLogic stpLogic) {
         if (stpLogic != null && stpLogic.isLogin()
                 && stpLogic.getSession().get(UserContext.CAMEL_NAME) instanceof UserContext u) {
@@ -81,18 +93,6 @@ public class ContextBindingFilter extends OncePerRequestFilter {
         if (stpLogic != null && stpLogic.isLogin()
                 && stpLogic.getSession().get(TenantContext.CAMEL_NAME) instanceof TenantContext t) {
             return t;
-        }
-        return null;
-    }
-
-    @Nullable
-    private StpLogic resolveStpLogic(HttpServletRequest servletRequest) {
-        // 根据路径前缀，确认对应的 StpLogic
-        String path = servletRequest.getRequestURI();
-        if (pathMatcher.match(ApiPathPrefix.ADMIN_PATTERN, path)) {
-            return StpKit.ADMIN;
-        } else if (pathMatcher.match(ApiPathPrefix.APP_PATTERN, path)) {
-            return StpKit.APP;
         }
         return null;
     }

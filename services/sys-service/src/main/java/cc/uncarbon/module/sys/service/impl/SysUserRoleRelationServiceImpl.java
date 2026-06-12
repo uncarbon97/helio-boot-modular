@@ -4,7 +4,7 @@ import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.dal.entity.SysUserRoleRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
-import cc.uncarbon.module.sys.model.request.BindTenantUserRoleRelationRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -83,7 +83,7 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void bindTenantUserRoleRelation(BindTenantUserRoleRelationRequest request) {
+    public void tenantUserBindRole(TenantUserBindRoleRequest request) {
         try {
             TenantContextHolder.setTenantContext(new SimpleTenantContext(
                     request.getTenantId(), request.getTenantCode(), null));

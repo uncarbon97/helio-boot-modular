@@ -16,7 +16,7 @@ import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
-import cc.uncarbon.module.sys.model.request.AdminPasswordLoginRequest;
+import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.AdminLoginResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
@@ -47,7 +47,7 @@ public class AdminAuthController {
 
     @Operation(summary = "登录")
     @PostMapping(value = "/password-login")
-    public ApiResult<SysUserLoginVO> login(@RequestBody @Valid AdminPasswordLoginRequest request) {
+    public ApiResult<SysUserLoginVO> login(@RequestBody @Valid AdminAuthPasswordLoginRequest request) {
         // 登录验证码核验；前端项目搜索关键词「Helium: 登录验证码」
         // AdminApiErrorEnum.CAPTCHA_VALIDATE_FAILED.assertTrue(captchaHelper.validate(dto.getCaptchaId(), dto.getCaptchaAnswer()))
 

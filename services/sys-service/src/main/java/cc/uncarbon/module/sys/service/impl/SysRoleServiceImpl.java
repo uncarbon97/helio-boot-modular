@@ -16,9 +16,9 @@ import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
-import cc.uncarbon.module.sys.model.request.AdminBindRoleMenusRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
-import cc.uncarbon.module.sys.model.request.CreateTenantRoleRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysMenuService;
@@ -118,6 +118,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     @Override
     public SysRoleDTO getById(Long id) {
+        if (id == null) return null;
         SysRoleEntity entity = sysRoleMapper.selectById(id);
         return convertEntity(entity, true);
     }
@@ -129,7 +130,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Set<String> adminBindMenus(AdminBindRoleMenusRequest request) {
+    public Set<String> adminBindMenu(AdminSysRoleBindMenuRequest request) {
         checkExistence(request.getRoleId());
         checkBeforeBindRoleMenuRelation(request);
         sysRoleMenuRelationService.cleanAndBind(request.getRoleId(), request.getMenuIds());
@@ -155,7 +156,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     @Override
-    public CreateTenantRoleResult createTenantRole(CreateTenantRoleRequest request) {
+    public CreateTenantRoleResult createTenantRole(TenantRoleCreateRequest request) {
         try {
             TenantContextHolder.setTenantContext(new SimpleTenantContext(
                     request.getTenantId(), request.getTenantCode(), null));
@@ -345,7 +346,7 @@ public class SysRoleServiceImpl implements SysRoleService {
      * 绑定角色与菜单关联关系前检查
      * 防止越权访问漏洞
      */
-    private void checkBeforeBindRoleMenuRelation(AdminBindRoleMenusRequest request) {
+    private void checkBeforeBindRoleMenuRelation(AdminSysRoleBindMenuRequest request) {
         SysRoleEntity entity = sysRoleMapper.selectById(request.getRoleId());
         denyBuiltinOp(entity, SysErrorCodeEnum.A01013);
 

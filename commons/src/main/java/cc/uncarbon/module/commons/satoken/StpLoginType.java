@@ -11,7 +11,14 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class StpLoginType {
 
-    public final String ADMIN = UserTypeCodeEnum.ADMIN_USER.getValue();
-    public final String APP = UserTypeCodeEnum.APP_USER.getValue();
+    /**
+     * @see UserTypeCodeEnum#ADMIN_USER
+     */
+    public final String ADMIN = "ADMIN_USER";
+
+    /**
+     * @see UserTypeCodeEnum#APP_USER
+     */
+    public final String APP = "APP_USER";
 
 }

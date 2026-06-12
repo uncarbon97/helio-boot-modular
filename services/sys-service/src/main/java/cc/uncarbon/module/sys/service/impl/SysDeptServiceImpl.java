@@ -106,6 +106,7 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     @Override
     public SysDeptDTO getById(Long id) {
+        if (id == null) return null;
         SysDeptEntity entity = sysDeptMapper.selectById(id);
         return convertEntity(entity);
     }

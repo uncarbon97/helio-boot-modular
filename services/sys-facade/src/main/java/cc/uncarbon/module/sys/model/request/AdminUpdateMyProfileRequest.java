@@ -16,7 +16,7 @@ import java.io.Serializable;
 
 
 /**
- * 更新当前系统用户信息资料
+ * 后台管理-更新个人资料
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -26,7 +26,7 @@ public class AdminUpdateMyProfileRequest implements Serializable {
 
 
     @Schema(description = "昵称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 100, message = "【昵称】最长100位")
+    @Size(max = 20, message = "昵称最长{max}位")
     @NotBlank(message = "昵称必填")
     private String nickname;
 
@@ -36,18 +36,14 @@ public class AdminUpdateMyProfileRequest implements Serializable {
 
     @Schema(description = "邮箱", requiredMode = Schema.RequiredMode.REQUIRED)
     @Pattern(message = "邮箱格式有误", regexp = RegexPool.EMAIL)
-    @Size(max = 255, message = "【邮箱】最长255位")
+    @Size(max = 255, message = "邮箱最长{max}位")
     @NotBlank(message = "邮箱必填")
     private String email;
 
     @Schema(description = "手机号", requiredMode = Schema.RequiredMode.REQUIRED)
     @Pattern(message = "手机号格式有误", regexp = RegexPool.MOBILE)
-    @Size(max = 20, message = "【手机号】最长20位")
+    @Size(max = 20, message = "手机号最长{max}位")
     @NotBlank(message = "手机号必填")
     private String phoneNo;
-
-    @Schema(description = "头像URL", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 255, message = "头像格式有误")
-    private String avatar;
 
 }

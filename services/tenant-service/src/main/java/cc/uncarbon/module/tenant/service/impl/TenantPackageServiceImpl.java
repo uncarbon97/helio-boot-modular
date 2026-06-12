@@ -133,6 +133,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
     @Override
     public TenantPackageDTO getById(Long id) {
+        if (id == null) return null;
         TenantPackageEntity entity = tenantPackageMapper.selectById(id);
         return convertEntity(entity, true);
     }

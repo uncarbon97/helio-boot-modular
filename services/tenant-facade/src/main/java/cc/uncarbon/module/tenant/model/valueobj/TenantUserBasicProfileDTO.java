@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 
 /**
- * 租户用户基本资料
+ * 租户用户-基本资料
  */
 @Accessors(chain = true)
 @AllArgsConstructor

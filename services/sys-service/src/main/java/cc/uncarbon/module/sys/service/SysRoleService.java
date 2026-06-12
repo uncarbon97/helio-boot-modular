@@ -3,9 +3,9 @@ package cc.uncarbon.module.sys.service;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
-import cc.uncarbon.module.sys.model.request.AdminBindRoleMenusRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
-import cc.uncarbon.module.sys.model.request.CreateTenantRoleRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 
@@ -50,11 +50,11 @@ public interface SysRoleService {
     SysRoleDTO getNonnullById(Long id) throws NoRecordException;
 
     /**
-     * 后台管理-绑定角色与菜单关联关系
+     * 后台管理-绑定菜单
      *
      * @return 新菜单ID集合对应的权限名
      */
-    Set<String> adminBindMenus(AdminBindRoleMenusRequest dto);
+    Set<String> adminBindMenu(AdminSysRoleBindMenuRequest dto);
 
     /**
      * 后台管理-下拉框数据
@@ -64,7 +64,7 @@ public interface SysRoleService {
     /**
      * 新增租户角色
      */
-    CreateTenantRoleResult createTenantRole(CreateTenantRoleRequest request);
+    CreateTenantRoleResult createTenantRole(TenantRoleCreateRequest request);
 
     /**
      * 后台管理-删除指定租户的特定角色

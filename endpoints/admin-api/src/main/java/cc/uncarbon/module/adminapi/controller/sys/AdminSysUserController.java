@@ -10,8 +10,8 @@ import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
-import cc.uncarbon.module.sys.model.request.AdminBindUserRolesRequest;
-import cc.uncarbon.module.sys.model.request.AdminResetSysUserPwdRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysUserResetOthersPwdRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
@@ -106,7 +106,7 @@ public class AdminSysUserController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "resetPassword")
     @Operation(summary = "重置某用户密码")
     @PostMapping(value = "/reset-password")
-    public ApiResult<Void> resetPassword(@RequestBody @Valid AdminResetSysUserPwdRequest request) {
+    public ApiResult<Void> resetPassword(@RequestBody @Valid AdminSysUserResetOthersPwdRequest request) {
         sysUserService.adminResetUserPassword(request);
 
         // 强制登出
@@ -118,7 +118,7 @@ public class AdminSysUserController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bindRoles")
     @Operation(summary = "绑定用户与角色关联关系")
     @PostMapping(value = "/bind-roles")
-    public ApiResult<Void> bindRoles(@RequestBody AdminBindUserRolesRequest request) {
+    public ApiResult<Void> bindRoles(@RequestBody AdminSysUserBindRoleRequest request) {
         sysUserService.adminBindRoles(request);
 
         // 异步强制登出，以更新对应权限；可以视业务需要决定是否删除该代码

@@ -52,7 +52,7 @@ public interface SysUserService {
     /**
      * 后台管理-重置某用户密码
      */
-    void adminResetUserPassword(AdminResetSysUserPwdRequest request);
+    void adminResetUserPassword(AdminSysUserResetOthersPwdRequest request);
 
     /**
      * 后台管理-修改当前用户密码
@@ -62,7 +62,7 @@ public interface SysUserService {
     /**
      * 后台管理-绑定用户与角色关联关系
      */
-    void adminBindRoles(AdminBindUserRolesRequest request);
+    void adminBindRoles(AdminSysUserBindRoleRequest request);
 
     /**
      * 后台管理-更新当前用户资料
@@ -77,6 +77,6 @@ public interface SysUserService {
     /**
      * 新增租户用户
      */
-    CreateTenantUserResult createTenantUser(CreateTenantUserRequest request);
+    CreateTenantUserResult createTenantUser(TenantUserCreateRequest request);
 
 }

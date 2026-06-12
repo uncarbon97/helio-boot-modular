@@ -1,9 +1,9 @@
 package cc.uncarbon.module.sys.facade;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
-import cc.uncarbon.module.sys.model.request.BindTenantUserRoleRelationRequest;
-import cc.uncarbon.module.sys.model.request.CreateTenantRoleRequest;
-import cc.uncarbon.module.sys.model.request.CreateTenantUserRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
 import cc.uncarbon.module.sys.model.response.CreateTenantUserResult;
 import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
@@ -19,17 +19,17 @@ public interface TenantUserRoleFacade {
     /**
      * 新增租户角色
      */
-    CreateTenantRoleResult createTenantRole(CreateTenantRoleRequest request);
+    CreateTenantRoleResult createTenantRole(TenantRoleCreateRequest request);
 
     /**
      * 新增租户用户
      */
-    CreateTenantUserResult createTenantUser(CreateTenantUserRequest request);
+    CreateTenantUserResult createTenantUser(TenantUserCreateRequest request);
 
     /**
      * 绑定租户相关的系统用户-系统角色关联关系
      */
-    void bindTenantUserRoleRelation(BindTenantUserRoleRelationRequest request);
+    void bindTenantUserRoleRelation(TenantUserBindRoleRequest request);
 
     /**
      * 查询租户用户基本资料

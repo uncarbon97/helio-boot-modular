@@ -8,7 +8,7 @@ import cc.uncarbon.module.commons.model.request.IdsRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
-import cc.uncarbon.module.sys.model.request.AdminBindRoleMenusRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysRoleService;
@@ -35,7 +35,6 @@ public class AdminSysRoleController {
     private static final String PERMISSION_PREFIX = "SysRole:";
 
     private final SysRoleService sysRoleService;
-
     private final RolePermissionCacheHelper rolePermissionCacheHelper;
 
 
@@ -90,10 +89,10 @@ public class AdminSysRoleController {
 
     // @SysOperateLog(value = "绑定角色与菜单关联关系")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bindMenus")
-    @Operation(summary = "绑定角色与菜单关联关系")
-    @PostMapping(value = "/bind-menus")
-    public ApiResult<Void> bindMenus(@RequestBody @Valid AdminBindRoleMenusRequest request) {
-        Set<String> newPermissions = sysRoleService.adminBindMenus(request);
+    @Operation(summary = "绑定菜单")
+    @PostMapping(value = "/bind-menu")
+    public ApiResult<Void> bindMenu(@RequestBody @Valid AdminSysRoleBindMenuRequest request) {
+        Set<String> newPermissions = sysRoleService.adminBindMenu(request);
 
         // 覆盖更新缓存
         rolePermissionCacheHelper.putCache(request.getRoleId(), newPermissions);

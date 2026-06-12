@@ -93,6 +93,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 
     @Override
     public SysLoginLogDTO getById(Long id) {
+        if (id == null) return null;
         SysLoginLogEntity entity = sysLoginLogMapper.selectById(id);
         return convertEntity(entity);
     }

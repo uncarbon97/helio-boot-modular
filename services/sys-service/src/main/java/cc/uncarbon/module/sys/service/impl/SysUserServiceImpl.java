@@ -151,10 +151,11 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public SysUserDTO getById(Long id) {
+        if (id == null) return null;
         checkUserOperationAccess(Set.of(id));
 
         SysUserEntity entity = sysUserMapper.selectById(id);
-        return this.convertEntity(entity, true);
+        return convertEntity(entity, true);
     }
 
     @Override
@@ -164,14 +165,14 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public MyProfileDTO adminGetMyProfile() {
-        SysUserDTO me = this.getNonnullById(UserContextHolder.getUserId());
+        SysUserDTO me = getNonnullById(UserContextHolder.getUserId());
         MyProfileDTO ret = new MyProfileDTO();
         BeanUtil.copyProperties(me, ret);
         return ret;
     }
 
     @Override
-    public void adminResetUserPassword(AdminResetSysUserPwdRequest request) {
+    public void adminResetUserPassword(AdminSysUserResetOthersPwdRequest request) {
         checkBeforeUpdate(request.getUserId(), null);
         SysUserEntity sysUserEntity = sysUserMapper.selectById(request.getUserId());
 
@@ -201,7 +202,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public void adminBindRoles(AdminBindUserRolesRequest request) {
+    public void adminBindRoles(AdminSysUserBindRoleRequest request) {
         checkBeforeBindUserRoleRelation(request);
         sysUserRoleRelationService.cleanAndBind(request.getUserId(), request.getRoleIds());
     }
@@ -225,7 +226,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public CreateTenantUserResult createTenantUser(CreateTenantUserRequest request) {
+    public CreateTenantUserResult createTenantUser(TenantUserCreateRequest request) {
         try {
             TenantContextHolder.setTenantContext(new SimpleTenantContext(
                     request.getTenantId(), request.getTenantCode(), null));
@@ -390,7 +391,7 @@ public class SysUserServiceImpl implements SysUserService {
      * 绑定用户与角色关联关系前检查
      * 防止越权访问漏洞
      */
-    private void checkBeforeBindUserRoleRelation(AdminBindUserRolesRequest request) {
+    private void checkBeforeBindUserRoleRelation(AdminSysUserBindRoleRequest request) {
         UserRoleScope me = userRoleHelper.getCurrentUserRole();
         // 是否想要操作自身
         boolean selfFlag = Objects.equals(request.getUserId(), UserContextHolder.getUserId());
@@ -424,7 +425,7 @@ public class SysUserServiceImpl implements SysUserService {
      * 超级管理员之外的用户，都需要校验自身角色范围是否满足输入值
      * 拆分子方法以降低复杂度
      */
-    private void whenCurrentUserNotSuperAdmin(AdminBindUserRolesRequest request, UserRoleScope me) {
+    private void whenCurrentUserNotSuperAdmin(AdminSysUserBindRoleRequest request, UserRoleScope me) {
         if (CollUtil.isNotEmpty(request.getRoleIds()) && !me.isSuperAdmin()) {
             boolean overRoles = !CollUtil.containsAll(me.getRelatedRoleIds(), request.getRoleIds());
             if (overRoles && me.isNotAnyAdmin()) {

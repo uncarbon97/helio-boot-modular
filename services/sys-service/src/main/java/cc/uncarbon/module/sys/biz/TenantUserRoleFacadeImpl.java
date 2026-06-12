@@ -2,9 +2,9 @@ package cc.uncarbon.module.sys.biz;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
-import cc.uncarbon.module.sys.model.request.CreateTenantRoleRequest;
-import cc.uncarbon.module.sys.model.request.CreateTenantUserRequest;
-import cc.uncarbon.module.sys.model.request.BindTenantUserRoleRelationRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
 import cc.uncarbon.module.sys.model.response.CreateTenantUserResult;
 import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
@@ -32,22 +32,23 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
 
 
     @Override
-    public CreateTenantRoleResult createTenantRole(CreateTenantRoleRequest request) {
+    public CreateTenantRoleResult createTenantRole(TenantRoleCreateRequest request) {
         return sysRoleService.createTenantRole(request);
     }
 
     @Override
-    public CreateTenantUserResult createTenantUser(CreateTenantUserRequest request) {
+    public CreateTenantUserResult createTenantUser(TenantUserCreateRequest request) {
         return sysUserService.createTenantUser(request);
     }
 
     @Override
-    public void bindTenantUserRoleRelation(BindTenantUserRoleRelationRequest request) {
-        sysUserRoleRelationService.bindTenantUserRoleRelation(request);
+    public void bindTenantUserRoleRelation(TenantUserBindRoleRequest request) {
+        sysUserRoleRelationService.tenantUserBindRole(request);
     }
 
     @Override
     public TenantUserBasicProfile getTenantUserBasicProfile(long tenantId, long userId) {
+        sysUserService.getNonnullById()
         return null;
     }
 

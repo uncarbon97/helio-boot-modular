@@ -107,6 +107,7 @@ public class SysMenuServiceImpl implements SysMenuService {
 
     @Override
     public SysMenuDTO getById(Long id) {
+        if (id == null) return null;
         SysMenuEntity entity = sysMenuMapper.selectById(id);
         return convertEntity(entity);
     }

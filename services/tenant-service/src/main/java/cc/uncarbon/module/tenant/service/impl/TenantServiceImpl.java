@@ -7,9 +7,9 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
-import cc.uncarbon.module.sys.model.request.BindTenantUserRoleRelationRequest;
-import cc.uncarbon.module.sys.model.request.CreateTenantRoleRequest;
-import cc.uncarbon.module.sys.model.request.CreateTenantUserRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.enums.TenantErrorCodeEnum;
@@ -38,7 +38,7 @@ import java.util.Objects;
 
 
 /**
- * 租户主数据
+ * 租户元数据
  */
 @RequiredArgsConstructor
 @Service
@@ -107,6 +107,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public TenantMetaDTO getById(Long id) {
+        if (id == null) return null;
         TenantMetaEntity entity = tenantMetaMapper.selectById(id);
         return convertEntity(entity, true);
     }
@@ -150,7 +151,8 @@ public class TenantServiceImpl implements TenantService {
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
         if (fillTenantAdminUser && entity.getAdminUserId() != null) {
-            ret.setAdminUserProfile(sysUserMapper.getBaseInfoByUserId(entity.getTenantAdminUserId()));
+            ret.setAdminUserProfile(tenantUserRoleFacade.getTenantUserBasicProfile(
+                    entity.getId(), entity.getAdminUserId()));
         }
 
         return ret;
@@ -236,7 +238,7 @@ public class TenantServiceImpl implements TenantService {
         String tenantCode = entity.getCode();
 
         // 创建租户管理员角色
-        var tenantRole = tenantUserRoleFacade.createTenantRole(new CreateTenantRoleRequest()
+        var tenantRole = tenantUserRoleFacade.createTenantRole(new TenantRoleCreateRequest()
                 .setTenantId(tenantId)
                 .setTenantCode(tenantCode)
                 .setStatus(EnabledStatusEnum.ENABLED)
@@ -246,7 +248,7 @@ public class TenantServiceImpl implements TenantService {
         // TODO 根据租户套餐，绑定租户管理员角色-菜单关联关系
 
         // 创建租户管理员用户
-        var tenantUser = tenantUserRoleFacade.createTenantUser(new CreateTenantUserRequest()
+        var tenantUser = tenantUserRoleFacade.createTenantUser(new TenantUserCreateRequest()
                 .setTenantId(tenantId)
                 .setTenantCode(tenantCode)
                 .setTenantName(entity.getName())
@@ -258,7 +260,7 @@ public class TenantServiceImpl implements TenantService {
         );
 
         // 绑定租户管理员用户-角色关联关系
-        tenantUserRoleFacade.bindTenantUserRoleRelation(new BindTenantUserRoleRelationRequest()
+        tenantUserRoleFacade.bindTenantUserRoleRelation(new TenantUserBindRoleRequest()
                 .setTenantId(tenantId)
                 .setTenantCode(tenantCode)
                 .setUserId(tenantUser.getNewUserId())

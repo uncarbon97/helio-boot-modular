@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
-import cc.uncarbon.module.sys.model.request.AdminPasswordLoginRequest;
+import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.AdminLoginResult;
 
 /**
@@ -12,5 +12,5 @@ public interface AdminLoginService {
     /**
      * 密码登录
      */
-    AdminLoginResult passwordLogin(AdminPasswordLoginRequest request, VisitorContext visitorContext);
+    AdminLoginResult passwordLogin(AdminAuthPasswordLoginRequest request, VisitorContext visitorContext);
 }

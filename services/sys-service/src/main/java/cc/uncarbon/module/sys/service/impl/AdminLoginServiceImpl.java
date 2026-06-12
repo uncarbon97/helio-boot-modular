@@ -16,7 +16,7 @@ import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
-import cc.uncarbon.module.sys.model.request.AdminPasswordLoginRequest;
+import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.request.SysLoginLogCreateRequest;
 import cc.uncarbon.module.sys.model.response.AdminLoginResult;
 import cc.uncarbon.module.sys.service.AdminLoginService;
@@ -49,7 +49,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
 
 
     @Override
-    public AdminLoginResult passwordLogin(AdminPasswordLoginRequest request, VisitorContext visitorContext) {
+    public AdminLoginResult passwordLogin(AdminAuthPasswordLoginRequest request, VisitorContext visitorContext) {
         TenantValidateResult tenant = tenantFacade.validateByCode(request.getTenantCode());
         if (!tenant.isValid()) {
             throw new BusinessException(tenant.getErrorCode());

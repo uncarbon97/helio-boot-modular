@@ -12,7 +12,7 @@ import java.io.Serializable;
 
 
 /**
- * 后台管理-修改当前用户密码
+ * 后台管理-修改个人密码
  */
 @Accessors(chain = true)
 @AllArgsConstructor
