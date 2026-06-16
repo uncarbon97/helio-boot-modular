@@ -1,4 +1,4 @@
-package cc.uncarbon.module.tenant.enums;
+package cc.uncarbon.module.tenant.errorcode;
 
 import cc.uncarbon.framework.helium.base.errorcode.StructuredErrorCode;
 import cc.uncarbon.module.commons.errorcode.ErrorCodeBizGroup;

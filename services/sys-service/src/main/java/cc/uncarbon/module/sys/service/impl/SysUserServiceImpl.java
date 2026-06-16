@@ -12,7 +12,7 @@ import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
-import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;

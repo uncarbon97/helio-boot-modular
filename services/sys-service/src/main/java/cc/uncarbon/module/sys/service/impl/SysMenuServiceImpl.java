@@ -10,7 +10,7 @@ import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
-import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
 import cc.uncarbon.module.sys.model.valueobj.VbenAdminMenuMetaVO;

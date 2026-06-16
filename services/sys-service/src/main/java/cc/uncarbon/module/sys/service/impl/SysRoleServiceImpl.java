@@ -11,7 +11,7 @@ import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
-import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;

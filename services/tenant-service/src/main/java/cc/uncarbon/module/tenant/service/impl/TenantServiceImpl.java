@@ -12,7 +12,7 @@ import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
-import cc.uncarbon.module.tenant.enums.TenantErrorCodeEnum;
+import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.model.query.AdminTenantMetaListQuery;
 import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;

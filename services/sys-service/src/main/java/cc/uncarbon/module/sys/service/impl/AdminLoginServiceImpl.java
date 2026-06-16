@@ -12,7 +12,7 @@ import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import cc.uncarbon.module.sys.enums.LoginLogTypeEnum;
-import cc.uncarbon.module.sys.enums.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
