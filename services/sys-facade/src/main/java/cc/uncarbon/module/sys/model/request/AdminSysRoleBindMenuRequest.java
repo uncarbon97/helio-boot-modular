@@ -11,7 +11,7 @@ import java.util.Set;
 
 
 /**
- * 系统角色-绑定菜单
+ * 系统角色-后台管理-绑定菜单
  */
 @Accessors(chain = true)
 @AllArgsConstructor

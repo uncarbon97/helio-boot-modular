@@ -19,7 +19,7 @@ import java.util.Objects;
 
 
 /**
- * 系统用户-新增/修改
+ * 系统用户-后台管理-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor

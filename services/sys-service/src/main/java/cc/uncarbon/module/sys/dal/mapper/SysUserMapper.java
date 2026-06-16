@@ -31,4 +31,8 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
         updateById(update);
     }
 
+    default void updateEncryptedPwd(long userId, String encryptedPwd) {
+        updateById(new SysUserEntity().setPwd(encryptedPwd).setId(userId));
+    }
+
 }

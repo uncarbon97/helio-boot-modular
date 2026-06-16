@@ -4,7 +4,7 @@ import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
-import cc.uncarbon.module.sys.model.response.CreateTenantUserResult;
+import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 
@@ -77,6 +77,6 @@ public interface SysUserService {
     /**
      * 新增租户用户
      */
-    CreateTenantUserResult createTenantUser(TenantUserCreateRequest request);
+    TenantUserCreateResult createTenantUser(TenantUserCreateRequest request);
 
 }

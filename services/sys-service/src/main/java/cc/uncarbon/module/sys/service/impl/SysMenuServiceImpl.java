@@ -74,7 +74,7 @@ public class SysMenuServiceImpl implements SysMenuService {
 
         request.setId(null);
 
-        SysMenuEntity entity = new SysMenuEntity();
+        var entity = new SysMenuEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysMenuMapper.insert(entity);
@@ -92,7 +92,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             request.setParentId(SysConstant.ROOT_PARENT_ID);
         }
 
-        SysMenuEntity entity = new SysMenuEntity();
+        var entity = new SysMenuEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysMenuMapper.updateById(entity);
@@ -108,7 +108,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Override
     public SysMenuDTO getById(Long id) {
         if (id == null) return null;
-        SysMenuEntity entity = sysMenuMapper.selectById(id);
+        var entity = sysMenuMapper.selectById(id);
         return convertEntity(entity);
     }
 
@@ -188,11 +188,9 @@ public class SysMenuServiceImpl implements SysMenuService {
      * 实体转值对象
      */
     private SysMenuDTO convertEntity(SysMenuEntity entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
-        SysMenuDTO ret = new SysMenuDTO();
+        var ret = new SysMenuDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
         if (SysConstant.ROOT_PARENT_ID.equals(ret.getParentId())) {
@@ -225,6 +223,9 @@ public class SysMenuServiceImpl implements SysMenuService {
         return ret;
     }
 
+    /**
+     * 实体转值对象
+     */
     private List<SysMenuDTO> convertList(List<SysMenuEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
@@ -238,8 +239,9 @@ public class SysMenuServiceImpl implements SysMenuService {
      * @return 菜单Ids
      */
     private Set<Long> listCurrentUserVisibleMenuIds() {
+        assert UserContextHolder.getContext() != null;
         // 1. 取当前账号拥有角色Ids
-        var roleIds = UserContextHolder.getUserContext().getRoleIds();
+        var roleIds = UserContextHolder.getContext().getRoleIds();
         SysErrorCodeEnum.A01005.throwIfEmpty(roleIds);
 
         // 2. 得到所有可用的 菜单ID-上级菜单ID map，备用
@@ -296,7 +298,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         if (CharSequenceUtil.isNotBlank(request.getPermission())) {
             request.setPermission(CharSequenceUtil.cleanBlank(request.getPermission()));
 
-            SysMenuEntity entity = sysMenuMapper.selectOne(new LambdaQueryWrapper<SysMenuEntity>()
+            var entity = sysMenuMapper.selectOne(new LambdaQueryWrapper<SysMenuEntity>()
                     .select(SysMenuEntity::getId)
                     // 并非原地更新
                     .ne(Objects.nonNull(request.getId()), SysMenuEntity::getId, request.getId())

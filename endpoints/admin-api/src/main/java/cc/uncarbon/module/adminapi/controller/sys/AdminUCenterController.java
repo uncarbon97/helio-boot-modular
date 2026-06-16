@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "系统管理-用户中心")
+@Tag(name = "后台管理-用户中心")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/ucenter")
 @RequiredArgsConstructor
 @RestController

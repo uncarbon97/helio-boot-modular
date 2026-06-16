@@ -44,7 +44,7 @@ public class AdminTenantPackageController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
-    public ApiResult<TenantPackageDTO> detail(@RequestParam Long id) {
+    public ApiResult<TenantPackageDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
         return ApiResult.success(tenantPackageService.getNonnullById(id));
     }
 
@@ -58,7 +58,7 @@ public class AdminTenantPackageController {
     }
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
-    @Operation(summary = "编辑")
+    @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminTenantPackageUpsertRequest request) {
         tenantPackageService.adminUpdate(request);

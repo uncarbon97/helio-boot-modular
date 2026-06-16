@@ -4,8 +4,8 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
-import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
-import cc.uncarbon.module.sys.model.response.CreateTenantUserResult;
+import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
+import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
 
 import java.util.Collection;
@@ -19,12 +19,12 @@ public interface TenantUserRoleFacade {
     /**
      * 新增租户角色
      */
-    CreateTenantRoleResult createTenantRole(TenantRoleCreateRequest request);
+    TenantRoleCreateResult createTenantRole(TenantRoleCreateRequest request);
 
     /**
      * 新增租户用户
      */
-    CreateTenantUserResult createTenantUser(TenantUserCreateRequest request);
+    TenantUserCreateResult createTenantUser(TenantUserCreateRequest request);
 
     /**
      * 绑定租户相关的系统用户-系统角色关联关系

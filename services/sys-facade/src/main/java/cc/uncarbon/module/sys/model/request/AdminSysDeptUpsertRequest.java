@@ -13,7 +13,7 @@ import java.io.Serializable;
 
 
 /**
- * 部门-新增/修改
+ * 部门-后台管理-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor

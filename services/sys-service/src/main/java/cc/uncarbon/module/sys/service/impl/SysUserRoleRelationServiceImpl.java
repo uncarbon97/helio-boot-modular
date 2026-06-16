@@ -7,6 +7,7 @@ import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long adminCreate(Long tenantId, Long userId, Long roleId) {
-        SysUserRoleRelationEntity entity = new SysUserRoleRelationEntity()
+        var entity = new SysUserRoleRelationEntity()
                 .setUserId(userId).setRoleId(roleId);
         entity.setTenantId(tenantId);
 
@@ -81,15 +82,13 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
         return sysUserRoleRelationMapper.listRoleIdsByUser(userId);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
     public void tenantUserBindRole(TenantUserBindRoleRequest request) {
-        try {
-            TenantContextHolder.setTenantContext(new SimpleTenantContext(
-                    request.getTenantId(), request.getTenantCode(), null));
-            cleanAndBind(request.getUserId(), request.getRoleIds());
-        } finally {
-            TenantContextHolder.clear();
-        }
+        TenantContextHolder.runWithContext(
+                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), null),
+                () -> {
+                    var self = SpringUtil.getBean(getClass());
+                    self.cleanAndBind(request.getUserId(), request.getRoleIds());
+                });
     }
 }

@@ -12,7 +12,7 @@ import java.io.Serializable;
 
 
 /**
- * 系统角色-新增/修改
+ * 系统角色-后台管理-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor

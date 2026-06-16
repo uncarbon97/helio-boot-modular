@@ -49,7 +49,7 @@ public class AdminTenantController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
-    public ApiResult<TenantMetaDTO> detail(@RequestParam Long id) {
+    public ApiResult<TenantMetaDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
         return ApiResult.success(tenantService.getNonnullById(id));
     }
 
@@ -63,9 +63,9 @@ public class AdminTenantController {
         return ApiResult.success();
     }
 
-    // @SysOperateLog(value = "编辑系统租户")
+    // @SysOperateLog(value = "修改系统租户")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
-    @Operation(summary = "编辑")
+    @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminTenantMetaUpdateRequest request) {
         TenantMetaKickOutUsersBO needKickOutUsers = tenantFacade.adminUpdate(request);

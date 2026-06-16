@@ -3,7 +3,7 @@ package cc.uncarbon.module.tenant.service.impl;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.constant.SQLSegment;
-import cc.uncarbon.module.commons.enums.DefaultErrorCodeEnum;
+import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMapper;
@@ -63,7 +63,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         checkRepeat(request);
 
         request.setId(null);
-        TenantPackageEntity entity = new TenantPackageEntity();
+        var entity = new TenantPackageEntity();
         BeanUtil.copyProperties(request, entity);
 
         tenantPackageMapper.insert(entity);
@@ -81,7 +81,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         checkExistence(request.getId());
         checkRepeat(request);
 
-        TenantPackageEntity entity = new TenantPackageEntity();
+        var entity = new TenantPackageEntity();
         BeanUtil.copyProperties(request, entity);
 
         tenantPackageMapper.updateById(entity);
@@ -134,7 +134,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
     @Override
     public TenantPackageDTO getById(Long id) {
         if (id == null) return null;
-        TenantPackageEntity entity = tenantPackageMapper.selectById(id);
+        var entity = tenantPackageMapper.selectById(id);
         return convertEntity(entity, true);
     }
 
@@ -153,9 +153,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
      * 实体转值对象
      */
     private TenantPackageDTO convertEntity(TenantPackageEntity entity, boolean fillMenu) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
         TenantPackageDTO dto = new TenantPackageDTO();
         BeanUtil.copyProperties(entity, dto);
@@ -194,7 +192,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminTenantPackageUpsertRequest request) {
-        TenantPackageEntity entity = tenantPackageMapper.selectOne(new LambdaQueryWrapper<TenantPackageEntity>()
+        var entity = tenantPackageMapper.selectOne(new LambdaQueryWrapper<TenantPackageEntity>()
                 .select(TenantPackageEntity::getId)
                 // 并非原地更新
                 .ne(Objects.nonNull(request.getId()), TenantPackageEntity::getId, request.getId())

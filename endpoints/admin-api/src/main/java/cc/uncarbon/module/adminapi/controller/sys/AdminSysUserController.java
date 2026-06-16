@@ -5,6 +5,7 @@ import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.model.request.IdsRequest;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
@@ -31,7 +32,7 @@ import java.util.Set;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "系统用户管理接口")
+@Tag(name = "后台管理-系统用户管理")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/user")
 @RequiredArgsConstructor
 @RestController
@@ -54,8 +55,8 @@ public class AdminSysUserController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
-    public ApiResult<SysUserDTO> detail(@RequestParam Long id) {
-        return ApiResult.success(sysUserService.getNonnullById(id));
+    public ApiResult<SysUserDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
+        return ApiResult.success(sysUserService.getNonnullById(request.getId()));
     }
 
     // @SysOperateLog(value = "新增系统用户")
@@ -69,9 +70,9 @@ public class AdminSysUserController {
         return ApiResult.success();
     }
 
-    // @SysOperateLog(value = "编辑系统用户")
+    // @SysOperateLog(value = "修改系统用户")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
-    @Operation(summary = "编辑")
+    @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminSysUserUpsertRequest request) {
         request.setTenantId(null).validate();

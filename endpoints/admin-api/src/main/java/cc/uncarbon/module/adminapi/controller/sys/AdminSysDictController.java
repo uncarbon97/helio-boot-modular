@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "系统管理-字典管理")
+@Tag(name = "后台管理-字典管理")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/dict")
 @RequiredArgsConstructor
 @RestController
@@ -56,7 +56,7 @@ public class AdminSysDictController {
         return ApiResult.success();
     }
 
-    // @SysOperateLog(value = "编辑字典分类")
+    // @SysOperateLog(value = "修改字典分类")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "修改字典分类")
     @PostMapping(value = "/category/update")

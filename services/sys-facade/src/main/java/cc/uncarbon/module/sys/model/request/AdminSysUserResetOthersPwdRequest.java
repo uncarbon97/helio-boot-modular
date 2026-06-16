@@ -12,7 +12,7 @@ import java.io.Serializable;
 
 
 /**
- * 系统用户-重置其他用户密码
+ * 系统用户-后台管理-重置其他用户密码
  */
 @Accessors(chain = true)
 @AllArgsConstructor

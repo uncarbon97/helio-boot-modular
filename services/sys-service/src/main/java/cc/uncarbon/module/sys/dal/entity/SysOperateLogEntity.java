@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
+import java.time.LocalDateTime;
 
 
 /**
@@ -34,6 +35,12 @@ public class SysOperateLogEntity extends AbstractTenantGenericEntity {
 	@Schema(description = "主键ID")
 	@TableId(type = IdType.ASSIGN_ID)
 	private Long id;
+
+	// 禁用更新
+	@TableField(exist = false)
+	private LocalDateTime updatedAt;
+	@TableField(exist = false)
+	private String updatedBy;
 
 	@Schema(description = "主模块")
 	@TableField(value = "main_module")

@@ -14,7 +14,7 @@ import java.io.Serializable;
 
 
 /**
- * 字典分类-新增/修改
+ * 字典分类-后台管理-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor

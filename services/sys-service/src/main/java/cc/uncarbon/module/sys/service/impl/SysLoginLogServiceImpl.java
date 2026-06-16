@@ -61,13 +61,13 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
                         .orderByDesc(SysLoginLogEntity::getId)
         );
 
-        return this.convertPage(entityPage);
+        return convertPage(entityPage);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long create(SysLoginLogCreateRequest request) {
-        SysLoginLogEntity entity = new SysLoginLogEntity();
+        var entity = new SysLoginLogEntity();
         BeanUtil.copyProperties(request, entity);
         // 按需改写字段
         VisitorContext visitorContext = request.getVisitorContext();
@@ -94,7 +94,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
     @Override
     public SysLoginLogDTO getById(Long id) {
         if (id == null) return null;
-        SysLoginLogEntity entity = sysLoginLogMapper.selectById(id);
+        var entity = sysLoginLogMapper.selectById(id);
         return convertEntity(entity);
     }
 
@@ -113,11 +113,9 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
      * 实体转值对象
      */
     private SysLoginLogDTO convertEntity(SysLoginLogEntity entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
-        SysLoginLogDTO ret = new SysLoginLogDTO();
+        var ret = new SysLoginLogDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
         UserAgent parsedUa = UserAgentUtil.parse(entity.getVisitorUserAgent());

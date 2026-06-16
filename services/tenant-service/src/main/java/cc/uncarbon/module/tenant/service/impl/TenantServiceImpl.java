@@ -7,8 +7,8 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
-import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
@@ -18,6 +18,7 @@ import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
+import cc.uncarbon.module.tenant.model.valueobj.TenantUserBasicProfileDTO;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cc.uncarbon.module.tenant.service.TenantService;
 import cn.hutool.core.bean.BeanUtil;
@@ -28,6 +29,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,7 +79,7 @@ public class TenantServiceImpl implements TenantService {
         checkRepeat(request);
         TenantPackageDTO pkg = checkPackage(request.getPackageId());
 
-        TenantMetaEntity entity = new TenantMetaEntity();
+        var entity = new TenantMetaEntity();
         BeanUtil.copyProperties(request, entity);
 
         tenantMetaMapper.insert(entity);
@@ -92,7 +94,7 @@ public class TenantServiceImpl implements TenantService {
         log.info(LOG_PREFIX + "修改 >> {}", request);
         checkExistence(request.getId());
 
-        TenantMetaEntity entity = new TenantMetaEntity();
+        var entity = new TenantMetaEntity();
         BeanUtil.copyProperties(request, entity);
 
         tenantMetaMapper.updateById(entity);
@@ -108,7 +110,7 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public TenantMetaDTO getById(Long id) {
         if (id == null) return null;
-        TenantMetaEntity entity = tenantMetaMapper.selectById(id);
+        var entity = tenantMetaMapper.selectById(id);
         return convertEntity(entity, true);
     }
 
@@ -143,16 +145,16 @@ public class TenantServiceImpl implements TenantService {
      * @param fillTenantAdminUser 是否根据租户管理员用户ID，查询关联用户信息并填充到BO
      */
     private TenantMetaDTO convertEntity(TenantMetaEntity entity, boolean fillTenantAdminUser) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
-        TenantMetaDTO ret = new TenantMetaDTO();
+        var ret = new TenantMetaDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
         if (fillTenantAdminUser && entity.getAdminUserId() != null) {
-            ret.setAdminUserProfile(tenantUserRoleFacade.getTenantUserBasicProfile(
-                    entity.getId(), entity.getAdminUserId()));
+            var profile0 = tenantUserRoleFacade.getTenantUserBasicProfile(entity.getId(), entity.getAdminUserId());
+            var profile = new TenantUserBasicProfileDTO();
+            BeanUtil.copyProperties(profile0, profile);
+            ret.setAdminUserProfile(profile);
         }
 
         return ret;
@@ -189,7 +191,7 @@ public class TenantServiceImpl implements TenantService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminTenantCreateRequest request) {
-        TenantMetaEntity entity = tenantMetaMapper.selectOne(new LambdaQueryWrapper<TenantMetaEntity>()
+        var entity = tenantMetaMapper.selectOne(new LambdaQueryWrapper<TenantMetaEntity>()
                 .select(TenantMetaEntity::getId)
                 // 租户编码相同
                 .eq(TenantMetaEntity::getCode, request.getCode())
@@ -233,7 +235,7 @@ public class TenantServiceImpl implements TenantService {
      */
     private void initTenant(@NonNull AdminTenantCreateRequest request,
                             @NonNull TenantMetaEntity entity,
-                            @NonNull TenantPackageDTO pkg) {
+                            @Nullable TenantPackageDTO pkg) {
         long tenantId = entity.getId();
         String tenantCode = entity.getCode();
 
@@ -244,8 +246,6 @@ public class TenantServiceImpl implements TenantService {
                 .setStatus(EnabledStatusEnum.ENABLED)
                 .setTenantAdmin(true)
         );
-
-        // TODO 根据租户套餐，绑定租户管理员角色-菜单关联关系
 
         // 创建租户管理员用户
         var tenantUser = tenantUserRoleFacade.createTenantUser(new TenantUserCreateRequest()
@@ -269,6 +269,10 @@ public class TenantServiceImpl implements TenantService {
 
         // 更新租户主数据，把租户管理员用户ID 记下来
         tenantMetaMapper.updateAdminUserId(tenantId, tenantUser.getNewUserId());
+
+        if (pkg != null) {
+            // TODO 根据租户套餐，绑定租户管理员角色-菜单关联关系
+        }
     }
 
 }

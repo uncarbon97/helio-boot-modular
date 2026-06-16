@@ -1,6 +1,6 @@
 package cc.uncarbon.module.file.enums;
 
-import cc.uncarbon.framework.core.enums.BaseEnum;
+import cc.uncarbon.framework.helium.base.enums.BaseEnum;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

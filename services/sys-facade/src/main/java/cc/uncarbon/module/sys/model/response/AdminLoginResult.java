@@ -14,7 +14,7 @@ import java.util.Set;
 
 
 /**
- * 后台管理-登录
+ * 后台管理-登录结果
  */
 @Accessors(chain = true)
 @AllArgsConstructor

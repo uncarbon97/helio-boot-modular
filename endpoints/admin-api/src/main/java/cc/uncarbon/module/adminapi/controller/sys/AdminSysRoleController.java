@@ -3,10 +3,11 @@ package cc.uncarbon.module.adminapi.controller.sys;
 import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.model.request.IdsRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
-import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
@@ -14,8 +15,8 @@ import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,7 @@ import java.util.Set;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "系统角色管理接口")
+@Tag(name = "后台管理-系统角色管理")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/role")
 @RequiredArgsConstructor
 @RestController
@@ -48,8 +49,8 @@ public class AdminSysRoleController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
-    public ApiResult<SysRoleDTO> detail(@RequestParam Long id) {
-        return ApiResult.success(sysRoleService.getNonnullById(id));
+    public ApiResult<SysRoleDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
+        return ApiResult.success(sysRoleService.getNonnullById(request.getId()));
     }
 
     // @SysOperateLog(value = "新增系统角色")
@@ -57,18 +58,16 @@ public class AdminSysRoleController {
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
     public ApiResult<Void> create(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
-        request.setTenantId(null);
         sysRoleService.adminCreate(request);
 
         return ApiResult.success();
     }
 
-    // @SysOperateLog(value = "编辑系统角色")
+    // @SysOperateLog(value = "修改系统角色")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
-    @Operation(summary = "编辑")
+    @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
-        request.setTenantId(null);
         sysRoleService.adminUpdate(request);
 
         return ApiResult.success();

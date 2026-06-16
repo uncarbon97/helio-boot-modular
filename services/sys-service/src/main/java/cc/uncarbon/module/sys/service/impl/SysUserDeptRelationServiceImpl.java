@@ -28,7 +28,7 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
 
     @Override
     public List<Long> listDeptIdsByUser(Long userId) {
-        SysUserDeptRelationEntity entity = sysUserDeptRelationMapper.selectOne(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+        var entity = sysUserDeptRelationMapper.selectOne(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
                 .eq(SysUserDeptRelationEntity::getUserId, userId)
                 .last(SQLSegment.LIMIT_1)
         );

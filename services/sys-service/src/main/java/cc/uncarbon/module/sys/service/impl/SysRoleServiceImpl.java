@@ -19,7 +19,7 @@ import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
-import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
+import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
@@ -85,7 +85,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         checkBeforeCreate(request);
 
         request.setId(null);
-        SysRoleEntity entity = new SysRoleEntity();
+        var entity = new SysRoleEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysRoleMapper.insert(entity);
@@ -102,7 +102,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
         // 暂不检查该角色是否为当前用户关联的角色
 
-        SysRoleEntity entity = new SysRoleEntity();
+        var entity = new SysRoleEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysRoleMapper.updateById(entity);
@@ -119,7 +119,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public SysRoleDTO getById(Long id) {
         if (id == null) return null;
-        SysRoleEntity entity = sysRoleMapper.selectById(id);
+        var entity = sysRoleMapper.selectById(id);
         return convertEntity(entity, true);
     }
 
@@ -156,12 +156,12 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     @Override
-    public CreateTenantRoleResult createTenantRole(TenantRoleCreateRequest request) {
+    public TenantRoleCreateResult createTenantRole(TenantRoleCreateRequest request) {
         try {
             TenantContextHolder.setTenantContext(new SimpleTenantContext(
                     request.getTenantId(), request.getTenantCode(), null));
 
-            SysRoleEntity entity = new SysRoleEntity();
+            var entity = new SysRoleEntity();
             BeanUtil.copyProperties(request, entity);
             // 按需改写字段
             if (request.isTenantAdmin()) {
@@ -173,7 +173,7 @@ public class SysRoleServiceImpl implements SysRoleService {
             }
 
             sysRoleMapper.insert(entity);
-            return new CreateTenantRoleResult(entity.getId(), request.isTenantAdmin());
+            return new TenantRoleCreateResult(entity.getId(), request.isTenantAdmin());
         } finally {
             TenantContextHolder.clear();
         }
@@ -235,11 +235,9 @@ public class SysRoleServiceImpl implements SysRoleService {
      * @param fillMenu 是否填充菜单
      */
     private SysRoleDTO convertEntity(SysRoleEntity entity, boolean fillMenu) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
-        SysRoleDTO ret = new SysRoleDTO();
+        var ret = new SysRoleDTO();
         BeanUtil.copyProperties(entity, ret, "flags");
         // 按需改写字段
         ret.setFlags(entity.resolveFlags());
@@ -292,7 +290,7 @@ public class SysRoleServiceImpl implements SysRoleService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysRoleUpsertRequest request) {
-        SysRoleEntity entity = sysRoleMapper.selectOne(new LambdaQueryWrapper<SysRoleEntity>()
+        var entity = sysRoleMapper.selectOne(new LambdaQueryWrapper<SysRoleEntity>()
                 // 仅取主键ID
                 .select(SysRoleEntity::getId)
                 // 并非原地更新
@@ -320,7 +318,7 @@ public class SysRoleServiceImpl implements SysRoleService {
      * 修改前检查
      */
     private void checkBeforeUpdate(AdminSysRoleUpsertRequest request) {
-        SysRoleEntity entity = sysRoleMapper.selectById(request.getId());
+        var entity = sysRoleMapper.selectById(request.getId());
         denyBuiltinOp(entity, SysErrorCodeEnum.A01013);
         if (CollUtil.contains(UNACCEPTABLE_ROLE_CODES, request.getCode())) {
             throw new BusinessException(SysErrorCodeEnum.A01010, request.getCode());
@@ -347,7 +345,7 @@ public class SysRoleServiceImpl implements SysRoleService {
      * 防止越权访问漏洞
      */
     private void checkBeforeBindRoleMenuRelation(AdminSysRoleBindMenuRequest request) {
-        SysRoleEntity entity = sysRoleMapper.selectById(request.getRoleId());
+        var entity = sysRoleMapper.selectById(request.getRoleId());
         denyBuiltinOp(entity, SysErrorCodeEnum.A01013);
 
         UserRoleScope me = userRoleHelper.getCurrentUserRole();

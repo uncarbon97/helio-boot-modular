@@ -69,7 +69,7 @@ public class SysDictServiceImpl implements SysDictService {
         checkRepeat(request);
 
         request.setId(null);
-        SysDictCategoryEntity entity = new SysDictCategoryEntity();
+        var entity = new SysDictCategoryEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysDictCategoryMapper.insert(entity);
@@ -83,7 +83,7 @@ public class SysDictServiceImpl implements SysDictService {
         checkCategoryExistence(request.getId());
         checkRepeat(request);
 
-        SysDictCategoryEntity entity = new SysDictCategoryEntity();
+        var entity = new SysDictCategoryEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysDictCategoryMapper.updateById(entity);
@@ -125,7 +125,7 @@ public class SysDictServiceImpl implements SysDictService {
         checkRepeat(request);
 
         request.setId(null);
-        SysDictItemEntity entity = new SysDictItemEntity();
+        var entity = new SysDictItemEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysDictItemMapper.insert(entity);
@@ -142,7 +142,7 @@ public class SysDictServiceImpl implements SysDictService {
         checkItemExistence(request.getId());
         checkRepeat(request);
 
-        SysDictItemEntity entity = new SysDictItemEntity();
+        var entity = new SysDictItemEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysDictItemMapper.updateById(entity);
@@ -194,11 +194,9 @@ public class SysDictServiceImpl implements SysDictService {
      * 实体转值对象
      */
     private SysDictCategoryDTO convertEntity(SysDictCategoryEntity entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
-        SysDictCategoryDTO ret = new SysDictCategoryDTO();
+        var ret = new SysDictCategoryDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
 
@@ -209,11 +207,9 @@ public class SysDictServiceImpl implements SysDictService {
      * 实体转值对象
      */
     private SysDictItemDTO convertEntity(SysDictItemEntity entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
-        SysDictItemDTO ret = new SysDictItemDTO();
+        var ret = new SysDictItemDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
 
@@ -266,7 +262,7 @@ public class SysDictServiceImpl implements SysDictService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysDictCategoryUpsertRequest request) throws BusinessException {
-        SysDictCategoryEntity entity = sysDictCategoryMapper.selectOne(new LambdaQueryWrapper<SysDictCategoryEntity>()
+        var entity = sysDictCategoryMapper.selectOne(new LambdaQueryWrapper<SysDictCategoryEntity>()
                 // 仅取主键ID
                 .select(SysDictCategoryEntity::getId)
                 // 并非原地更新
@@ -285,7 +281,7 @@ public class SysDictServiceImpl implements SysDictService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysDictItemUpsertRequest request) throws BusinessException {
-        SysDictItemEntity entity = sysDictItemMapper.selectOne(new LambdaQueryWrapper<SysDictItemEntity>()
+        var entity = sysDictItemMapper.selectOne(new LambdaQueryWrapper<SysDictItemEntity>()
                 .select(SysDictItemEntity::getId)
                 // 并非原地更新
                 .ne(Objects.nonNull(request.getId()), SysDictItemEntity::getId, request.getId())

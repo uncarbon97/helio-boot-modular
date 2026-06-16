@@ -10,16 +10,16 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 
 /**
- * 新增租户用户
+ * 租户角色-新增
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CreateTenantUserResult implements Serializable {
+public class TenantRoleCreateResult implements Serializable {
 
-    @Schema(description = "新的用户ID")
-    private Long newUserId;
+    @Schema(description = "新的角色ID")
+    private Long newRoleId;
 
     @Schema(description = "是否是租户管理员")
     private boolean tenantAdmin;

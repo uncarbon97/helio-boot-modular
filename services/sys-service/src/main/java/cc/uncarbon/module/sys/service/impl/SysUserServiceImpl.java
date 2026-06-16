@@ -20,7 +20,7 @@ import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
-import cc.uncarbon.module.sys.model.response.CreateTenantUserResult;
+import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
@@ -36,6 +36,7 @@ import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
@@ -101,7 +102,7 @@ public class SysUserServiceImpl implements SysUserService {
                         .orderByDesc(SysUserEntity::getId)
         );
 
-        return this.convertPage(entityPage, true);
+        return convertPage(entityPage, true);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -112,7 +113,7 @@ public class SysUserServiceImpl implements SysUserService {
         checkBeforeCreate(request);
 
         request.setId(null);
-        SysUserEntity entity = new SysUserEntity();
+        var entity = new SysUserEntity();
         BeanUtil.copyProperties(request, entity);
 
         String salt = IdUtil.randomUUID();
@@ -134,7 +135,7 @@ public class SysUserServiceImpl implements SysUserService {
         checkBeforeUpdate(request.getId(), request.getStatus());
         checkRepeat(request);
 
-        SysUserEntity entity = new SysUserEntity();
+        var entity = new SysUserEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysUserMapper.updateById(entity);
@@ -154,7 +155,7 @@ public class SysUserServiceImpl implements SysUserService {
         if (id == null) return null;
         checkUserOperationAccess(Set.of(id));
 
-        SysUserEntity entity = sysUserMapper.selectById(id);
+        var entity = sysUserMapper.selectById(id);
         return convertEntity(entity, true);
     }
 
@@ -166,7 +167,7 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public MyProfileDTO adminGetMyProfile() {
         SysUserDTO me = getNonnullById(UserContextHolder.getUserId());
-        MyProfileDTO ret = new MyProfileDTO();
+        var ret = new MyProfileDTO();
         BeanUtil.copyProperties(me, ret);
         return ret;
     }
@@ -174,14 +175,10 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public void adminResetUserPassword(AdminSysUserResetOthersPwdRequest request) {
         checkBeforeUpdate(request.getUserId(), null);
-        SysUserEntity sysUserEntity = sysUserMapper.selectById(request.getUserId());
-
-        SysUserEntity templateEntity = new SysUserEntity();
-        templateEntity
-                .setPwd(PwdUtil.encrypt(request.getRandomPassword(), sysUserEntity.getPwdSalt()))
-                .setId(request.getUserId());
-
-        sysUserMapper.updateById(templateEntity);
+        checkExistence(request.getUserId());
+        var user = sysUserMapper.selectById(request.getUserId());
+        sysUserMapper.updateEncryptedPwd(user.getId(),
+                PwdUtil.encrypt(request.getRandomPassword(), user.getPwdSalt()));
     }
 
     @Override
@@ -189,16 +186,13 @@ public class SysUserServiceImpl implements SysUserService {
         if (!Objects.equals(request.getNeo(), request.getConfirmNeo())) {
             throw new BusinessException(SysErrorCodeEnum.A01003);
         }
-
-        SysUserEntity entity = sysUserMapper.selectById(UserContextHolder.getUserId());
+        Long userId = UserContextHolder.getUserId();
+        assert userId != null;
+        var entity = sysUserMapper.selectById(userId);
         if (entity == null || !entity.getPwd().equals(PwdUtil.encrypt(request.getOld(), entity.getPwdSalt()))) {
             throw new BusinessException(SysErrorCodeEnum.A01004);
         }
-
-        entity
-                .setPwd(PwdUtil.encrypt(request.getConfirmNeo(), entity.getPwdSalt()))
-                .setId(UserContextHolder.getUserId());
-        sysUserMapper.updateById(entity);
+        sysUserMapper.updateEncryptedPwd(userId, PwdUtil.encrypt(request.getConfirmNeo(), entity.getPwdSalt()));
     }
 
     @Override
@@ -225,30 +219,29 @@ public class SysUserServiceImpl implements SysUserService {
         sysUserMapper.updateById(update);
     }
 
+    @SneakyThrows
     @Override
-    public CreateTenantUserResult createTenantUser(TenantUserCreateRequest request) {
-        try {
-            TenantContextHolder.setTenantContext(new SimpleTenantContext(
-                    request.getTenantId(), request.getTenantCode(), null));
+    public TenantUserCreateResult createTenantUser(TenantUserCreateRequest request) {
+        return TenantContextHolder.callWithContext(
+                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), null),
+                () -> {
+                    var entity = new SysUserEntity();
+                    BeanUtil.copyProperties(request, entity);
+                    // 按需改写字段
+                    String salt = IdUtil.randomUUID();
+                    entity
+                            .setPwd(PwdUtil.encrypt(request.getPwdPlain(), salt))
+                            .setPwdSalt(salt);
 
-            SysUserEntity entity = new SysUserEntity();
-            BeanUtil.copyProperties(request, entity);
-            // 按需改写字段
-            String salt = IdUtil.randomUUID();
-            entity
-                    .setPwd(PwdUtil.encrypt(request.getPwdPlain(), salt))
-                    .setPwdSalt(salt);
-
-            if (request.isTenantAdmin()) {
-                entity
-                        .setNickname(request.getTenantName() + "主管理员")
-                        .setStatus(SysUserStatusEnum.ENABLED);
-            }
-            sysUserMapper.insert(entity);
-            return new CreateTenantUserResult(entity.getId(), request.isTenantAdmin());
-        } finally {
-            TenantContextHolder.clear();
-        }
+                    if (request.isTenantAdmin()) {
+                        entity
+                                .setNickname(request.getTenantName() + "主管理员")
+                                .setStatus(SysUserStatusEnum.ENABLED);
+                    }
+                    sysUserMapper.insert(entity);
+                    return new TenantUserCreateResult(entity.getId(), request.isTenantAdmin());
+                }
+        );
     }
 
     /*
@@ -264,11 +257,9 @@ public class SysUserServiceImpl implements SysUserService {
      * @param fillDept 填充部门
      */
     private SysUserDTO convertEntity(SysUserEntity entity, boolean fillDept) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
-        SysUserDTO ret = new SysUserDTO();
+        var ret = new SysUserDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
         if (fillDept) {
@@ -308,7 +299,7 @@ public class SysUserServiceImpl implements SysUserService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysUserUpsertRequest request) {
-        SysUserEntity entity = sysUserMapper.getByPin(request.getPin());
+        var entity = sysUserMapper.getByPin(request.getPin());
         if (entity != null) {
             throw new HasRepeatRecordException("已存在相同的账号");
         }

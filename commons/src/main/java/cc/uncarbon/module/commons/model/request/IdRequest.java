@@ -22,8 +22,8 @@ import java.io.Serializable;
 @Data
 public class IdRequest<T extends Serializable> implements Serializable {
 
-    @Schema(description = "主键ID", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "【主键ID】必填")
+    @Schema(description = "ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "ID必填")
     private T id;
 
 }

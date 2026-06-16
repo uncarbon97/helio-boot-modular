@@ -3,10 +3,7 @@ package cc.uncarbon.module.sys.dal.entity;
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import cc.uncarbon.module.sys.enums.LoginLogTypeEnum;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
+import java.time.LocalDateTime;
 
 
 /**
@@ -35,6 +33,12 @@ public class SysLoginLogEntity extends AbstractTenantGenericEntity {
 	@Schema(description = "主键ID")
 	@TableId(type = IdType.ASSIGN_ID)
 	private Long id;
+
+	// 禁用更新
+	@TableField(exist = false)
+	private LocalDateTime updatedAt;
+	@TableField(exist = false)
+	private String updatedBy;
 
 	@Schema(description = "登录日志类型")
 	@TableField(value = "login_log_type")

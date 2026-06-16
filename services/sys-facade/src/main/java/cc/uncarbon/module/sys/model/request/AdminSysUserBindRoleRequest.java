@@ -11,7 +11,7 @@ import java.util.Set;
 
 
 /**
- * 绑定用户与角色关联关系
+ * 系统用户-后台管理-绑定角色
  */
 @Accessors(chain = true)
 @AllArgsConstructor

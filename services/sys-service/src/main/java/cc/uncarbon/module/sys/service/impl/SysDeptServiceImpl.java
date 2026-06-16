@@ -59,7 +59,7 @@ public class SysDeptServiceImpl implements SysDeptService {
         }
 
         request.setId(null);
-        SysDeptEntity entity = new SysDeptEntity();
+        var entity = new SysDeptEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysDeptMapper.insert(entity);
@@ -77,7 +77,7 @@ public class SysDeptServiceImpl implements SysDeptService {
             request.setParentId(SysConstant.ROOT_PARENT_ID);
         }
 
-        SysDeptEntity entity = new SysDeptEntity();
+        var entity = new SysDeptEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysDeptMapper.updateById(entity);
@@ -107,7 +107,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     public SysDeptDTO getById(Long id) {
         if (id == null) return null;
-        SysDeptEntity entity = sysDeptMapper.selectById(id);
+        var entity = sysDeptMapper.selectById(id);
         return convertEntity(entity);
     }
 
@@ -151,11 +151,9 @@ public class SysDeptServiceImpl implements SysDeptService {
      * 实体转值对象
      */
     private SysDeptDTO convertEntity(SysDeptEntity entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
-        SysDeptDTO ret = new SysDeptDTO();
+        var ret = new SysDeptDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
         if (SysConstant.ROOT_PARENT_ID.equals(ret.getParentId())) {

@@ -193,9 +193,7 @@ public class OssFileInfoService {
      * 实体转值对象
      */
     private OssFileInfoBO entity2BO(OssFileInfoEntity entity) {
-        if (entity == null) {
-            return null;
-        }
+        if (entity == null) return null;
 
         OssFileInfoBO ret = new OssFileInfoBO();
         BeanUtil.copyProperties(entity, ret);
@@ -230,7 +228,7 @@ public class OssFileInfoService {
                 .setCurrent(entityPage.getCurrent())
                 .setSize(entityPage.getSize())
                 .setTotal(entityPage.getTotal())
-                .setRecords(this.convertList(entityPage.getRecords()));
+                .setRecords(convertList(entityPage.getRecords()));
     }
 
 }

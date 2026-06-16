@@ -1,17 +1,21 @@
 package cc.uncarbon.module.sys.biz;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
-import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
-import cc.uncarbon.module.sys.model.response.CreateTenantRoleResult;
-import cc.uncarbon.module.sys.model.response.CreateTenantUserResult;
+import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
+import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
 import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
+import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.SysUserService;
+import cn.hutool.core.bean.BeanUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -32,12 +36,12 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
 
 
     @Override
-    public CreateTenantRoleResult createTenantRole(TenantRoleCreateRequest request) {
+    public TenantRoleCreateResult createTenantRole(TenantRoleCreateRequest request) {
         return sysRoleService.createTenantRole(request);
     }
 
     @Override
-    public CreateTenantUserResult createTenantUser(TenantUserCreateRequest request) {
+    public TenantUserCreateResult createTenantUser(TenantUserCreateRequest request) {
         return sysUserService.createTenantUser(request);
     }
 
@@ -46,10 +50,17 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
         sysUserRoleRelationService.tenantUserBindRole(request);
     }
 
+    @SneakyThrows
     @Override
     public TenantUserBasicProfile getTenantUserBasicProfile(long tenantId, long userId) {
-        sysUserService.getNonnullById()
-        return null;
+        return TenantContextHolder.callWithContext(
+                new SimpleTenantContext(tenantId, null, null),
+                () -> {
+                    var user = sysUserService.getNonnullById(userId);
+                    var ret = new TenantUserBasicProfile();
+                    BeanUtil.copyProperties(user, ret);
+                    return ret;
+                });
     }
 
     @Override

@@ -61,7 +61,8 @@ public class ContextBindingFilter extends OncePerRequestFilter {
     @NonNull
     private VisitorContext resolveVisitor(HttpServletRequest servletRequest) {
         return new SimpleVisitorContext()
-                .setIp(IPUtil.getClientIPAddress(servletRequest))
+                .setIp(IPUtil.getClientIPAddress(servletRequest, 0))
+                // SpringMVC 已经对 UA 做了基本的过滤
                 .setUserAgent(servletRequest.getHeader(HttpHeaders.USER_AGENT))
                 .setHttpRequestMethod(servletRequest.getMethod())
                 .setHttpRequestPath(servletRequest.getRequestURI());

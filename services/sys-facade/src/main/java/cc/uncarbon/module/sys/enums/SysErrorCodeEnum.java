@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.enums;
 
-import cc.uncarbon.framework.helium.base.enums.ErrorCodeEnum;
+import cc.uncarbon.framework.helium.base.errorcode.StructuredErrorCode;
+import cc.uncarbon.module.commons.errorcode.ErrorCodeBizGroup;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -8,12 +9,12 @@ import lombok.Getter;
 /**
  * 系统管理错误码枚举
  * 错误码格式 [A][BB][CCC]
- * [BB] 本枚举内固定为 01，表示系统管理
- * [CCC] 按具体错误区分
+ * [BB] 本枚举内固定为 {@link ErrorCodeBizGroup#SYS}
+ * [CCC] 具体错误代号
  */
 @AllArgsConstructor
 @Getter
-public enum SysErrorCodeEnum implements ErrorCodeEnum {
+public enum SysErrorCodeEnum implements StructuredErrorCode {
 
     /*
      A 开头错误码，表示一般性错误，如用户输入有误
