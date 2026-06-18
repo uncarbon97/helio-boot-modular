@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -58,7 +58,6 @@ public class SysDictServiceImpl implements SysDictService {
                         // 排序
                         .orderByDesc(SysDictCategoryEntity::getId)
         );
-
         return convertPage(entityPage);
     }
 
@@ -109,7 +108,6 @@ public class SysDictServiceImpl implements SysDictService {
                         // 排序
                         .orderByAsc(SysDictItemEntity::getSort)
         );
-
         return convertPage(entityPage);
     }
 

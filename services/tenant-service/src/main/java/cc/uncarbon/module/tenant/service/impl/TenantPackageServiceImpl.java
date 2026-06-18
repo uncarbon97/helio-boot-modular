@@ -2,7 +2,7 @@ package cc.uncarbon.module.tenant.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
@@ -52,7 +52,6 @@ public class TenantPackageServiceImpl implements TenantPackageService {
                         .eq(Objects.nonNull(query.getStatus()), TenantPackageEntity::getStatus, query.getStatus())
                         .orderByDesc(TenantPackageEntity::getId)
         );
-
         return convertPage(entityPage, false);
     }
 

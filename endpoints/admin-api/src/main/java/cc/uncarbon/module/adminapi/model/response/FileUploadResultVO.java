@@ -1,4 +1,4 @@
-package cc.uncarbon.module.file.model.response;
+package cc.uncarbon.module.adminapi.model.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class OssFileUploadResult implements Serializable {
+public class FileUploadResultVO implements Serializable {
 
     @Schema(description = "文件ID")
     private Long fileId;

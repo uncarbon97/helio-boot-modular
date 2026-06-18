@@ -9,7 +9,6 @@ import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * 租户
@@ -47,8 +46,9 @@ public interface TenantService {
     TenantMetaDTO getNonnullById(Long id) throws NoRecordException;
 
     /**
-     * 根据主键IDs，取租户BOs
+     * 根据租户编码取详情
+     * @param fillDetail 是否填充详情
      */
-    List<TenantMetaDTO> listByIds(Collection<Long> ids, boolean fillTenantAdminUser);
+    TenantMetaDTO getByCode(String code, boolean fillDetail);
 
 }

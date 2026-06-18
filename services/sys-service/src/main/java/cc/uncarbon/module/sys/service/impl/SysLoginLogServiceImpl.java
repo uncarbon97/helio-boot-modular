@@ -60,7 +60,6 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
                         // 排序
                         .orderByDesc(SysLoginLogEntity::getId)
         );
-
         return convertPage(entityPage);
     }
 

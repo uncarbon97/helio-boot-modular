@@ -1,11 +1,15 @@
 package cc.uncarbon.module.tenant.biz;
 
+import cc.uncarbon.framework.helium.tenant.props.HeliumTenantProperties;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cc.uncarbon.module.tenant.service.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * 租户门面
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class TenantFacadeImpl implements TenantFacade {
 
     private final TenantService tenantService;
+    private final HeliumTenantProperties props;
 
 //
 //    @Override
@@ -107,6 +112,14 @@ public class TenantFacadeImpl implements TenantFacade {
 
     @Override
     public TenantValidateResult validateByCode(String tenantCode) {
+        if (props.doesTenantEnabled()) {
+
+        }
+
+        TenantMetaDTO tenantMeta = tenantService.getByCode(tenantCode, false);
+        if (Objects.nonNull(tenantMeta)) {
+            return TenantValidateResult.of(tenantMeta);
+        }
         return null;
     }
 

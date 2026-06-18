@@ -1,5 +1,7 @@
 --- # Spring Boot
 spring:
+  application:
+    name: helium-monolith
   profiles:
     # 可通过命令行参数实现多环境切换配置文件
     active: dev
@@ -23,3 +25,8 @@ app-api:
   no-auth-paths:
     # 登录
     - /app/v1/auth/login
+
+--- # admin-api
+admin-api:
+  file-hashids:
+    salt: ${spring.application.name}

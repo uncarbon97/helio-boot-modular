@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDeptMapper;

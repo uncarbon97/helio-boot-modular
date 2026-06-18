@@ -19,21 +19,21 @@ public class ErrorCodeBizGroup {
     /**
      * 系统管理
      */
-    String SYS = "01";
+    public String SYS = "01";
 
     /**
      * 文件管理
      */
-    String FILE = "02";
+    public String FILE = "02";
 
     /**
      * 租户管理
      */
-    String TENANT = "03";
+    public String TENANT = "03";
 
     /**
      * 后台管理 API 端点
      */
-    String ADMIN_API = "04";
+    public String ADMIN_API = "04";
 
 }

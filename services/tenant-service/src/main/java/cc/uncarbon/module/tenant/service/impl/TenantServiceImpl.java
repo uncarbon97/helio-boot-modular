@@ -2,7 +2,7 @@ package cc.uncarbon.module.tenant.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -22,7 +22,6 @@ import cc.uncarbon.module.tenant.model.valueobj.TenantUserBasicProfileDTO;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cc.uncarbon.module.tenant.service.TenantService;
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -68,7 +67,6 @@ public class TenantServiceImpl implements TenantService {
                         // 排序
                         .orderByDesc(TenantMetaEntity::getId)
         );
-
         return convertPage(entityPage, true);
     }
 
@@ -119,18 +117,14 @@ public class TenantServiceImpl implements TenantService {
         return NoRecordException.throwIfNull(getById(id));
     }
 
-    /**
-     * 根据主键IDs，取租户BOs
-     *
-     * @param fillTenantAdminUser 是否根据租户管理员用户ID，查询关联用户信息并填充到BO
-     */
     @Override
-    public List<TenantMetaDTO> listByIds(Collection<Long> ids, boolean fillTenantAdminUser) {
-        if (CollUtil.isEmpty(ids)) {
-            return List.of();
-        }
-        List<TenantMetaEntity> entityList = tenantMetaMapper.selectByIds(ids);
-        return convertList(entityList, fillTenantAdminUser);
+    public TenantMetaDTO getByCode(String code, boolean fillDetail) {
+        if (CharSequenceUtil.isBlank(code)) return null;
+        var entity = tenantMetaMapper.selectOne(new LambdaQueryWrapper<TenantMetaEntity>()
+                .eq(TenantMetaEntity::getCode, code)
+                .last(SQLSegment.LIMIT_1)
+        );
+        return convertEntity(entity, fillDetail);
     }
 
     /*

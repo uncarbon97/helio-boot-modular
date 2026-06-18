@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.mapper;
 
-import cc.uncarbon.framework.helium.db.constant.SQLSegment;
+import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;

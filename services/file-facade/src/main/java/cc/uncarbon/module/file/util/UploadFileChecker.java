@@ -1,6 +1,6 @@
 package cc.uncarbon.module.file.util;
 
-import cc.uncarbon.module.file.enums.UploadFileCheckResultEnum;
+import cc.uncarbon.module.file.errorcode.FileErrorCodeEnum;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -28,6 +28,11 @@ public class UploadFileChecker {
     // 文件尺寸 1MB
     public static final long FILE_SIZE_1MB = 1024 * 1024L;
 
+    /**
+     * 常见文件的扩展名
+     */
+    public static final String[] COMMON_EXTEND_NAMES = new String[]{"jpg", "png", "webp", "gif", "xlsx"};
+
 
     /**
      * 批量检查
@@ -36,50 +41,53 @@ public class UploadFileChecker {
      * @param singleFileSizeMax 最大单文件尺寸，单位=KB
      * @param allFileSizeMax    最大多文件累计尺寸，单位=KB
      * @param allowedSuffixes   允许上传的文件后缀
+     * @return null 表示检查通过
      */
-    public UploadFileCheckResultEnum check(Collection<MultipartFile> multipartFiles, int fileQtyMax,
-                                           long singleFileSizeMax, long allFileSizeMax, String[] allowedSuffixes) {
+    public FileErrorCodeEnum check(Collection<MultipartFile> multipartFiles, int fileQtyMax,
+                                   long singleFileSizeMax, long allFileSizeMax, String[] allowedSuffixes) {
         // 限制文件数量
         int fileQty = CollUtil.size(multipartFiles);
         if (fileQty < FILE_QTY_MIN) {
-            return UploadFileCheckResultEnum.NO_FILE;
+            return FileErrorCodeEnum.A02001;
         } else if (fileQty > fileQtyMax) {
-            return UploadFileCheckResultEnum.TOO_MANY_FILES;
+            return FileErrorCodeEnum.A02002;
         }
         // 限制所有文件总大小
         long allFileSize = multipartFiles.stream().mapToLong(MultipartFile::getSize).sum();
         // 除以1024
         allFileSize = allFileSize >> 10;
         if (allFileSize > allFileSizeMax) {
-            return UploadFileCheckResultEnum.TOO_LARGE_FILE_SIZE;
+            return FileErrorCodeEnum.A02003;
         }
 
         // 每个文件单独检查
         for (MultipartFile item : multipartFiles) {
-            UploadFileCheckResultEnum singleCheckRet = check(item, singleFileSizeMax, allowedSuffixes);
-            if (singleCheckRet.isNotOK()) {
-                return singleCheckRet;
+            var single = check(item, singleFileSizeMax, allowedSuffixes);
+            if (single != FileErrorCodeEnum.OK) {
+                return single;
             }
         }
-        return UploadFileCheckResultEnum.OK;
+        return null;
     }
 
     /**
      * 单个检查
+     *
      * @param singleFileSizeMax 最大单文件尺寸，单位=KB
      * @param allowedSuffixes   允许上传的文件后缀
+     * @return null 表示检查通过
      */
-    public UploadFileCheckResultEnum check(@Nonnull MultipartFile multipartFile, long singleFileSizeMax, String[] allowedSuffixes) {
+    public FileErrorCodeEnum check(@Nonnull MultipartFile multipartFile, long singleFileSizeMax, String[] allowedSuffixes) {
         long fileSize = multipartFile.getSize();
 
         // 确定文件大小区间
         if (fileSize < FILE_SIZE_MIN) {
-            return UploadFileCheckResultEnum.EMPTY_FILE;
+            return FileErrorCodeEnum.A02005;
         }
         // 除以1024
         fileSize = fileSize >> 10;
         if (fileSize > singleFileSizeMax) {
-            return UploadFileCheckResultEnum.TOO_LARGE_FILE_SIZE;
+            return FileErrorCodeEnum.A02003;
         }
 
         // 确定后缀名
@@ -89,8 +97,8 @@ public class UploadFileChecker {
         }
         // 检查后缀名
         if (Objects.isNull(suffix) || !ArrayUtil.contains(allowedSuffixes, suffix)) {
-            return UploadFileCheckResultEnum.ILLEGAL_FILE_SUFFIX;
+            return FileErrorCodeEnum.A02004;
         }
-        return UploadFileCheckResultEnum.OK;
+        return FileErrorCodeEnum.OK;
     }
 }

@@ -17,9 +17,9 @@ public enum UploadFileCheckResultEnum implements BaseEnum<Integer> {
     TOO_MANY_FILES(402, "欲上传的文件数量超出限制"),
     TOO_LARGE_FILE_SIZE(403, "欲上传的文件大小超出限制"),
     EMPTY_FILE(404, "欲上传的文件为空"),
-    ILLEGAL_FILE_SUFFIX(405, "欲上传的文件类型超出限制"),;
+    ILLEGAL_FILE_SUFFIX(405, "欲上传的文件类型超出限制"),
 
-    @EnumValue
+    ;@EnumValue
     private final Integer value;
     private final String label;
 
