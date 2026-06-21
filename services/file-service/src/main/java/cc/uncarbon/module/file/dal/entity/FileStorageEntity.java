@@ -3,6 +3,7 @@ package cc.uncarbon.module.file.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
+import cc.uncarbon.module.file.enums.PlatformTypeEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -43,13 +44,13 @@ public class FileStorageEntity extends AbstractTenantGenericEntity {
     @TableField(value = "name")
     private String name;
 
-    @Schema(description = "存储点类型")
-    @TableField(value = "type")
-    private Integer type;
+    @Schema(description = "存储平台类型")
+    @TableField(value = "platform_type")
+    private PlatformTypeEnum platformType;
 
     @Schema(description = "配置属性")
-    @TableField(value = "config_json")
-    private String configJson;
+    @TableField(value = "setting_json")
+    private String settingJson;
 
     @Schema(description = "主存储点标识")
     @TableField(value = "primary_flag")

@@ -45,8 +45,8 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
                         .like(CharSequenceUtil.isNotBlank(query.getCode()), FileStorageEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
                         // 存储点名称
                         .like(CharSequenceUtil.isNotBlank(query.getName()), FileStorageEntity::getName, CharSequenceUtil.cleanBlank(query.getName()))
-                        // 存储点类型
-                        .eq(Objects.nonNull(query.getType()), FileStorageEntity::getType, query.getType())
+                        // 存储平台类型
+                        .eq(Objects.nonNull(query.getPlatformType()), FileStorageEntity::getPlatformType, query.getPlatformType())
                         // 主存储点标识
                         .eq(Objects.nonNull(query.getPrimaryFlag()), FileStorageEntity::getPrimaryFlag, query.getPrimaryFlag())
                         // 时间区间

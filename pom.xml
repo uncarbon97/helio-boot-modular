@@ -27,7 +27,7 @@
 
         <!-- 固定其他第三方依赖版本 -->
         <!-- 文件上传 -->
-        <x-file-storage.version>2.2.1</x-file-storage.version>
+        <x-file-storage.version>2.3.0</x-file-storage.version>
         <minio.version>8.5.17</minio.version>
     </properties>
 
