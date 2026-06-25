@@ -1,46 +1,44 @@
 package cc.uncarbon.module.sys.resolver;
 
 import cc.uncarbon.module.commons.resoler.IPLocationResolver;
-import jakarta.annotation.PostConstruct;
+import cn.hutool.core.net.Ipv4Util;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lionsoul.ip2region.xdb.Searcher;
-import org.springframework.core.io.ClassPathResource;
+import org.lionsoul.ip2region.service.Ip2Region;
+import org.lionsoul.ip2region.xdb.InetAddressException;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
-import java.io.InputStream;
+import java.io.IOException;
 
-@Slf4j
+/**
+ * 基于 {@link Ip2Region} 的 IP 归属地解析
+ */
+@ConditionalOnBean(value = Ip2Region.class)
+@RequiredArgsConstructor
 @Component
+@Slf4j
 public class Ip2regionBasedIPLocationResolver implements IPLocationResolver {
 
-    private volatile byte[] cBuff;
+    private final static String LOG_PREFIX = "[IP归属地解析]";
 
-    @PostConstruct
-    public void init() {
-        // TODO ip2region 可能还有更高版本
-        try {
-            ClassPathResource resource = new ClassPathResource("ip2region.xdb");
-            try (InputStream is = resource.getInputStream()) {
-                cBuff = is.readAllBytes();
-            }
-            log.info("ip2region.xdb loaded, size={}", cBuff.length);
-        } catch (Exception e) {
-            log.warn("ip2region.xdb not found on classpath, IP location resolution disabled");
-        }
-    }
+    private final Ip2Region ip2Region;
+
 
     @Override
     public String resolve(String ip) {
-        if (ip == null || ip.isBlank() || cBuff == null) {
-            return "";
+        try {
+            if (Ipv4Util.isInnerIP(ip)) {
+                return "内网";
+            }
+        } catch (IllegalArgumentException _) {
+            // 有可能不是 IPv4 地址
         }
-        // Searcher is not thread-safe, create per call; cBuff is safe to share
-        try (Searcher searcher = Searcher.newWithBuffer(cBuff)) {
-            String region = searcher.search(ip);
-            return region != null ? region : "";
-        } catch (Exception e) {
-            log.debug("IP location lookup failed for {}: {}", ip, e.getMessage());
-            return "";
+        try {
+            return ip2Region.search(ip);
+        } catch (InetAddressException | IOException | InterruptedException e) {
+            log.warn(LOG_PREFIX + "[IP2region] 解析失败 >> ip={}", ip);
+            return "未知";
         }
     }
 }

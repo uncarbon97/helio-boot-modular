@@ -75,6 +75,13 @@
                 <artifactId>minio</artifactId>
                 <version>${minio.version}</version>
             </dependency>
+
+            <!-- IP 地址归属地查询 -->
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>3.3.7</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
