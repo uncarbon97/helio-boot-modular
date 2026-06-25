@@ -13,4 +13,5 @@ public interface AdminLoginService {
      * 密码登录
      */
     AdminLoginResult passwordLogin(AdminAuthPasswordLoginRequest request, VisitorContext visitorContext);
+
 }

@@ -18,8 +18,8 @@ import java.io.Serializable;
 @Data
 public class FileUploadResultVO implements Serializable {
 
-    @Schema(description = "文件ID")
-    private Long fileId;
+    @Schema(description = "外显文件ID")
+    private String outFileId;
 
     @Schema(description = "存储文件名")
     private String filename;

@@ -3,9 +3,7 @@ package cc.uncarbon.module.adminapi.controller.auth;
 
 import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
 import cc.uncarbon.framework.helium.base.context.UserContext;
-import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
-import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.helper.CaptchaHelper;
@@ -51,7 +49,7 @@ public class AdminAuthController {
         // 登录验证码核验；前端项目搜索关键词「Helium: 登录验证码」
         // AdminApiErrorEnum.CAPTCHA_VALIDATE_FAILED.assertTrue(captchaHelper.validate(dto.getCaptchaId(), dto.getCaptchaAnswer()))
 
-        AdminLoginResult loginResult = adminLoginService.passwordLogin(request, VisitorContextHolder.get());
+        AdminLoginResult loginResult = adminLoginService.passwordLogin(request, VisitorContextHolder.getContext());
 
         // 构造用户上下文
         UserContext userContext = new SimpleUserContext()
@@ -84,10 +82,8 @@ public class AdminAuthController {
     @Operation(summary = "登出")
     @PostMapping(value = "/logout")
     public ApiResult<Void> logout() {
-        StpKit.ADMIN.logout();
-        UserContextHolder.clear();
-        TenantContextHolder.clear();
-
+        final StpLogic stpUtil = StpKit.ADMIN;
+        stpUtil.logout();
         return ApiResult.success();
     }
 

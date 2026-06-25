@@ -18,7 +18,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminUpdateMyPwdRequest implements Serializable {
+public class AdminUpdateMyPasswordRequest implements Serializable {
 
     @Schema(description = "原密码", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "原密码必填")

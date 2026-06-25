@@ -3,32 +3,33 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
-import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
-import cc.uncarbon.module.sys.model.request.*;
+import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysUserResetOthersPwdRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
-import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.module.sys.util.PwdUtil;
-import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -62,9 +63,6 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
     private final UserRoleHelper userRoleHelper;
-
-    // RPC
-    private final TenantFacade tenantFacade;
 
 
     @Override
@@ -163,66 +161,11 @@ public class SysUserServiceImpl implements SysUserService {
         return NoRecordException.throwIfNull(getById(id));
     }
 
-    @Override
-    public MyProfileDTO adminGetMyProfile() {
-        SysUserDTO me = getNonnullById(UserContextHolder.getUserId());
-        var ret = new MyProfileDTO();
-        BeanUtil.copyProperties(me, ret);
-        return ret;
-    }
-
-    @Override
-    public void adminResetUserPassword(AdminSysUserResetOthersPwdRequest request) {
-        checkBeforeUpdate(request.getUserId(), null);
-        checkExistence(request.getUserId());
-        var user = sysUserMapper.selectById(request.getUserId());
-        sysUserMapper.updateEncryptedPwd(user.getId(),
-                PwdUtil.encrypt(request.getRandomPassword(), user.getPwdSalt()));
-    }
-
-    @Override
-    public void adminUpdateCurrentUserPassword(AdminUpdateMyPwdRequest request) {
-        if (!Objects.equals(request.getNeo(), request.getConfirmNeo())) {
-            throw new BusinessException(SysErrorCodeEnum.A01003);
-        }
-        Long userId = UserContextHolder.getUserId();
-        assert userId != null;
-        var entity = sysUserMapper.selectById(userId);
-        if (entity == null || !entity.getPwd().equals(PwdUtil.encrypt(request.getOld(), entity.getPwdSalt()))) {
-            throw new BusinessException(SysErrorCodeEnum.A01004);
-        }
-        sysUserMapper.updateEncryptedPwd(userId, PwdUtil.encrypt(request.getConfirmNeo(), entity.getPwdSalt()));
-    }
-
-    @Override
-    public void adminBindRoles(AdminSysUserBindRoleRequest request) {
-        checkBeforeBindUserRoleRelation(request);
-        sysUserRoleRelationService.cleanAndBind(request.getUserId(), request.getRoleIds());
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void adminUpdateMyProfile(AdminUpdateMyProfileRequest request) {
-        SysUserEntity update = SysUserEntity.of(request);
-        update.setId(UserContextHolder.getUserId());
-        sysUserMapper.updateById(update);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void adminUpdateMyAvatar(AdminUpdateMyAvatarRequest request) {
-        request.securityCheck();
-
-        SysUserEntity update = SysUserEntity.of(request);
-        update.setId(UserContextHolder.getUserId());
-        sysUserMapper.updateById(update);
-    }
-
     @SneakyThrows
     @Override
     public TenantUserCreateResult createTenantUser(TenantUserCreateRequest request) {
         return TenantContextHolder.callWithContext(
-                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), null),
+                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), request.getTenantCode()),
                 () -> {
                     var entity = new SysUserEntity();
                     BeanUtil.copyProperties(request, entity);
@@ -241,6 +184,21 @@ public class SysUserServiceImpl implements SysUserService {
                     return new TenantUserCreateResult(entity.getId(), request.isTenantAdmin());
                 }
         );
+    }
+
+    @Override
+    public void adminResetSpecifiedUserPassword(AdminSysUserResetOthersPwdRequest request) {
+        checkBeforeUpdate(request.getUserId(), null);
+        checkExistence(request.getUserId());
+        var user = sysUserMapper.selectById(request.getUserId());
+        sysUserMapper.updateEncryptedPwd(user.getId(),
+                PwdUtil.encrypt(request.getRandomPassword(), user.getPwdSalt()));
+    }
+
+    @Override
+    public void adminBindRoles(AdminSysUserBindRoleRequest request) {
+        checkBeforeBindUserRoleRelation(request);
+        sysUserRoleRelationService.cleanAndBind(request.getUserId(), request.getRoleIds());
     }
 
     /*

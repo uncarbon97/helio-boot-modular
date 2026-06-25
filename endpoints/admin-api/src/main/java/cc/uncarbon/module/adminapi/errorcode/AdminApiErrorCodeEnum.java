@@ -1,4 +1,4 @@
-package cc.uncarbon.module.adminapi.enums;
+package cc.uncarbon.module.adminapi.errorcode;
 
 import cc.uncarbon.framework.helium.base.errorcode.StructuredErrorCode;
 import cc.uncarbon.module.commons.errorcode.ErrorCodeBizGroup;
@@ -14,12 +14,14 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum AdminApiErrorEnum implements StructuredErrorCode {
+public enum AdminApiErrorCodeEnum implements StructuredErrorCode {
 
     /*
      A 开头错误码，表示一般性错误，如用户输入有误
      */
     A04001("验证码不正确，请重新输入"),
+    A04002("不支持的图片格式"),
+    A04003("不能使用该文件作为头像"),
 
     /*
      B 开头错误码，表示本服务内部错误

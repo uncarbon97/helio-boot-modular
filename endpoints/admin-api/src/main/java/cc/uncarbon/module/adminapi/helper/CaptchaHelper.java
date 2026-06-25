@@ -1,7 +1,7 @@
 package cc.uncarbon.module.adminapi.helper;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
-import cc.uncarbon.module.adminapi.enums.AdminApiErrorEnum;
+import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
 import cc.uncarbon.module.adminapi.model.internal.AdminCaptchaScope;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.ShearCaptcha;
@@ -57,7 +57,7 @@ public class CaptchaHelper {
             }
         }
         if (!Boolean.TRUE.equals(successFlag)) {
-            throw new BusinessException(AdminApiErrorEnum.CAPTCHA_GENERATE_FAILED);
+            throw new BusinessException(AdminApiErrorCodeEnum.CAPTCHA_GENERATE_FAILED);
         }
 
         // 定义图形验证码的长、宽、验证码字符数、干扰线宽度

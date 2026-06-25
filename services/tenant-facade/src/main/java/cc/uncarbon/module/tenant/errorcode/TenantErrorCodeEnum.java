@@ -16,7 +16,9 @@ import lombok.Getter;
 @Getter
 public enum TenantErrorCodeEnum implements StructuredErrorCode {
 
-    // A 开头错误码，表示一般性错误，如用户输入有误
+    /*
+     A 开头错误码，表示一般性错误，如用户输入有误
+     */
     A03001("租户不存在"),
     A03002("租户套餐非启用状态"),
     // DISABLED_TENANT(400, "所属租户已禁用"),

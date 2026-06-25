@@ -40,6 +40,11 @@ public enum SysErrorCodeEnum implements StructuredErrorCode {
     A01022("不得超越自身角色权限"),
     A01023("不能删除特殊角色用户"),
 
+    /*
+     B 开头错误码，表示本服务内部错误
+     */
+    B01001("登录组件错误，请联系管理员"),
+
     ;private final String errorMsgFriendly;
 
 }

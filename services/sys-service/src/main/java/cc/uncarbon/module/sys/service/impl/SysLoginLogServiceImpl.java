@@ -81,8 +81,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
             ipLocation = ipLocationResolver.resolve(visitorContext.getIp());
         }
 
-        entity
-                .setVisitorIp(visitorContext.getIp())
+        entity.setVisitorIp(visitorContext.getIp())
                 .setVisitorUserAgent(ua)
                 .setVisitorIpLocation(ipLocation);
 

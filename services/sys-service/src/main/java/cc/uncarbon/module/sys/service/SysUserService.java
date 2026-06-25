@@ -3,9 +3,11 @@ package cc.uncarbon.module.sys.service;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
-import cc.uncarbon.module.sys.model.request.*;
+import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysUserResetOthersPwdRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
+import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
-import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 
 import java.util.Collection;
@@ -45,38 +47,18 @@ public interface SysUserService {
     SysUserDTO getNonnullById(Long id) throws NoRecordException;
 
     /**
-     * 后台管理-取当前用户资料
+     * 新增租户用户
      */
-    MyProfileDTO adminGetMyProfile();
+    TenantUserCreateResult createTenantUser(TenantUserCreateRequest request);
 
     /**
-     * 后台管理-重置某用户密码
+     * 后台管理-重置指定用户密码
      */
-    void adminResetUserPassword(AdminSysUserResetOthersPwdRequest request);
-
-    /**
-     * 后台管理-修改当前用户密码
-     */
-    void adminUpdateCurrentUserPassword(AdminUpdateMyPwdRequest request);
+    void adminResetSpecifiedUserPassword(AdminSysUserResetOthersPwdRequest request);
 
     /**
      * 后台管理-绑定用户与角色关联关系
      */
     void adminBindRoles(AdminSysUserBindRoleRequest request);
-
-    /**
-     * 后台管理-更新当前用户资料
-     */
-    void adminUpdateMyProfile(AdminUpdateMyProfileRequest request);
-
-    /**
-     * 后台管理-更新当前用户头像
-     */
-    void adminUpdateMyAvatar(AdminUpdateMyAvatarRequest request);
-
-    /**
-     * 新增租户用户
-     */
-    TenantUserCreateResult createTenantUser(TenantUserCreateRequest request);
 
 }

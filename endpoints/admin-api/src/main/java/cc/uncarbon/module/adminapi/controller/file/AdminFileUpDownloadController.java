@@ -159,15 +159,15 @@ public class AdminFileUpDownloadController {
      */
     private FileUploadResultVO toUploadResult(@NonNull FileMetaDTO source,
                                               @NonNull String requestUrl) {
+        String hashIds = hashidsHelper.encode(source.getId());
         FileUploadResultVO ret = new FileUploadResultVO()
-                .setFileId(source.getId())
+                .setOutFileId(hashIds)
                 .setFilename(source.getStorageFilenameFull())
                 // 返回本次上传文件的原始文件名
-                .setOriginalFilename(source.getOriginalFilename());
+                .setOriginalFilename(source.getOriginalFilenameFull());
 
         if (CharSequenceUtil.isEmpty(source.getDirectUrl())) {
-            String replacement = CharSequenceUtil.replace(DOWNLOAD_ROUTE_HASHIDS, "{hashIds}",
-                    hashidsHelper.encode(source.getId()));
+            String replacement = CharSequenceUtil.replace(DOWNLOAD_ROUTE_HASHIDS, "{hashIds}", hashIds);
             replacement = CharSequenceUtil.replace(replacement, "{tenantCode}",
                     Optional.ofNullable(TenantContextHolder.getTenantCode()).orElse(DOWNLOAD_IGNORED_TENANT_CODE));
             ret.setUrl(CharSequenceUtil.replace(requestUrl, UPLOAD_ROUTE, replacement));

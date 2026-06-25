@@ -3,8 +3,6 @@ package cc.uncarbon.module.sys.dal.entity;
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
-import cc.uncarbon.module.sys.model.request.AdminUpdateMyAvatarRequest;
-import cc.uncarbon.module.sys.model.request.AdminUpdateMyProfileRequest;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -78,21 +76,5 @@ public class SysUserEntity extends AbstractTenantGenericEntity {
     @Schema(description = "头像URL")
     @TableField(value = "avatar_url")
     private String avatarUrl;
-
-
-    public static SysUserEntity of(AdminUpdateMyProfileRequest source) {
-        SysUserEntity ret = new SysUserEntity();
-        ret.setNickname(source.getNickname())
-                .setGender(source.getGender())
-                .setEmail(source.getEmail())
-                .setPhoneNo(source.getPhoneNo());
-        return ret;
-    }
-
-    public static SysUserEntity of(AdminUpdateMyAvatarRequest source) {
-        SysUserEntity ret = new SysUserEntity();
-        ret.setAvatarUrl(source.getAvatarUrl());
-        return ret;
-    }
 
 }
