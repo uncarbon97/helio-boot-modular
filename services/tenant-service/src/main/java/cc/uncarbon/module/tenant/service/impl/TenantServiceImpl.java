@@ -217,7 +217,7 @@ public class TenantServiceImpl implements TenantService {
         if (packageId != null) {
             TenantPackageDTO pkg = tenantPackageService.getNonnullById(packageId);
             if (pkg.getStatus() != EnabledStatusEnum.ENABLED) {
-                throw new BusinessException(TenantErrorCodeEnum.A03001);
+                throw new BusinessException(TenantErrorCodeEnum.A03002);
             }
             return pkg;
         }

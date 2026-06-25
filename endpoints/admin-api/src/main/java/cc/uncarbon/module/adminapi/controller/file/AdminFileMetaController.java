@@ -10,6 +10,7 @@ import cc.uncarbon.module.commons.model.request.IdsRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.file.model.query.AdminFileMetaListQuery;
 import cc.uncarbon.module.file.model.request.AdminFileMetaUpsertRequest;
+import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.service.FileMetaService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;

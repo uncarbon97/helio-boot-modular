@@ -34,11 +34,4 @@ public interface FileUpDownloadFacade {
     @NonNull
     FileDownloadReply downloadById(@Nullable String tenantCode, Long fileMetaId);
 
-    /**
-     * 是否为本地存储平台
-     *
-     * @param storageCode 存储点编码
-     */
-    boolean isLocalPlatform(String storageCode);
-
 }

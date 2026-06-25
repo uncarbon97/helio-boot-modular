@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
-import cc.uncarbon.framework.core.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

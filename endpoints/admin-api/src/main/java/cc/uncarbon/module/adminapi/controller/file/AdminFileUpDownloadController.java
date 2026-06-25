@@ -1,7 +1,6 @@
 package cc.uncarbon.module.adminapi.controller.file;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
-import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.helper.HashidsHelper;
@@ -15,8 +14,6 @@ import cc.uncarbon.module.file.model.request.FileAttrExtraRequest;
 import cc.uncarbon.module.file.model.response.FileDownloadReply;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.util.UploadFileChecker;
-import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
-import cc.uncarbon.module.tenant.service.TenantService;
 import ch.qos.logback.core.util.FileSize;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.hutool.core.io.IoUtil;
@@ -32,6 +29,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Optional;
 
 
 @Tag(name = "后台管理-文件上传、下载")
@@ -64,11 +62,10 @@ public class AdminFileUpDownloadController {
      * 下载路由，文本替换用
      * 增加 v1 前缀方便增加其他的传参约定
      */
-    private static final String DOWNLOAD_ROUTE_HASHIDS = "/v1/file/download/{tenantCode}/{hashIds}";
+    private static final String DOWNLOAD_ROUTE_HASHIDS = "/v1/file/download/{hashIds}/{tenantCode}";
 
     private final FileUpDownloadFacade fileUpDownloadFacade;
     private final HashidsHelper hashidsHelper;
-    private final TenantService tenantService;
 
     /**
      * 从配置文件中获取的最大文件上传大小
@@ -101,9 +98,7 @@ public class AdminFileUpDownloadController {
                     .setUseOriginalFilenameAsDownloadFileName(false);
             fileMeta = fileUpDownloadFacade.upload(file.getBytes(), options, attr);
         }
-
-        return ApiResult.success(toUploadResult(
-                fileMeta, request.getRequestURL().toString(), file.getOriginalFilename()));
+        return ApiResult.success(toUploadResult(fileMeta, request.getRequestURL().toString()));
     }
 
     @Operation(summary = "下载文件V1")
@@ -121,20 +116,23 @@ public class AdminFileUpDownloadController {
             tenantCode = null;
         }
         reply = fileUpDownloadFacade.downloadById(tenantCode, id);
+        if (!reply.isSuccess()) {
+            throw new BusinessException(reply.getErrorCode());
+        }
 
-        if (reply.get().isRedirect2DirectUrl()) {
+        if (reply.isRedirect2DirectUrl()) {
             // 302重定向
-            servletResponse.sendRedirect(reply.get().getDirectUrl());
+            servletResponse.sendRedirect(reply.getDirectUrl());
             return;
         }
 
-        // 普通下载
+        // 服务端代理下载
         servletResponse.setHeader(Header.CONTENT_TYPE.getValue(), MediaType.APPLICATION_OCTET_STREAM_VALUE);
         servletResponse.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        String downFileName = URLEncoder.encode(reply.get().getStorageFilename(), StandardCharsets.UTF_8);
+        String downFileName = URLEncoder.encode(reply.getStorageFilename(), StandardCharsets.UTF_8);
         servletResponse.setHeader(Header.CONTENT_DISPOSITION.getValue(), "attachment;filename=" + downFileName);
         // 把文件写入响应流
-        IoUtil.write(servletResponse.getOutputStream(), false, reply.get().getFileBytes());
+        IoUtil.write(servletResponse.getOutputStream(), false, reply.getFileBytes());
     }
 
     /*
@@ -159,28 +157,20 @@ public class AdminFileUpDownloadController {
     /**
      * 将 {@link FileMetaDTO} 转换为 {@link FileUploadResultVO}
      */
-    private FileUploadResultVO toUploadResult(FileMetaDTO source, String requestUrl, String originalFilename) {
+    private FileUploadResultVO toUploadResult(@NonNull FileMetaDTO source,
+                                              @NonNull String requestUrl) {
         FileUploadResultVO ret = new FileUploadResultVO()
                 .setFileId(source.getId())
                 .setFilename(source.getStorageFilenameFull())
                 // 返回本次上传文件的原始文件名
-                .setOriginalFilename(originalFilename);
+                .setOriginalFilename(source.getOriginalFilename());
 
-        /*
-        这里请根据实际业务性质调整
-        有的业务出于安全目的，不能暴露直链，只能通过服务端代理下载后，返回 byte[]
-        有的业务没有限制，上传后文件完全可以直接通过对象存储直链下载，如此还能节约服务端上传带宽
-        有的业务有安全要求，只能通过预签名地址下载
-        但本地存储又没有直链，只能通过文件ID；
-        默认地，此处按【本地存储or对象存储直链为空：通过文件ID下载；对象存储：通过对象存储直链下载】返回 url
-         */
-        if (fileUpDownloadFacade.isLocalPlatform(source.getStorageCode())
-                || CharSequenceUtil.isEmpty(source.getDirectUrl())
-        ) {
-            ret.setUrl(
-                    // 默认接口风格为 RESTful，下载即为最后拼接“/{文件ID}”
-                    String.format("%s/%s", requestUrl, source.getId())
-            );
+        if (CharSequenceUtil.isEmpty(source.getDirectUrl())) {
+            String replacement = CharSequenceUtil.replace(DOWNLOAD_ROUTE_HASHIDS, "{hashIds}",
+                    hashidsHelper.encode(source.getId()));
+            replacement = CharSequenceUtil.replace(replacement, "{tenantCode}",
+                    Optional.ofNullable(TenantContextHolder.getTenantCode()).orElse(DOWNLOAD_IGNORED_TENANT_CODE));
+            ret.setUrl(CharSequenceUtil.replace(requestUrl, UPLOAD_ROUTE, replacement));
         } else {
             ret.setUrl(source.getDirectUrl());
         }

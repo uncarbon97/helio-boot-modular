@@ -31,68 +31,68 @@ import java.time.LocalDateTime;
 @TableName(value = "sys_user")
 public class SysUserEntity extends AbstractTenantGenericEntity {
 
-	@Serial
-	private static final long serialVersionUID = 1L;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
 
-	@Schema(description = "主键ID")
-	@TableId(type = IdType.ASSIGN_ID)
-	private Long id;
+    @Schema(description = "主键ID")
+    @TableId(type = IdType.ASSIGN_ID)
+    private Long id;
 
-	@Schema(description = "账号")
-	@TableField(value = "pin")
-	private String pin;
+    @Schema(description = "账号")
+    @TableField(value = "pin")
+    private String pin;
 
-	@Schema(description = "密码")
-	@TableField(value = "pwd")
-	private String pwd;
+    @Schema(description = "密码")
+    @TableField(value = "pwd")
+    private String pwd;
 
-	@Schema(description = "密码加盐")
-	@TableField(value = "pwd_salt")
-	private String pwdSalt;
+    @Schema(description = "密码加盐")
+    @TableField(value = "pwd_salt")
+    private String pwdSalt;
 
-	@Schema(description = "昵称")
-	@TableField(value = "nickname")
-	private String nickname;
+    @Schema(description = "昵称")
+    @TableField(value = "nickname")
+    private String nickname;
 
-	@Schema(description = "状态")
-	@TableField(value = "status")
-	private SysUserStatusEnum status;
+    @Schema(description = "状态")
+    @TableField(value = "status")
+    private SysUserStatusEnum status;
 
-	@Schema(description = "最后登录时刻")
-	@TableField(value = "last_login_at")
-	private LocalDateTime lastLoginAt;
+    @Schema(description = "最后登录时刻")
+    @TableField(value = "last_login_at")
+    private LocalDateTime lastLoginAt;
 
-	@Schema(description = "性别")
-	@TableField(value = "gender")
-	private GenderEnum gender;
+    @Schema(description = "性别")
+    @TableField(value = "gender")
+    private GenderEnum gender;
 
-	@Schema(description = "邮箱")
-	@TableField(value = "email")
-	private String email;
+    @Schema(description = "邮箱")
+    @TableField(value = "email")
+    private String email;
 
-	@Schema(description = "手机号")
-	@TableField(value = "phone_no")
-	private String phoneNo;
+    @Schema(description = "手机号")
+    @TableField(value = "phone_no")
+    private String phoneNo;
 
-	@Schema(description = "头像URL")
-	@TableField(value = "avatar_url")
-	private String avatarUrl;
+    @Schema(description = "头像URL")
+    @TableField(value = "avatar_url")
+    private String avatarUrl;
 
 
-	public static SysUserEntity of(AdminUpdateMyProfileRequest dto) {
-		SysUserEntity ret = new SysUserEntity();
-		ret.setNickname(dto.getNickname())
-		   .setGender(dto.getGender())
-		   .setEmail(dto.getEmail())
-		   .setPhoneNo(dto.getPhoneNo());
-		return ret;
-	}
+    public static SysUserEntity of(AdminUpdateMyProfileRequest source) {
+        SysUserEntity ret = new SysUserEntity();
+        ret.setNickname(source.getNickname())
+                .setGender(source.getGender())
+                .setEmail(source.getEmail())
+                .setPhoneNo(source.getPhoneNo());
+        return ret;
+    }
 
-	public static SysUserEntity of(AdminUpdateMyAvatarRequest dto) {
-		SysUserEntity ret = new SysUserEntity();
-		ret.setAvatarUrl(dto.getAvatarUrl());
-		return ret;
-	}
+    public static SysUserEntity of(AdminUpdateMyAvatarRequest source) {
+        SysUserEntity ret = new SysUserEntity();
+        ret.setAvatarUrl(source.getAvatarUrl());
+        return ret;
+    }
 
 }
