@@ -8,6 +8,7 @@ import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
@@ -265,7 +266,13 @@ public class TenantServiceImpl implements TenantService {
         tenantMetaMapper.updateAdminUserId(tenantId, tenantUser.getNewUserId());
 
         if (pkg != null) {
-            // TODO 根据租户套餐，绑定租户管理员角色-菜单关联关系
+            // 根据租户套餐，绑定租户管理员角色-菜单关联关系
+            tenantUserRoleFacade.bindTenantRoleMenuRelation(new TenantRoleBindMenuRequest()
+                    .setTenantId(tenantId)
+                    .setTenantCode(tenantCode)
+                    .setRoleId(tenantRole.getNewRoleId())
+                    .setMenuIds(pkg.getMenuIds())
+            );
         }
     }
 

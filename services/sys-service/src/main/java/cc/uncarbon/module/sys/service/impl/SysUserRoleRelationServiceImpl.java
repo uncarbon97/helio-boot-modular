@@ -1,13 +1,9 @@
 package cc.uncarbon.module.sys.service.impl;
 
-import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
-import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.dal.entity.SysUserRoleRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
-import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,15 +76,5 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
     @Override
     public List<Long> listRoleIdsByUser(Long userId) {
         return sysUserRoleRelationMapper.listRoleIdsByUser(userId);
-    }
-
-    @Override
-    public void tenantUserBindRole(TenantUserBindRoleRequest request) {
-        TenantContextHolder.runWithContext(
-                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), null),
-                () -> {
-                    var self = SpringUtil.getBean(getClass());
-                    self.cleanAndBind(request.getUserId(), request.getRoleIds());
-                });
     }
 }

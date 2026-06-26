@@ -4,15 +4,13 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.base.util.StreamFunction;
 import cc.uncarbon.module.commons.constant.SQLSegment;
-import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
-import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
-import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
@@ -156,26 +154,19 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     @Override
     public TenantRoleCreateResult createTenantRole(TenantRoleCreateRequest request) {
-        try {
-            TenantContextHolder.setTenantContext(new SimpleTenantContext(
-                    request.getTenantId(), request.getTenantCode(), null));
-
-            var entity = new SysRoleEntity();
-            BeanUtil.copyProperties(request, entity);
-            // 按需改写字段
-            if (request.isTenantAdmin()) {
-                entity
-                        .setCode(SysConstant.SUPER_ADMIN_ROLE_CODE)
-                        .setName("主管理员")
-                        .setDescription("具有所有功能权限和全部数据可见范围")
-                        .assignFlags(List.of(SysRoleFlagEnum.BUILTIN));
-            }
-
-            sysRoleMapper.insert(entity);
-            return new TenantRoleCreateResult(entity.getId(), request.isTenantAdmin());
-        } finally {
-            TenantContextHolder.clear();
+        var entity = new SysRoleEntity();
+        BeanUtil.copyProperties(request, entity);
+        // 按需改写字段
+        if (request.isTenantAdmin()) {
+            entity
+                    .setCode(SysConstant.SUPER_ADMIN_ROLE_CODE)
+                    .setName("主管理员")
+                    .setDescription("具有所有功能权限和全部数据可见范围")
+                    .assignFlags(List.of(SysRoleFlagEnum.BUILTIN));
         }
+
+        sysRoleMapper.insert(entity);
+        return new TenantRoleCreateResult(entity.getId(), request.isTenantAdmin());
     }
 
     /**

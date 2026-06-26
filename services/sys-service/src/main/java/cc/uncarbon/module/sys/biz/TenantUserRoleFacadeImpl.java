@@ -5,12 +5,14 @@ import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
 import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.service.SysRoleService;
+import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cn.hutool.core.bean.BeanUtil;
@@ -33,21 +35,39 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
     private final SysRoleService sysRoleService;
     private final SysUserService sysUserService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
+    private final SysRoleMenuRelationService sysRoleMenuRelationService;
 
 
+    @SneakyThrows
     @Override
     public TenantRoleCreateResult createTenantRole(TenantRoleCreateRequest request) {
-        return sysRoleService.createTenantRole(request);
+        return TenantContextHolder.callWithContext(
+                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), request.getTenantCode()),
+                () -> sysRoleService.createTenantRole(request)
+        );
     }
 
+    @SneakyThrows
     @Override
     public TenantUserCreateResult createTenantUser(TenantUserCreateRequest request) {
-        return sysUserService.createTenantUser(request);
+        return TenantContextHolder.callWithContext(
+                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), request.getTenantCode()),
+                () -> sysUserService.createTenantUser(request)
+        );
     }
 
     @Override
     public void bindTenantUserRoleRelation(TenantUserBindRoleRequest request) {
-        sysUserRoleRelationService.tenantUserBindRole(request);
+        TenantContextHolder.runWithContext(
+                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), null),
+                () -> sysUserRoleRelationService.cleanAndBind(request.getUserId(), request.getRoleIds()));
+    }
+
+    @Override
+    public void bindTenantRoleMenuRelation(TenantRoleBindMenuRequest request) {
+        TenantContextHolder.runWithContext(
+                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), null),
+                () -> sysRoleMenuRelationService.cleanAndBind(request.getRoleId(), request.getMenuIds()));
     }
 
     @SneakyThrows

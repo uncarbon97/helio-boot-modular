@@ -3,8 +3,6 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
-import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -37,7 +35,6 @@ import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
@@ -161,29 +158,23 @@ public class SysUserServiceImpl implements SysUserService {
         return NoRecordException.throwIfNull(getById(id));
     }
 
-    @SneakyThrows
     @Override
     public TenantUserCreateResult createTenantUser(TenantUserCreateRequest request) {
-        return TenantContextHolder.callWithContext(
-                new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), request.getTenantCode()),
-                () -> {
-                    var entity = new SysUserEntity();
-                    BeanUtil.copyProperties(request, entity);
-                    // 按需改写字段
-                    String salt = IdUtil.randomUUID();
-                    entity
-                            .setPwd(PwdUtil.encrypt(request.getPwdPlain(), salt))
-                            .setPwdSalt(salt);
+        var entity = new SysUserEntity();
+        BeanUtil.copyProperties(request, entity);
+        // 按需改写字段
+        String salt = IdUtil.randomUUID();
+        entity
+                .setPwd(PwdUtil.encrypt(request.getPwdPlain(), salt))
+                .setPwdSalt(salt);
 
-                    if (request.isTenantAdmin()) {
-                        entity
-                                .setNickname(request.getTenantName() + "主管理员")
-                                .setStatus(SysUserStatusEnum.ENABLED);
-                    }
-                    sysUserMapper.insert(entity);
-                    return new TenantUserCreateResult(entity.getId(), request.isTenantAdmin());
-                }
-        );
+        if (request.isTenantAdmin()) {
+            entity
+                    .setNickname(request.getTenantName() + "主管理员")
+                    .setStatus(SysUserStatusEnum.ENABLED);
+        }
+        sysUserMapper.insert(entity);
+        return new TenantUserCreateResult(entity.getId(), request.isTenantAdmin());
     }
 
     @Override

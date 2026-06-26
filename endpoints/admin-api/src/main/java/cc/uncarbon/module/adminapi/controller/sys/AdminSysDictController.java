@@ -3,6 +3,7 @@ package cc.uncarbon.module.adminapi.controller.sys;
 import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.model.request.IdsRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
@@ -46,7 +47,7 @@ public class AdminSysDictController {
         return ApiResult.success(sysDictService.adminListCategory(query));
     }
 
-    // @SysOperateLog(value = "新增字典分类")
+    @SysOperateLog(operation = "新增字典分类")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增字典分类")
     @PostMapping(value = "/category/create")

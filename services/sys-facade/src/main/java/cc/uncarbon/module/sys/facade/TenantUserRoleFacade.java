@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.facade;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
@@ -30,6 +31,11 @@ public interface TenantUserRoleFacade {
      * 绑定租户相关的系统用户-系统角色关联关系
      */
     void bindTenantUserRoleRelation(TenantUserBindRoleRequest request);
+
+    /**
+     * 绑定租户角色-菜单关联关系
+     */
+    void bindTenantRoleMenuRelation(TenantRoleBindMenuRequest request);
 
     /**
      * 查询租户用户基本资料
