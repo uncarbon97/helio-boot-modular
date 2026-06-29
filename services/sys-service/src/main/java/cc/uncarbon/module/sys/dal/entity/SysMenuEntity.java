@@ -48,7 +48,7 @@ public class SysMenuEntity extends AbstractTenantGenericEntity {
 	@TableField(value = "menu_type")
 	private MenuTypeEnum menuType;
 
-	@Schema(description = "菜单权限标识")
+	@Schema(description = "授权标识")
 	@TableField(value = "permission")
 	private String permission;
 

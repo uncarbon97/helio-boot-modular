@@ -39,7 +39,7 @@ public class SysMenuDTO implements Serializable {
     @Schema(description = "菜单类型")
     private MenuTypeEnum menuType;
 
-    @Schema(description = "菜单权限标识")
+    @Schema(description = "授权标识")
     private String permission;
 
     @Schema(description = "状态")

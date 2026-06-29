@@ -42,7 +42,7 @@ public class AdminSysMenuUpsertRequest implements Serializable {
     @Size(max = 255, message = "前端组件名称最长{max}位")
     private String component;
 
-    @Schema(description = "菜单权限标识")
+    @Schema(description = "授权标识")
     @Size(max = 255, message = "权限标识最长{max}位")
     private String permission;
 
