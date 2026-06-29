@@ -48,7 +48,7 @@ public class SaTokenConfiguration implements StpInterface, WebMvcConfigurer {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        UserContext u = UserContextHolder.get();
+        UserContext u = UserContextHolder.getContext();
         if (u != null) {
             Collection<String> roleCodes = u.getRoleCodes();
             if (roleCodes instanceof List<String> asList) {
