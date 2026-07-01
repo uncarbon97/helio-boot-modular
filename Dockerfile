@@ -1,5 +1,5 @@
 # https://hub.docker.com/_/eclipse-temurin/tags
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 COPY ./bootstrap/target/*.jar ./app.jar
 COPY docker-entrypoint.sh /
 RUN chmod +x ./docker-entrypoint.sh && \

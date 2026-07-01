@@ -9,7 +9,7 @@ spring:
     import:
       # 通过子配置拆分，提高可读性
       - classpath:configs/spring.yml
-      - classpath:configs/helium.yml
+      - classpath:configs/framework.yml
       - classpath:configs/dependencies.yml
 
 --- # 指定日志级别

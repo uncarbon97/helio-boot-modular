@@ -1,7 +1,7 @@
 # 外部依赖的配置，都写在本文件内
 ---
 
-## 接口文档
+# 接口文档
 nextdoc4j:
   auth:
     enabled: true
@@ -11,7 +11,7 @@ springdoc:
   default-flat-param-object: true
 
 ---
-## SA-Token；详细配置文档：https://sa-token.cc/doc.html#/use/config
+# SA-Token；详细配置文档：https://sa-token.cc/doc.html#/use/config
 sa-token:
   # token名称
   token-name: Authorization
@@ -32,7 +32,7 @@ sa-token:
   active-timeout: -1
 
 ---
-## MyBatis-Plus
+# MyBatis-Plus
 mybatis-plus:
   # XML扫描，支持统配符 * 或者 , 分割
   mapper-locations: classpath*:/mapper/**/*.xml, classpath*:/**/mapper/xml/*.xml
