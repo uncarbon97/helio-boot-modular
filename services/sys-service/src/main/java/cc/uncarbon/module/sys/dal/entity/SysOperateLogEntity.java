@@ -42,13 +42,13 @@ public class SysOperateLogEntity extends AbstractTenantGenericEntity {
 	@TableField(exist = false)
 	private String updatedBy;
 
-	@Schema(description = "主模块")
-	@TableField(value = "main_module")
-	private String mainModule;
+	@Schema(description = "业务类型")
+	@TableField(value = "biz_type")
+	private String bizType;
 
-	@Schema(description = "副模块")
-	@TableField(value = "sub_module")
-	private String subModule;
+	@Schema(description = "行为")
+	@TableField(value = "behavior")
+	private String behavior;
 
 	@Schema(description = "业务号")
 	@TableField(value = "biz_no")

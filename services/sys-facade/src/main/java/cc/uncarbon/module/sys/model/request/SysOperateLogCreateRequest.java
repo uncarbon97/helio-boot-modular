@@ -19,11 +19,11 @@ import java.io.Serializable;
 @Data
 public class SysOperateLogCreateRequest implements Serializable {
 
-    @Schema(description = "主模块")
-    private String mainModule;
+    @Schema(description = "业务类型")
+    private String bizType;
 
-    @Schema(description = "副模块")
-    private String subModule;
+    @Schema(description = "行为")
+    private String behavior;
 
     @Schema(description = "业务号")
     private String bizNo;
