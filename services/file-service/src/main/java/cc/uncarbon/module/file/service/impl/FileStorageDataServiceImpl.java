@@ -14,6 +14,7 @@ import cc.uncarbon.module.file.service.FileStorageDataService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,8 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         request.setId(null);
         var entity = new FileStorageEntity();
         BeanUtil.copyProperties(request, entity);
+        // 按需改写字段
+        serializeSetting(request, entity);
 
         fileStorageMapper.insert(entity);
         return entity.getId();
@@ -77,6 +80,8 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
 
         var entity = new FileStorageEntity();
         BeanUtil.copyProperties(request, entity);
+        // 按需改写字段
+        serializeSetting(request, entity);
 
         fileStorageMapper.updateById(entity);
     }
@@ -163,6 +168,15 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         if (entity != null) {
             throw new HasRepeatRecordException("已存在相同的存储点编码");
         }
+    }
+
+    /**
+     * 对设置类进行序列化
+     */
+    private static void serializeSetting(AdminFileStorageUpsertRequest request, FileStorageEntity entity) {
+        var settingInstance
+                = BeanUtil.copyProperties(request.getSettingBody(), request.getPlatformType().getSettingClass());
+        entity.setSettingJson(JSONUtil.toJsonStr(settingInstance));
     }
 
 }
