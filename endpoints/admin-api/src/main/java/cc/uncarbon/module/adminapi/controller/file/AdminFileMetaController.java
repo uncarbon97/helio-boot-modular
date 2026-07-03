@@ -3,13 +3,14 @@ package cc.uncarbon.module.adminapi.controller.file;
 
 import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
+import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.model.request.IdRequest;
-import cc.uncarbon.module.commons.model.request.IdsRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.file.model.query.AdminFileMetaListQuery;
-import cc.uncarbon.module.file.model.request.AdminFileMetaUpsertRequest;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.service.FileMetaService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
@@ -24,8 +25,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
+
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "后台管理-文件管理")
+@Tag(name = "后台管理-" + AdminFileMetaController.BIZ_TYPE)
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/file/file")
 @RequiredArgsConstructor
 @RestController
@@ -34,6 +37,7 @@ public class AdminFileMetaController {
 
     // 功能权限串前缀
     private static final String PERMISSION_PREFIX = "File:";
+    static final String BIZ_TYPE = "文件管理";
 
     private final FileMetaService fileMetaService;
 
@@ -52,27 +56,16 @@ public class AdminFileMetaController {
         return ApiResult.success(fileMetaService.getNonnullById(request.getId()));
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
-    @Operation(summary = "新增")
-    @PostMapping(value = "/create")
-    public ApiResult<Void> create(@RequestBody @Valid AdminFileMetaUpsertRequest request) {
-        fileMetaService.adminCreate(request);
-        return ApiResult.success();
-    }
-
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
-    @Operation(summary = "修改")
-    @PostMapping(value = "/update")
-    public ApiResult<Void> update(@RequestBody @Valid AdminFileMetaUpsertRequest request) {
-        fileMetaService.adminUpdate(request);
-        return ApiResult.success();
-    }
-
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除文件",
+            bizNo = "{{#request.id}}", success = "被操作文件：{{#old.storageFilename}}.{{#old.extendName}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
-    public ApiResult<Void> delete(@RequestBody @Valid IdsRequest<Long> request) {
-        fileMetaService.adminDelete(request.getIds());
+    public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
+        var old = fileMetaService.getNonnullById(request.getId());
+        fileMetaService.adminDelete(Set.of(request.getId()));
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 

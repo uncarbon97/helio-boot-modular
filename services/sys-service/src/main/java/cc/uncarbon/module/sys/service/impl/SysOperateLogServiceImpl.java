@@ -75,7 +75,6 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
         return NoRecordException.throwIfNull(getById(id));
     }
 
-
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long create(SysOperateLogCreateRequest request) {

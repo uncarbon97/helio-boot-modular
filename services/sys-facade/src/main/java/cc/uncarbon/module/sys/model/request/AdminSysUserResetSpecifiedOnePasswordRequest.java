@@ -12,13 +12,13 @@ import java.io.Serializable;
 
 
 /**
- * 系统用户-后台管理-重置其他用户密码
+ * 系统用户-后台管理-重置指定用户密码
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminSysUserResetOthersPwdRequest implements Serializable {
+public class AdminSysUserResetSpecifiedOnePasswordRequest implements Serializable {
 
     @Schema(description = "用户ID")
     private Long userId;

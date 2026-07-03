@@ -18,7 +18,7 @@ import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserResetOthersPwdRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysUserResetSpecifiedOnePasswordRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
@@ -178,7 +178,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public void adminResetSpecifiedUserPassword(AdminSysUserResetOthersPwdRequest request) {
+    public void adminResetSpecifiedUserPassword(AdminSysUserResetSpecifiedOnePasswordRequest request) {
         checkBeforeUpdate(request.getUserId(), null);
         checkExistence(request.getUserId());
         var user = sysUserMapper.selectById(request.getUserId());
@@ -187,7 +187,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public void adminBindRoles(AdminSysUserBindRoleRequest request) {
+    public void adminBindRole(AdminSysUserBindRoleRequest request) {
         checkBeforeBindUserRoleRelation(request);
         sysUserRoleRelationService.cleanAndBind(request.getUserId(), request.getRoleIds());
     }

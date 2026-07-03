@@ -13,7 +13,7 @@ import java.io.Serializable;
 
 
 /**
- * 租户-修改
+ * 租户-后台管理-修改主数据
  */
 @Accessors(chain = true)
 @AllArgsConstructor

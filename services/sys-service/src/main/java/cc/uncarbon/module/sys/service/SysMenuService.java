@@ -52,7 +52,7 @@ public interface SysMenuService {
     /**
      * 后台管理-取可用菜单
      */
-    List<SysMenuDTO> adminListAvailableMenus();
+    List<SysMenuDTO> adminListVisibleMenus();
 
     /**
      * 列举角色可见的菜单权限串集合

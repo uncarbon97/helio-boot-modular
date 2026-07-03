@@ -4,7 +4,6 @@ import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
 import cc.uncarbon.module.file.model.query.AdminFileMetaListQuery;
-import cc.uncarbon.module.file.model.request.AdminFileMetaUpsertRequest;
 import cc.uncarbon.module.file.model.request.FileAttrExtraRequest;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
@@ -22,16 +21,6 @@ public interface FileMetaService {
      * 后台管理-分页查询
      */
     PageResult<FileMetaDTO> adminList(AdminFileMetaListQuery query);
-
-    /**
-     * 后台管理-新增
-     */
-    Long adminCreate(AdminFileMetaUpsertRequest request);
-
-    /**
-     * 后台管理-修改
-     */
-    void adminUpdate(AdminFileMetaUpsertRequest request);
 
     /**
      * 后台管理-删除

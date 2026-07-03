@@ -1,8 +1,8 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
-import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.constant.SQLSegment;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDeptMapper;
@@ -12,7 +12,6 @@ import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 import cc.uncarbon.module.sys.service.SysDeptService;
-import cc.uncarbon.module.sys.service.SysRoleService;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -39,7 +38,6 @@ public class SysDeptServiceImpl implements SysDeptService {
 
     private final SysDeptMapper sysDeptMapper;
     private final SysUserDeptRelationService sysUserDeptRelationService;
-    private final SysRoleService sysRoleService;
     private final UserRoleHelper userRoleHelper;
 
 
@@ -87,6 +85,8 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
+        // 解除关联关系
+        ids.forEach(sysUserDeptRelationService::cleanAllBindings);
         sysDeptMapper.deleteByIds(ids);
     }
 

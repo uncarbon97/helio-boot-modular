@@ -50,7 +50,7 @@ public interface SysRoleService {
     SysRoleDTO getNonnullById(Long id) throws NoRecordException;
 
     /**
-     * 后台管理-绑定菜单
+     * 后台管理-绑定角色菜单
      *
      * @return 新菜单ID集合对应的权限名
      */

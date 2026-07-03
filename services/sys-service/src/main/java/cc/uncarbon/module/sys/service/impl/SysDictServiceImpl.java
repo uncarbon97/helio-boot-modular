@@ -95,6 +95,14 @@ public class SysDictServiceImpl implements SysDictService {
         sysDictCategoryMapper.deleteByIds(ids);
     }
 
+    @Override
+    public SysDictCategoryDTO getCategoryNonnullById(Long id) throws NoRecordException {
+        if (id == null) {
+            throw new NoRecordException();
+        }
+        return NoRecordException.throwIfNull(convertEntity(sysDictCategoryMapper.selectById(id)));
+    }
+
     /**
      * 后台管理-分页查询字典分类下的字典项
      */
@@ -156,6 +164,14 @@ public class SysDictServiceImpl implements SysDictService {
         sysDictItemMapper.delete(new LambdaQueryWrapper<SysDictItemEntity>()
                 .in(SysDictItemEntity::getId, ids)
         );
+    }
+
+    @Override
+    public SysDictItemDTO getItemNonnullById(Long id) throws NoRecordException {
+        if (id == null) {
+            throw new NoRecordException();
+        }
+        return NoRecordException.throwIfNull(convertEntity(sysDictItemMapper.selectById(id)));
     }
 
     /**

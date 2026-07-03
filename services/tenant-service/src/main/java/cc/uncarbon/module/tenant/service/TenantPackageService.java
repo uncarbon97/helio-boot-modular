@@ -3,7 +3,7 @@ package cc.uncarbon.module.tenant.service;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.tenant.model.query.AdminTenantPackageListQuery;
-import cc.uncarbon.module.tenant.model.request.AdminBindPackageMenuRelationDTO;
+import cc.uncarbon.module.tenant.model.request.AdminTenantPackageBindMenuRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageUpsertRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
 
@@ -36,9 +36,9 @@ public interface TenantPackageService {
     void adminDelete(Collection<Long> ids);
 
     /**
-     * 后台管理-绑定套餐与菜单关联关系
+     * 后台管理-绑定租户套餐菜单
      */
-    Set<String> adminBindMenus(AdminBindPackageMenuRelationDTO dto);
+    Set<String> adminBindMenus(AdminTenantPackageBindMenuRequest dto);
 
     /**
      * 根据 ID 取详情

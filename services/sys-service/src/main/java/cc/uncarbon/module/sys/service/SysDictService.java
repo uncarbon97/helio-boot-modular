@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
@@ -40,6 +41,11 @@ public interface SysDictService {
     void adminDeleteCategory(Collection<Long> ids);
 
     /**
+     * 根据分类 ID 取详情，未取到会抛出 {@link NoRecordException}
+     */
+    SysDictCategoryDTO getCategoryNonnullById(Long id) throws NoRecordException;
+
+    /**
      * 后台管理-分页查询字典项
      */
     PageResult<SysDictItemDTO> adminListItem(AdminSysDictItemListQuery query);
@@ -58,6 +64,11 @@ public interface SysDictService {
      * 后台管理-删除字典项
      */
     void adminDeleteItem(Collection<Long> ids);
+
+    /**
+     * 根据字典项 ID 取详情，未取到会抛出 {@link NoRecordException}
+     */
+    SysDictItemDTO getItemNonnullById(Long id) throws NoRecordException;
 
     /**
      * 根据分类编码，查询下属字典项

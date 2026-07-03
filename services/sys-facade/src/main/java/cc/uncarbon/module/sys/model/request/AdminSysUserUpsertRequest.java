@@ -1,9 +1,7 @@
 package cc.uncarbon.module.sys.model.request;
 
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
-import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cn.hutool.core.lang.RegexPool;
-import cn.hutool.core.text.CharSequenceUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 
 /**
@@ -30,25 +27,15 @@ public class AdminSysUserUpsertRequest implements Serializable {
     @Schema(description = "主键ID", title = "仅修改时使用")
     private Long id;
 
-    @Schema(description = "所属租户ID", hidden = true, title = "仅新增时使用")
-    private Long tenantId;
-
     @Schema(description = "账号", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(min = 5, max = 16, message = "账号最短{min}位，最长{max}位")
     @NotBlank(message = "账号必填")
     private String pin;
 
-    @Schema(description = "密码字符串(仅注册时有效)")
-    private String passwordOfNewUser;
-
     @Schema(description = "昵称", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 20, message = "昵称最长{max}位")
     @NotBlank(message = "昵称必填")
     private String nickname;
-
-    @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "状态必填")
-    private SysUserStatusEnum status;
 
     @Schema(description = "性别", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "性别必填")
@@ -68,16 +55,5 @@ public class AdminSysUserUpsertRequest implements Serializable {
 
     @Schema(description = "所属部门ID")
     private Long deptId;
-
-
-    public void validate() {
-        boolean isUpdate = Objects.nonNull(id);
-        if (!isUpdate) {
-            int passwordOfNewUserLen = CharSequenceUtil.length(passwordOfNewUser);
-//            if (passwordOfNewUserLen < 8 || passwordOfNewUserLen > 20) {
-//                throw new BusinessException("密码最短8位，最长20位");
-//            }
-        }
-    }
 
 }

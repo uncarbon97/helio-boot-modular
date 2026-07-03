@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,19 +40,6 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
         return List.of(entity.getDeptId());
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void cleanAndBind(Long userId, Long deptId) {
-        sysUserDeptRelationMapper.delete(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
-                .eq(SysUserDeptRelationEntity::getUserId, userId)
-        );
-
-        if (Objects.nonNull(deptId)) {
-            // 需要绑定部门
-            sysUserDeptRelationMapper.insert(SysUserDeptRelationEntity.of(userId, deptId));
-        }
-    }
-
     @Override
     public Set<Long> listUserIdsByDepts(Collection<Long> deptIds) {
         if (CollUtil.isEmpty(deptIds)) {
@@ -65,4 +53,23 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
         ).stream().map(SysUserDeptRelationEntity::getUserId).collect(Collectors.toSet());
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void cleanAndBind(Long userId, @Nullable Long deptId) {
+        sysUserDeptRelationMapper.delete(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+                .eq(SysUserDeptRelationEntity::getUserId, userId)
+        );
+
+        if (Objects.nonNull(deptId)) {
+            // 需要绑定部门
+            sysUserDeptRelationMapper.insert(SysUserDeptRelationEntity.of(userId, deptId));
+        }
+    }
+
+    @Override
+    public void cleanAllBindings(long deptId) {
+        sysUserDeptRelationMapper.delete(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+                .eq(SysUserDeptRelationEntity::getDeptId, deptId)
+        );
+    }
 }

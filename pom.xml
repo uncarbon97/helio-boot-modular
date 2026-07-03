@@ -22,7 +22,7 @@
         <!-- 根据实际开发的 JDK 版本确定 -->
         <java.version>25</java.version>
 
-        <!-- 固定跨模块共享代码版本 -->
+        <!-- 固定跨模块共享契约版本 -->
         <commons.version>0.0.0-SNAPSHOT</commons.version>
 
         <!-- 固定其他第三方依赖版本 -->
@@ -46,7 +46,7 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- 跨模块共享代码 -->
+            <!-- 跨模块共享契约 -->
             <dependency>
                 <groupId>cc.uncarbon.module</groupId>
                 <artifactId>commons</artifactId>

@@ -4,7 +4,7 @@ import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserResetOthersPwdRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysUserResetSpecifiedOnePasswordRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
@@ -54,11 +54,11 @@ public interface SysUserService {
     /**
      * 后台管理-重置指定用户密码
      */
-    void adminResetSpecifiedUserPassword(AdminSysUserResetOthersPwdRequest request);
+    void adminResetSpecifiedUserPassword(AdminSysUserResetSpecifiedOnePasswordRequest request);
 
     /**
-     * 后台管理-绑定用户与角色关联关系
+     * 后台管理-绑定用户角色
      */
-    void adminBindRoles(AdminSysUserBindRoleRequest request);
+    void adminBindRole(AdminSysUserBindRoleRequest request);
 
 }

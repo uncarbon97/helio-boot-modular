@@ -8,7 +8,6 @@ import cc.uncarbon.module.file.dal.entity.FileMetaEntity;
 import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
 import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
 import cc.uncarbon.module.file.model.query.AdminFileMetaListQuery;
-import cc.uncarbon.module.file.model.request.AdminFileMetaUpsertRequest;
 import cc.uncarbon.module.file.model.request.FileAttrExtraRequest;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
@@ -63,30 +62,6 @@ public class FileMetaServiceImpl implements FileMetaService {
                         .orderByDesc(FileMetaEntity::getId)
         );
         return convertPage(entityPage);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public Long adminCreate(AdminFileMetaUpsertRequest request) {
-        checkRepeat(request);
-
-        request.setId(null);
-        var entity = new FileMetaEntity();
-        BeanUtil.copyProperties(request, entity);
-
-        fileMetaMapper.insert(entity);
-        return entity.getId();
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void adminUpdate(AdminFileMetaUpsertRequest request) {
-        checkRepeat(request);
-
-        var entity = new FileMetaEntity();
-        BeanUtil.copyProperties(request, entity);
-
-        fileMetaMapper.updateById(entity);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -178,7 +153,7 @@ public class FileMetaServiceImpl implements FileMetaService {
     /**
      * 检查是否存在重复
      */
-    private void checkRepeat(AdminFileMetaUpsertRequest request) {
+    private void checkRepeat(AdminFileMetaUpdateRequest request) {
         /*
         视业务解禁、修改本段代码
         var entity = fileMetaMapper.selectOne(new LambdaQueryWrapper<FileMetaEntity>()

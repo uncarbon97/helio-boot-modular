@@ -124,7 +124,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     @Override
-    public List<SysMenuDTO> adminListAvailableMenus() {
+    public List<SysMenuDTO> adminListVisibleMenus() {
         Set<Long> visibleMenuIds = listCurrentUserVisibleMenuIds();
         return listByIds(visibleMenuIds, MenuTypeEnum.all());
     }

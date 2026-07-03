@@ -24,7 +24,7 @@ import java.util.Collection;
 public class IdsRequest<T extends Serializable> implements Serializable {
 
     @Schema(description = "主键ID数组", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotEmpty(message = "【主键ID数组】必填")
+    @NotEmpty(message = "ID必填")
     private Collection<T> ids;
 
 }

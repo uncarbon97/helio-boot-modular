@@ -8,7 +8,7 @@ import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMapper;
 import cc.uncarbon.module.tenant.model.query.AdminTenantPackageListQuery;
-import cc.uncarbon.module.tenant.model.request.AdminBindPackageMenuRelationDTO;
+import cc.uncarbon.module.tenant.model.request.AdminTenantPackageBindMenuRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageUpsertRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
 import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
@@ -125,7 +125,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Set<String> adminBindMenus(AdminBindPackageMenuRelationDTO dto) {
+    public Set<String> adminBindMenus(AdminTenantPackageBindMenuRequest dto) {
         tenantPackageMenuRelationService.cleanAndBind(dto.getPackageId(), dto.getMenuIds());
         return Set.of();
     }

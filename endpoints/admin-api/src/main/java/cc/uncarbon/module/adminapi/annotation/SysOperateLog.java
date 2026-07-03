@@ -1,65 +1,64 @@
 package cc.uncarbon.module.adminapi.annotation;
 
+import cc.uncarbon.framework.helium.bizlog.annotation.LogRecord;
+
 import java.lang.annotation.*;
 
 
 /**
  * 放在 Controller 方法上，记录操作日志
+ * 固定 namespace = "SysOperateLog"
  */
+@LogRecord(namespace = "SysOperateLog")
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Inherited
 public @interface SysOperateLog {
 
     /**
-     * 操作内容，如「新增部门」
+     * @return 业务类型，比如：订单、商品
      */
-    String operation();
+    String bizType();
 
     /**
-     * 主模块
+     * @return 行为，比如：创建订单、修改商品
      */
-    String mainModule() default "";
+    String behavior();
 
     /**
-     * 副模块
-     */
-    String subModule() default "";
-
-    /**
-     * 业务号
+     * @return 日志绑定的业务标识
      */
     String bizNo() default "";
 
     /**
-     * 额外业务信息
+     * @return 方法执行成功后的日志模版
      */
-    String bizExtra() default "";
+    String success();
 
     /**
-     * 是否同步保存至系统操作日志数据表中
-     * true = 同步保存：如果开启了事务/事务注解，若系统操作日志保存失败，则会抛出异常触发回滚，使得本次操作也失败
-     * false = 异步保存：若系统操作日志保存失败，不影响本次操作
+     * @return 方法执行失败后的日志模版
      */
-    boolean syncSave() default false;
+    String fail() default "";
 
     /**
-     * 保存系统操作日志至数据表的时机
-     * 默认为仅「成功时」
-     * 多个输入值间默认为「或」关系
+     * @return 操作人（支持 SpEL，留空则走 {@code IOperatorGetService} 解析）
      */
-    When[] when() default When.SUCCESS;
-    enum When {
-        /**
-         * 成功时
-         */
-        SUCCESS,
+    String operator() default "";
 
-        /**
-         * 失败时
-         */
-        FAILED,
-    }
+    /**
+     * @return 日志的额外信息
+     */
+    String extra() default "";
 
+    /**
+     * @return 是否记录日志的条件（SpEL，留空表示始终记录）
+     */
+    String condition() default "";
+
+    /**
+     * 记录成功日志的条件。
+     *
+     * @return 表示成功的表达式，默认为空，代表不抛异常即为成功
+     */
+    String successCondition() default "";
 }

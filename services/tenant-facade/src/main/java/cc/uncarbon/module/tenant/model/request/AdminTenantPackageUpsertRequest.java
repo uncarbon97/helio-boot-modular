@@ -14,7 +14,7 @@ import java.util.Collection;
 
 
 /**
- * 租户套餐-新增/修改
+ * 租户套餐-后台管理-新增/修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor
