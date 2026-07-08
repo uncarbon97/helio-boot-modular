@@ -3,6 +3,7 @@ package cc.uncarbon.module.file.model.valueobj;
 
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.file.enums.PlatformTypeEnum;
+import cc.uncarbon.module.file.model.setting.storage.FileStorageSetting;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,7 +41,7 @@ public class FileStorageDTO implements Serializable {
     private PlatformTypeEnum platformType;
 
     @Schema(description = "配置属性")
-    private String settingJson;
+    private FileStorageSetting settingBody;
 
     @Schema(description = "主存储点标识")
     private YesOrNoEnum primaryFlag;

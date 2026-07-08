@@ -55,6 +55,10 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
                         // 排序
                         .orderByDesc(FileStorageEntity::getId)
         );
+        if (CollUtil.isNotEmpty(entityPage.getRecords())) {
+            // 列表查询时不必返回配置属性
+            entityPage.getRecords().forEach(item -> item.setSettingJson(null));
+        }
         return convertPage(entityPage);
     }
 
@@ -127,6 +131,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         var ret = new FileStorageDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
+        deserializeSetting(ret, entity);
         return ret;
     }
 
@@ -171,12 +176,24 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
     }
 
     /**
-     * 对设置类进行序列化
+     * 把配置属性转换成JSON字符串
      */
     private static void serializeSetting(AdminFileStorageUpsertRequest request, FileStorageEntity entity) {
-        var settingInstance
-                = BeanUtil.copyProperties(request.getSettingBody(), request.getPlatformType().getSettingClass());
-        entity.setSettingJson(JSONUtil.toJsonStr(settingInstance));
+        if (request.getSettingBody() != null) {
+            var settingInstance
+                    = BeanUtil.copyProperties(request.getSettingBody(), request.getPlatformType().getSettingClass());
+            entity.setSettingJson(JSONUtil.toJsonStr(settingInstance));
+        }
     }
 
+    /**
+     * 从JSON字符串解析出配置属性类
+     */
+    private static void deserializeSetting(FileStorageDTO ret, FileStorageEntity entity) {
+        if (JSONUtil.isTypeJSONObject(entity.getSettingJson())) {
+            var settingInstance
+                    = BeanUtil.copyProperties(entity.getSettingJson(), entity.getPlatformType().getSettingClass());
+            ret.setSettingBody(settingInstance);
+        }
+    }
 }

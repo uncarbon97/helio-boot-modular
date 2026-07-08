@@ -3,7 +3,6 @@ package cc.uncarbon.module.file.model.request;
 
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.file.enums.PlatformTypeEnum;
-import cc.uncarbon.module.file.model.setting.storage.FileStorageSetting;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * 文件存储点-后台管理-新增/修改
@@ -42,9 +42,8 @@ public class AdminFileStorageUpsertRequest implements Serializable {
     private PlatformTypeEnum platformType;
 
     @Schema(description = "配置属性", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 3000, message = "配置属性最长{max}位")
-    @NotBlank(message = "配置属性必填")
-    private FileStorageSetting settingBody;
+    @NotNull(message = "配置属性必填")
+    private Map<String, Object> settingBody;
 
     @Schema(description = "主存储点标识", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "主存储点标识必填")
