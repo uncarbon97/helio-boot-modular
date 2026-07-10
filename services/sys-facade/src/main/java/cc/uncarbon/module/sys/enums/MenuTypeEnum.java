@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.enums;
 
 import cc.uncarbon.framework.helium.base.enums.BaseEnum;
+import cc.uncarbon.module.commons.enumdict.EnumDict;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +13,7 @@ import java.util.List;
 /**
  * 预置系统菜单类型枚举
  */
+@EnumDict(name = "菜单类型")
 @AllArgsConstructor
 @Getter
 public enum MenuTypeEnum implements BaseEnum<Integer> {
@@ -52,13 +54,6 @@ public enum MenuTypeEnum implements BaseEnum<Integer> {
      */
     public static List<MenuTypeEnum> forAdminSide() {
         return Arrays.asList(DIR, MENU, EXTERNAL_LINK);
-    }
-
-    /**
-     * 用于系统管理-绑定角色与菜单关联关系
-     */
-    public static List<MenuTypeEnum> forAdminBindMenus() {
-        return Arrays.asList(DIR, MENU, BUTTON, EXTERNAL_LINK);
     }
 
 }

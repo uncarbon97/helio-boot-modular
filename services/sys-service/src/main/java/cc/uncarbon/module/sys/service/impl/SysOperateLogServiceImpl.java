@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.resoler.IPLocationResolver;
+import cc.uncarbon.module.commons.iplocation.IPLocationResolver;
 import cc.uncarbon.module.sys.dal.entity.SysOperateLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
 import cc.uncarbon.module.sys.model.query.AdminSysOperateLogListQuery;

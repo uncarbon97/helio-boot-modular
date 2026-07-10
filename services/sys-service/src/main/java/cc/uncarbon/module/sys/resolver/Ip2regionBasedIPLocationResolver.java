@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.resolver;
 
-import cc.uncarbon.module.commons.resoler.IPLocationResolver;
+import cc.uncarbon.module.commons.iplocation.IPLocationResolver;
 import cn.hutool.core.net.Ipv4Util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

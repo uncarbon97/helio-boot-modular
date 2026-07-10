@@ -35,11 +35,11 @@ public class SysDictItemDTO implements Serializable {
     @Schema(description = "字典项编码")
     private String code;
 
-    @Schema(description = "字典项标签")
-    private String label;
-
     @Schema(description = "字典项值")
     private String value;
+
+    @Schema(description = "字典项标签")
+    private String label;
 
     @Schema(description = "状态")
     private EnabledStatusEnum status;

@@ -13,6 +13,7 @@ import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysDictItemUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysDictBuiltinDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysDictCategoryDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
 import cc.uncarbon.module.sys.service.SysDictService;
@@ -81,7 +82,7 @@ public class AdminSysDictController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除字典分类")
     @PostMapping(value = "/category/delete")
-    public ApiResult<Void> deleteClassified(@RequestBody @Valid IdRequest<Long> request) {
+    public ApiResult<Void> deleteCategory(@RequestBody @Valid IdRequest<Long> request) {
         var old = sysDictService.getCategoryNonnullById(request.getId());
         sysDictService.adminDeleteCategory(Set.of(request.getId()));
         // 用于操作日志
@@ -130,5 +131,12 @@ public class AdminSysDictController {
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
+    }
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @Operation(summary = "分页查询内置字典分类")
+    @PostMapping(value = "/builtin/list")
+    public ApiResult<PageResult<SysDictBuiltinDTO>> listBuiltin(AdminSysDictCategoryListQuery query) {
+        return ApiResult.success(sysDictService.adminListBuiltin(query));
     }
 }

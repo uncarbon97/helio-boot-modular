@@ -3,7 +3,7 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.resoler.IPLocationResolver;
+import cc.uncarbon.module.commons.iplocation.IPLocationResolver;
 import cc.uncarbon.module.sys.dal.entity.SysLoginLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysLoginLogMapper;
 import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;

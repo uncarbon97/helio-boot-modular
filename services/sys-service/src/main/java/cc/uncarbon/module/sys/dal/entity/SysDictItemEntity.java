@@ -40,13 +40,13 @@ public class SysDictItemEntity extends AbstractTenantGenericEntity {
     @TableField(value = "code")
     private String code;
 
-    @Schema(description = "字典项标签")
-    @TableField(value = "label")
-    private String label;
-
     @Schema(description = "字典项值")
     @TableField(value = "value")
     private String value;
+
+    @Schema(description = "字典项标签")
+    @TableField(value = "label")
+    private String label;
 
     @Schema(description = "状态")
     @TableField(value = "status")

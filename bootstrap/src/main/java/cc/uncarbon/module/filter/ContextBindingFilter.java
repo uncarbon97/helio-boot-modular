@@ -26,7 +26,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-
+/**
+ * 上下文绑定过滤器
+ * 覆盖 {@link VisitorContext}、{@link UserContext} 和 {@link TenantContext}
+ *
+ * @author Uncarbon
+ */
 @Order(ServletFilterOrder.CONTEXT_BINDING_FILTER)
 @Component
 public class ContextBindingFilter extends OncePerRequestFilter {

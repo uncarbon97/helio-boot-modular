@@ -15,9 +15,9 @@ spring:
 --- # 指定日志级别
 logging:
   level:
-    cc.uncarbon.framework: INFO
-    cc.uncarbon.module: INFO
-    cc.uncarbon.test: INFO
+    "cc.uncarbon.framework": INFO
+    "cc.uncarbon.module": INFO
+    "cc.uncarbon.test": INFO
 
 --- # app-api
 app-api:

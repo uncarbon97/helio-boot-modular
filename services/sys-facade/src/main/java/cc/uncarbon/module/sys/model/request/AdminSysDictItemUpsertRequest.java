@@ -34,15 +34,15 @@ public class AdminSysDictItemUpsertRequest implements Serializable {
     @NotBlank(message = "字典项编码必填")
     private String code;
 
-    @Schema(description = "字典项标签", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 100, message = "字典项标签最长{max}位")
-    @NotBlank(message = "字典项标签必填")
-    private String label;
-
     @Schema(description = "字典项值", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 10000, message = "字典项值最长{max}位")
     @NotBlank(message = "字典项值必填")
     private String value;
+
+    @Schema(description = "字典项标签", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 100, message = "字典项标签最长{max}位")
+    @NotBlank(message = "字典项标签必填")
+    private String label;
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "状态必填")

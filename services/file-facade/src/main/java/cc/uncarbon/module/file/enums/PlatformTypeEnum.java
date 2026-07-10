@@ -1,7 +1,7 @@
 package cc.uncarbon.module.file.enums;
 
-import cc.uncarbon.framework.helium.base.annotation.EnumDict;
 import cc.uncarbon.framework.helium.base.enums.BaseEnum;
+import cc.uncarbon.module.commons.enumdict.EnumDict;
 import cc.uncarbon.module.file.model.setting.storage.*;
 import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
@@ -13,7 +13,7 @@ import java.util.Locale;
 /**
  * 存储平台类型枚举
  */
-@EnumDict
+@EnumDict(name = "文件存储平台")
 @AllArgsConstructor
 @Getter
 public enum PlatformTypeEnum implements BaseEnum<String> {

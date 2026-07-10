@@ -2,11 +2,13 @@ package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.enumdict.EnumDict;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysDictItemUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysDictBuiltinDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysDictCategoryDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
 import org.jspecify.annotations.NonNull;
@@ -24,6 +26,15 @@ public interface SysDictService {
      * 后台管理-分页查询字典分类
      */
     PageResult<SysDictCategoryDTO> adminListCategory(AdminSysDictCategoryListQuery query);
+
+    /**
+     * 后台管理-分页查询内置枚举字典
+     * <p>
+     * 数据来源：启动时扫描标了 {@link EnumDict} 且
+     * {@code enabled=true} 的 {@link cc.uncarbon.framework.helium.base.enums.BaseEnum} 枚举，缓存于内存；
+     * 在内存中按 code/name 模糊匹配并分页返回
+     */
+    PageResult<SysDictBuiltinDTO> adminListBuiltin(AdminSysDictCategoryListQuery query);
 
     /**
      * 后台管理-新增字典分类

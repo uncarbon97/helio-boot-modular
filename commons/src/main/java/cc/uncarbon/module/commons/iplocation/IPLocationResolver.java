@@ -1,4 +1,4 @@
-package cc.uncarbon.module.commons.resoler;
+package cc.uncarbon.module.commons.iplocation;
 
 /**
  * IP 地址归属地解析器

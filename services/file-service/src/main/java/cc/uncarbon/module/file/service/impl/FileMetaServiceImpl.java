@@ -150,26 +150,4 @@ public class FileMetaServiceImpl implements FileMetaService {
                 .setRecords(convertList(entityPage.getRecords()));
     }
 
-    /**
-     * 检查是否存在重复
-     */
-    private void checkRepeat(AdminFileMetaUpdateRequest request) {
-        /*
-        视业务解禁、修改本段代码
-        var entity = fileMetaMapper.selectOne(new LambdaQueryWrapper<FileMetaEntity>()
-                // 仅取主键ID
-                .select(FileMetaEntity::getId)
-                // 并非原地更新
-                .ne(Objects.nonNull(request.getId()), FileMetaEntity::getId, request.getId())
-                // 编码相同
-                .eq(FileMetaEntity::getCode, request.getCode())
-                .last(SQLSegment.LIMIT_1)
-        );
-
-        if (entity != null) {
-            throw new HasRepeatRecordException("已存在相同的编码");
-        }
-        */
-    }
-
 }
