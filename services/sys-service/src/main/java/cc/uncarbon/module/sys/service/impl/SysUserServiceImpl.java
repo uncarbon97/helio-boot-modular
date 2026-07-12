@@ -4,6 +4,7 @@ import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.constant.SQLSegment;
+import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.constant.SysConstant;
@@ -17,6 +18,7 @@ import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysUserBindDeptRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserResetSpecifiedOnePasswordRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
@@ -126,8 +128,10 @@ public class SysUserServiceImpl implements SysUserService {
     public void adminUpdate(AdminSysUserUpsertRequest request) {
         log.info(LOG_PREFIX + "修改 >> {}", request);
         checkExistence(request.getId());
-        checkBeforeUpdate(request.getId(), request.getStatus());
+        checkBeforeUpdate(request.getId(), null);
         checkRepeat(request);
+        // 目标部门必须在当前用户可见部门树内，防止借调岗越权扩大数据范围
+        checkDeptAccess(request.getDeptId());
 
         var entity = new SysUserEntity();
         BeanUtil.copyProperties(request, entity);
@@ -141,6 +145,11 @@ public class SysUserServiceImpl implements SysUserService {
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
         checkBeforeDelete(ids);
+        // 解除该用户的部门/角色关联，避免孤儿关系行
+        ids.forEach(id -> {
+            sysUserDeptRelationService.cleanAndBind(id, null);      // null = 解除全部部门绑定
+            sysUserRoleRelationService.cleanAndBind(id, null);  // 空集 = 解除全部角色绑定
+        });
         sysUserMapper.deleteByIds(ids);
     }
 
@@ -190,6 +199,15 @@ public class SysUserServiceImpl implements SysUserService {
     public void adminBindRole(AdminSysUserBindRoleRequest request) {
         checkBeforeBindUserRoleRelation(request);
         sysUserRoleRelationService.cleanAndBind(request.getUserId(), request.getRoleIds());
+    }
+
+    @Override
+    public void adminBindDept(AdminSysUserBindDeptRequest request) {
+        // bind-dept 由 @SaCheckPermission("SysUser:bindDept") 授权，属跨部门调岗操作，
+        // 不做可见部门域/可见用户域限制；仅保留最小保护：禁动自身、禁动管理员账户、存在性
+        checkBeforeBindDept(request.getUserId());
+        checkExistence(request.getUserId());
+        sysUserDeptRelationService.cleanAndBind(request.getUserId(), request.getDeptId());
     }
 
     /*
@@ -270,7 +288,7 @@ public class SysUserServiceImpl implements SysUserService {
      * 新增前检查
      */
     private void checkBeforeCreate(AdminSysUserUpsertRequest request) {
-//        checkDeptAccess(request);
+        checkDeptAccess(request.getDeptId());
     }
 
     /**
@@ -389,16 +407,44 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     /**
-     * 检查当前用户，是否有访问特定部门的权限
+     * 调整用户部门前检查
+     * bind-dept 为权限授权的跨部门操作，不做可见范围限制；仅防止越权改动管理员账户
      */
-    private void checkDeptAccess(AdminSysUserUpsertRequest request) {
-        if (Objects.nonNull(request.getDeptId())) {
-            // 对传入的部门ID，做数据越权检查
-            UserDeptScope dept = sysDeptService.getCurrentUserDept(true);
-            if (dept.hasVisibleDepts() && !CollUtil.contains(dept.getVisibleDeptIds(), request.getDeptId())) {
-                // 传入的部门ID，不在当前用户可见范围内，阻止
-                throw new BusinessException(SysErrorCodeEnum.A01021);
-            }
+    private void checkBeforeBindDept(Long specifiedUserId) {
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (me.isSuperAdmin()) {
+            // 超级管理员为所欲为
+            return;
+        }
+        if (Objects.equals(specifiedUserId, UserContextHolder.getUserId())) {
+            // 不能动自身用户
+            throw new BusinessException(SysErrorCodeEnum.A01020);
+        }
+        UserRoleScope specifiedUser = userRoleHelper.getSpecifiedUserRole(specifiedUserId);
+        if (specifiedUser.isSuperAdmin() || specifiedUser.isTenantAdmin()) {
+            // 目标是超级管理员or租户管理员时，不能调动
+            throw new BusinessException(SysErrorCodeEnum.A01021);
+        }
+    }
+
+    /**
+     * 检查当前用户，是否有访问特定部门的权限
+     *
+     * @param deptId 目标部门ID，为 null 时不校验（视为解除绑定）
+     */
+    private void checkDeptAccess(Long deptId) {
+        if (Objects.isNull(deptId)) {
+            return;
+        }
+        // 持有跨部门调岗权限者（如 HR），可跨部门管理，不受可见部门域限制
+        if (StpKit.ADMIN.hasPermission(SysConstant.PERMISSION_SYS_USER_BIND_DEPT)) {
+            return;
+        }
+        // 对传入的部门ID，做数据越权检查
+        UserDeptScope dept = sysDeptService.getCurrentUserDept(true);
+        if (dept.hasVisibleDepts() && !CollUtil.contains(dept.getVisibleDeptIds(), deptId)) {
+            // 传入的部门ID，不在当前用户可见范围内，阻止
+            throw new BusinessException(SysErrorCodeEnum.A01021);
         }
     }
 

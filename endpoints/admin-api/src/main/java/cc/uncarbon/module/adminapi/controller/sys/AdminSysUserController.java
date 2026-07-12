@@ -11,12 +11,13 @@ import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysUserBindDeptRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserResetSpecifiedOnePasswordRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
-import cc.uncarbon.module.sys.service.impl.SysUserServiceImpl;
+import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
@@ -40,10 +41,11 @@ import java.util.Set;
 @Slf4j
 public class AdminSysUserController {
 
-    private static final String PERMISSION_PREFIX = "SysUser:" ;
-    static final String BIZ_TYPE = "系统用户管理" ;
+    private static final String PERMISSION_PREFIX = "SysUser:";
+    private static final String BIND_DEPT_PERMISSION = PERMISSION_PREFIX + "bindDept";
+    static final String BIZ_TYPE = "系统用户管理";
 
-    private final SysUserServiceImpl sysUserService;
+    private final SysUserService sysUserService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
 
 
@@ -121,6 +123,19 @@ public class AdminSysUserController {
         sysUserService.adminBindRole(request);
         // 为了快速更新对应权限；可以视业务需要决定是否删除该代码
         kickOutAsync(request.getUserId());
+        // 用于操作日志
+        var old = sysUserService.getNonnullById(request.getUserId());
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "调整用户部门",
+            bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}，目标部门ID：{{#request.deptId}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = BIND_DEPT_PERMISSION)
+    @Operation(summary = "调整用户所属部门")
+    @PostMapping(value = "/bind-dept")
+    public ApiResult<Void> bindDept(@RequestBody @Valid AdminSysUserBindDeptRequest request) {
+        sysUserService.adminBindDept(request);
         // 用于操作日志
         var old = sysUserService.getNonnullById(request.getUserId());
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);

@@ -34,4 +34,10 @@ public final class SysConstant {
      */
     public static final String TENANT_ADMIN_ROLE_CODE = "Admin";
 
+    /**
+     * 调整用户部门权限标识
+     * 持有者可跨部门管理用户部门，不受可见部门域限制（如 HR）
+     */
+    public static final String PERMISSION_SYS_USER_BIND_DEPT = "SysUser:bindDept";
+
 }

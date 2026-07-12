@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantRelationEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractRelationEntity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -24,7 +24,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_user_dept_relation")
-public class SysUserDeptRelationEntity extends AbstractTenantRelationEntity {
+public class SysUserDeptRelationEntity extends AbstractRelationEntity {
 
 	@Serial
 	private static final long serialVersionUID = 1L;

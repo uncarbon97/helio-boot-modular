@@ -14,7 +14,7 @@ public interface SysRoleMenuRelationService {
     Set<Long> listMenuIdsByRoles(Collection<Long> roleIds);
 
     /**
-     * 绑定角色与菜单关联关系，增量更新
+     * 绑定角色菜单，增量更新
      */
     void cleanAndBind(Long roleId, Collection<Long> menuIds);
 }

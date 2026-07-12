@@ -7,6 +7,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,7 +42,7 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void cleanAndBind(Long userId, Collection<Long> roleIds) {
+    public void cleanAndBind(Long userId, @Nullable Collection<Long> roleIds) {
         var roleIdsQuery = new LambdaQueryWrapper<SysUserRoleRelationEntity>()
                 .select(SysUserRoleRelationEntity::getRoleId)
                 .eq(SysUserRoleRelationEntity::getUserId, userId);

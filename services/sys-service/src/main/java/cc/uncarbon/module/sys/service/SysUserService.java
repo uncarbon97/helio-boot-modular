@@ -3,6 +3,7 @@ package cc.uncarbon.module.sys.service;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysUserBindDeptRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserResetSpecifiedOnePasswordRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
@@ -60,5 +61,10 @@ public interface SysUserService {
      * 后台管理-绑定用户角色
      */
     void adminBindRole(AdminSysUserBindRoleRequest request);
+
+    /**
+     * 后台管理-绑定用户部门（调整所属部门）
+     */
+    void adminBindDept(AdminSysUserBindDeptRequest request);
 
 }

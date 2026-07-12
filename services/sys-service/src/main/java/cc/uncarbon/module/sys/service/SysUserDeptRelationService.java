@@ -23,7 +23,7 @@ public interface SysUserDeptRelationService {
     Set<Long> listUserIdsByDepts(Collection<Long> deptIds);
 
     /**
-     * 绑定用户与部门关联关系
+     * 绑定用户部门
      * @param deptId 如果为 null，表示解除绑定
      */
     void cleanAndBind(Long userId, @Nullable Long deptId);
