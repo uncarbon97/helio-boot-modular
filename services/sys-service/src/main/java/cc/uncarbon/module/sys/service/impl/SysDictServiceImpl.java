@@ -28,10 +28,10 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ClassUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.context.ApplicationContext;
@@ -253,18 +253,22 @@ public class SysDictServiceImpl implements SysDictService {
      * @return 存在则返回字典项列表；不存在或没有符合的字典项，均返回空列表
      */
     @Override
-    public List<SysDictItemDTO> listItemsByCategory(@Nonnull String categoryCode, @Nullable EnabledStatusEnum itemStatus) {
+    public List<SysDictItemDTO> listItemsByCategory(@NonNull String categoryCode, @Nullable EnabledStatusEnum itemStatus) {
+        SysDictBuiltinDTO builtinDict = BUILTIN_DICT_CACHE.get(categoryCode);
+        if (Objects.nonNull(builtinDict) && CollUtil.isNotEmpty(builtinDict.getItems())) {
+            return builtinDict.getItems().stream().toList();
+        }
+
         SysDictCategoryEntity category =
                 sysDictCategoryMapper.selectByCodeAndStatus(categoryCode, EnabledStatusEnum.ENABLED);
         if (Objects.isNull(category)) {
             return List.of();
         }
-        return convertList(
-                sysDictItemMapper.selectList(new LambdaQueryWrapper<SysDictItemEntity>()
+        return convertList(sysDictItemMapper.selectList(new LambdaQueryWrapper<SysDictItemEntity>()
                         // 分类ID
                         .eq(SysDictItemEntity::getCategoryId, category.getId())
                         // 状态
-                        .eq(SysDictItemEntity::getStatus, EnabledStatusEnum.ENABLED)
+                        .eq(Objects.nonNull(itemStatus), SysDictItemEntity::getStatus, itemStatus)
                         // 排序
                         .orderByAsc(SysDictItemEntity::getSort)
                 )

@@ -1,5 +1,6 @@
 package cc.uncarbon.module.adminapi.controller.selectoption;
 
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
 import cc.uncarbon.module.adminapi.model.response.AdminSelectOptionItemVO;
@@ -7,8 +8,10 @@ import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysDeptService;
+import cc.uncarbon.module.sys.service.SysDictService;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -28,23 +32,32 @@ import java.util.List;
  * {@code @SaCheckLogin(type = StpLoginType.ADMIN)} 表示只有登录后才能请求
  */
 @Tag(name = "后台管理-#下拉框数据源接口")
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/list-select-option")
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/select-option")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
 public class AdminSelectOptionController {
 
+    private final SysDictService sysDictService;
     private final SysRoleService sysRoleService;
     private final SysDeptService sysDeptService;
 
+
+    @SaCheckLogin(type = StpLoginType.ADMIN)
+    @Operation(summary = "字典下拉框")
+    @PostMapping(value = "/dict")
+    public ApiResult<List<AdminSelectOptionItemVO>> dict(@RequestParam("code") String code) {
+        return ApiResult.success(AdminSelectOptionItemVO.ofCollection(sysDictService.listItemsByCategory(code, EnabledStatusEnum.ENABLED),
+                SysDictItemDTO::getCode, SysDictItemDTO::getLabel)
+        );
+    }
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
     @Operation(summary = "系统角色下拉框")
     @PostMapping(value = "/sys/role")
     public ApiResult<List<AdminSelectOptionItemVO>> role() {
         return ApiResult.success(AdminSelectOptionItemVO.ofCollection(sysRoleService.adminListSelectOption(),
-                SysRoleDTO::getId, SysRoleDTO::getName)
-        );
+                SysRoleDTO::getId, SysRoleDTO::getName));
     }
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
@@ -55,8 +68,7 @@ public class AdminSelectOptionController {
         // false = 只能看到本部门及以下
         boolean hasBindDeptPerm = StpKit.ADMIN.hasPermission(AdminPermissionConstant.BIND_DEPT);
         return ApiResult.success(AdminSelectOptionItemVO.ofCollection(sysDeptService.adminListSelectOption(!hasBindDeptPerm),
-                SysDeptDTO::getId, SysDeptDTO::getName, SysDeptDTO::getParentId)
-        );
+                SysDeptDTO::getId, SysDeptDTO::getName, SysDeptDTO::getParentId));
     }
 
 }
