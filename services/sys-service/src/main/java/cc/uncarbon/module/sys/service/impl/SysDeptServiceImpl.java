@@ -91,7 +91,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     @Override
-    public List<SysDeptDTO> adminSelectOptions(boolean inferiorsOnly) {
+    public List<SysDeptDTO> adminListSelectOption(boolean inferiorsOnly) {
         if (inferiorsOnly) {
             UserRoleScope me = userRoleHelper.getCurrentUserRole();
             if (me.isNotAnyAdmin()) {

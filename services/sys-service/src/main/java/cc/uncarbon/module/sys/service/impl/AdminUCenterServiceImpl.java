@@ -8,7 +8,6 @@ import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminUpdateMyPasswordRequest;
 import cc.uncarbon.module.sys.model.request.AdminUpdateMyProfileRequest;
 import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
-import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.AdminUCenterService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.module.sys.util.PwdUtil;
@@ -34,7 +33,7 @@ public class AdminUCenterServiceImpl implements AdminUCenterService {
 
     @Override
     public MyProfileDTO getMyProfile() {
-        SysUserDTO me = sysUserService.getNonnullById(UserContextHolder.getUserId());
+        var me = sysUserService.getNonnullEntityById(UserContextHolder.getUserId());
         var ret = new MyProfileDTO();
         BeanUtil.copyProperties(me, ret);
         return ret;

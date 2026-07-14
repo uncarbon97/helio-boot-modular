@@ -6,29 +6,35 @@ import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
+import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
+import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
-import cc.uncarbon.module.sys.model.request.AdminSysUserBindDeptRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserResetSpecifiedOnePasswordRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
+import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -42,7 +48,6 @@ import java.util.Set;
 public class AdminSysUserController {
 
     private static final String PERMISSION_PREFIX = "SysUser:";
-    private static final String BIND_DEPT_PERMISSION = PERMISSION_PREFIX + "bindDept";
     static final String BIZ_TYPE = "系统用户管理";
 
     private final SysUserService sysUserService;
@@ -68,8 +73,9 @@ public class AdminSysUserController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
-    public ApiResult<Void> create(@RequestBody @Valid AdminSysUserUpsertRequest request) {
-        sysUserService.adminCreate(request);
+    public ApiResult<Void> create(@RequestBody @Valid AdminSysUserCreateRequest request) {
+        boolean hasBindDeptPerm = StpKit.ADMIN.hasPermission(AdminPermissionConstant.BIND_DEPT);
+        sysUserService.adminCreate(request, hasBindDeptPerm);
         return ApiResult.success();
     }
 
@@ -78,7 +84,7 @@ public class AdminSysUserController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
-    public ApiResult<Void> update(@RequestBody @Valid AdminSysUserUpsertRequest request) {
+    public ApiResult<Void> update(@RequestBody @Valid AdminSysUserUpdateRequest request) {
         var old = sysUserService.getNonnullById(request.getId());
         sysUserService.adminUpdate(request);
         // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
@@ -131,14 +137,29 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "调整用户部门",
             bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}，目标部门ID：{{#request.deptId}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = BIND_DEPT_PERMISSION)
-    @Operation(summary = "调整用户所属部门")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = AdminPermissionConstant.BIND_DEPT)
+    @Operation(summary = "调整用户部门")
     @PostMapping(value = "/bind-dept")
     public ApiResult<Void> bindDept(@RequestBody @Valid AdminSysUserBindDeptRequest request) {
-        sysUserService.adminBindDept(request);
         // 用于操作日志
         var old = sysUserService.getNonnullById(request.getUserId());
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改用户状态",
+            success = "被操作用户ID：{{#request.ids[0]}}，新状态：{{#request.newStatus.label}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @Operation(summary = "修改用户状态")
+    @PostMapping(value = "/set-status")
+    public ApiResult<Void> setStatus(@RequestBody @Valid AdminBatchSetStatusRequest<Long, SysUserStatusEnum> request) {
+        // 只处理第一个
+        request.setIds(List.of(CollUtil.getFirst(request.getIds())));
+
+        sysUserService.adminSetStatus(request);
+        if (request.getNewStatus() == SysUserStatusEnum.DISABLED) {
+            kickOutAsync(request.getIds());
+        }
         return ApiResult.success();
     }
 
@@ -172,8 +193,15 @@ public class AdminSysUserController {
      * 异步强制登出指定用户
      */
     private static void kickOutAsync(long userId) {
+        kickOutAsync(Set.of(userId));
+    }
+
+    /**
+     * 异步强制登出指定用户
+     */
+    private static void kickOutAsync(Collection<Long> userIds) {
         SpringUtil.publishEvent(new KickOutSysUsersEvent(
-                new KickOutSysUsersEvent.EventData(Set.of(userId))
+                new KickOutSysUsersEvent.EventData(userIds)
         ));
     }
 }

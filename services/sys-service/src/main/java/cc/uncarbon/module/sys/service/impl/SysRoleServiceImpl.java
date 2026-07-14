@@ -138,7 +138,7 @@ public class SysRoleServiceImpl implements SysRoleService {
      * 后台管理-下拉框数据
      */
     @Override
-    public List<SysRoleDTO> adminSelectOptions() {
+    public List<SysRoleDTO> adminListSelectOption() {
         Set<Long> invisibleRoleIds = userRoleHelper.listInvisibleRoleIds();
         List<SysRoleEntity> entityList = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
                 // 只取特定字段

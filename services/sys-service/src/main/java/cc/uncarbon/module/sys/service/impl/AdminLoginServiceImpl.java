@@ -75,7 +75,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                             throw new BusinessException(SysErrorCodeEnum.A01001);
                         }
 
-                        if (SysUserStatusEnum.BANNED == ref.userEntity.getStatus()) {
+                        if (SysUserStatusEnum.DISABLED == ref.userEntity.getStatus()) {
                             throw new BusinessException(SysErrorCodeEnum.A01004);
                         }
 

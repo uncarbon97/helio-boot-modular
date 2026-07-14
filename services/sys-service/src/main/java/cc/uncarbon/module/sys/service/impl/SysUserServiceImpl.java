@@ -4,9 +4,9 @@ import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.constant.SQLSegment;
-import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
@@ -18,11 +18,7 @@ import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
-import cc.uncarbon.module.sys.model.request.AdminSysUserBindDeptRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserResetSpecifiedOnePasswordRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserUpsertRequest;
-import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
+import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
@@ -35,10 +31,10 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,10 +99,10 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Long adminCreate(AdminSysUserUpsertRequest request) {
+    public Long adminCreate(AdminSysUserCreateRequest request, boolean hasBindDeptPerm) {
         log.info(LOG_PREFIX + "新增 >> {}", request);
         checkRepeat(request);
-        checkBeforeCreate(request);
+        checkBeforeCreate(request, hasBindDeptPerm);
 
         request.setId(null);
         var entity = new SysUserEntity();
@@ -115,8 +111,10 @@ public class SysUserServiceImpl implements SysUserService {
         String salt = IdUtil.randomUUID();
         entity
                 .setPin(request.getPin())
-                .setPwd(PwdUtil.encrypt(request.getPasswordOfNewUser(), salt))
-                .setPwdSalt(salt);
+                .setPwd(PwdUtil.encrypt(request.getInitPwd(), salt))
+                .setPwdSalt(salt)
+                // 默认新用户是禁用状态
+                .setStatus(SysUserStatusEnum.DISABLED);
 
         sysUserMapper.insert(entity);
         sysUserDeptRelationService.cleanAndBind(entity.getId(), request.getDeptId());
@@ -125,19 +123,30 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminUpdate(AdminSysUserUpsertRequest request) {
+    public void adminUpdate(AdminSysUserUpdateRequest request) {
         log.info(LOG_PREFIX + "修改 >> {}", request);
         checkExistence(request.getId());
-        checkBeforeUpdate(request.getId(), null);
         checkRepeat(request);
-        // 目标部门必须在当前用户可见部门树内，防止借调岗越权扩大数据范围
-        checkDeptAccess(request.getDeptId());
+        checkBeforeUpdate(request.getId());
 
         var entity = new SysUserEntity();
         BeanUtil.copyProperties(request, entity);
 
         sysUserMapper.updateById(entity);
-        sysUserDeptRelationService.cleanAndBind(request.getId(), request.getDeptId());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminSetStatus(AdminBatchSetStatusRequest<Long, SysUserStatusEnum> request) {
+        log.info(LOG_PREFIX + "修改状态 >> {}", request);
+        request.getIds().forEach(id -> {
+            checkExistence(id);
+            checkBeforeSetStatus(id, request.getNewStatus());
+        });
+        sysUserMapper.update(new LambdaUpdateWrapper<SysUserEntity>()
+                .set(SysUserEntity::getStatus, request.getNewStatus())
+                .in(SysUserEntity::getId, request.getIds())
+        );
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -168,6 +177,11 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
+    public SysUserEntity getNonnullEntityById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(sysUserMapper.selectById(id));
+    }
+
+    @Override
     public TenantUserCreateResult createTenantUser(TenantUserCreateRequest request) {
         var entity = new SysUserEntity();
         BeanUtil.copyProperties(request, entity);
@@ -188,7 +202,7 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public void adminResetSpecifiedUserPassword(AdminSysUserResetSpecifiedOnePasswordRequest request) {
-        checkBeforeUpdate(request.getUserId(), null);
+        checkBeforeUpdate(request.getUserId());
         checkExistence(request.getUserId());
         var user = sysUserMapper.selectById(request.getUserId());
         sysUserMapper.updateEncryptedPwd(user.getId(),
@@ -203,10 +217,8 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public void adminBindDept(AdminSysUserBindDeptRequest request) {
-        // bind-dept 由 @SaCheckPermission("SysUser:bindDept") 授权，属跨部门调岗操作，
-        // 不做可见部门域/可见用户域限制；仅保留最小保护：禁动自身、禁动管理员账户、存在性
-        checkBeforeBindDept(request.getUserId());
         checkExistence(request.getUserId());
+        checkBeforeBindDept(request.getUserId());
         sysUserDeptRelationService.cleanAndBind(request.getUserId(), request.getDeptId());
     }
 
@@ -231,7 +243,8 @@ public class SysUserServiceImpl implements SysUserService {
         if (fillDept) {
             Optional.ofNullable(sysDeptService.getSpecifiedUserDept(ret.getId(), false))
                     .map(UserDeptScope::primaryRelatedDept)
-                    .ifPresent(deptInfo -> ret.setDeptId(deptInfo.getId()).setDeptName(deptInfo.getName()));
+                    .ifPresent(dept -> ret.setDeptId(dept.getId())
+                            .setDeptName(dept.getName()));
         }
         return ret;
     }
@@ -264,7 +277,7 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 检查是否存在重复
      */
-    private void checkRepeat(AdminSysUserUpsertRequest request) {
+    private void checkRepeat(AdminSysUserUpdateRequest request) {
         var entity = sysUserMapper.getByPin(request.getPin());
         if (entity != null) {
             throw new HasRepeatRecordException("已存在相同的账号");
@@ -286,24 +299,21 @@ public class SysUserServiceImpl implements SysUserService {
 
     /**
      * 新增前检查
+     *
+     * @param hasBindDeptPerm 当前用户是否有「调整用户部门」权限
      */
-    private void checkBeforeCreate(AdminSysUserUpsertRequest request) {
-        checkDeptAccess(request.getDeptId());
+    private void checkBeforeCreate(AdminSysUserCreateRequest request, boolean hasBindDeptPerm) {
+        checkDeptAccess(request.getDeptId(), hasBindDeptPerm);
     }
 
     /**
      * 修改前检查
      *
      * @param specifiedUserId 被操作用户ID
-     * @param status          用户状态枚举，可以为null
      */
-    void checkBeforeUpdate(Long specifiedUserId, @Nullable SysUserStatusEnum status) {
+    void checkBeforeUpdate(Long specifiedUserId) {
         UserRoleScope me = userRoleHelper.getCurrentUserRole();
         if (me.isSuperAdmin()) {
-            // 超级管理员除禁用自己外为所欲为
-            if (status != SysUserStatusEnum.ENABLED && Objects.equals(specifiedUserId, UserContextHolder.getUserId())) {
-                throw new BusinessException(SysErrorCodeEnum.A01020);
-            }
             return;
         }
 
@@ -320,6 +330,21 @@ public class SysUserServiceImpl implements SysUserService {
 
         checkUserOperationAccess(Set.of(specifiedUserId));
         // 暂未实现角色层级，一律平级
+    }
+
+    /**
+     * 修改状态前检查
+     */
+    private void checkBeforeSetStatus(Long specifiedUserId, SysUserStatusEnum status) {
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (me.isSuperAdmin()) {
+            if (status != SysUserStatusEnum.ENABLED
+                    && Objects.equals(specifiedUserId, UserContextHolder.getUserId())) {
+                throw new BusinessException(SysErrorCodeEnum.A01020);
+            }
+            return;
+        }
+        checkBeforeUpdate(specifiedUserId);
     }
 
     /**
@@ -408,7 +433,7 @@ public class SysUserServiceImpl implements SysUserService {
 
     /**
      * 调整用户部门前检查
-     * bind-dept 为权限授权的跨部门操作，不做可见范围限制；仅防止越权改动管理员账户
+     * 不做可见范围限制；仅防止越权改动管理员账户
      */
     private void checkBeforeBindDept(Long specifiedUserId) {
         UserRoleScope me = userRoleHelper.getCurrentUserRole();
@@ -430,14 +455,15 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 检查当前用户，是否有访问特定部门的权限
      *
-     * @param deptId 目标部门ID，为 null 时不校验（视为解除绑定）
+     * @param deptId          目标部门ID，为 null 时不校验（视为解除绑定）
+     * @param hasBindDeptPerm 当前用户是否有「调整用户部门」权限
      */
-    private void checkDeptAccess(Long deptId) {
+    private void checkDeptAccess(Long deptId, boolean hasBindDeptPerm) {
         if (Objects.isNull(deptId)) {
             return;
         }
-        // 持有跨部门调岗权限者（如 HR），可跨部门管理，不受可见部门域限制
-        if (StpKit.ADMIN.hasPermission(SysConstant.PERMISSION_SYS_USER_BIND_DEPT)) {
+        // 持有跨部门调岗权限者（如高级 HR），可跨部门管理，不受可见部门域限制
+        if (hasBindDeptPerm) {
             return;
         }
         // 对传入的部门ID，做数据越权检查

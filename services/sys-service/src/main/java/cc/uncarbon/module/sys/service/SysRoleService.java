@@ -57,9 +57,9 @@ public interface SysRoleService {
     Set<String> adminBindMenu(AdminSysRoleBindMenuRequest dto);
 
     /**
-     * 后台管理-下拉框数据
+     * 后台管理-列举下拉框数据
      */
-    List<SysRoleDTO> adminSelectOptions();
+    List<SysRoleDTO> adminListSelectOption();
 
     /**
      * 新增租户角色

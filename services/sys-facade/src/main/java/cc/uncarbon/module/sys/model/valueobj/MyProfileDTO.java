@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,5 +41,8 @@ public class MyProfileDTO implements Serializable {
 
     @Schema(description = "头像URL")
     private String avatarUrl;
+
+    @Schema(description = "要求用户下次登录时修改密码")
+    private YesOrNoEnum requireNewPwdFlag;
 
 }

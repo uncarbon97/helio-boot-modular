@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -76,5 +77,9 @@ public class SysUserEntity extends AbstractTenantGenericEntity {
     @Schema(description = "头像URL")
     @TableField(value = "avatar_url")
     private String avatarUrl;
+
+    @Schema(description = "要求用户下次登录时修改密码")
+    @TableField(value = "require_new_pwd_flag")
+    private YesOrNoEnum requireNewPwdFlag;
 
 }

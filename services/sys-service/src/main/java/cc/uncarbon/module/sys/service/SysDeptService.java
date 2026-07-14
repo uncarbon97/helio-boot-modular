@@ -34,11 +34,11 @@ public interface SysDeptService {
     void adminDelete(Collection<Long> ids);
 
     /**
-     * 后台管理-下拉框数据
+     * 后台管理-列举下拉框数据
      *
      * @param inferiorsOnly 只能看到本部门及以下
      */
-    List<SysDeptDTO> adminSelectOptions(boolean inferiorsOnly);
+    List<SysDeptDTO> adminListSelectOption(boolean inferiorsOnly);
 
     /**
      * 根据 ID 取详情

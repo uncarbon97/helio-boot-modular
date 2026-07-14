@@ -15,7 +15,7 @@ import lombok.Getter;
 @Getter
 public enum SysUserStatusEnum implements BaseEnum<Integer> {
 
-    BANNED(0, "禁用"),
+    DISABLED(0, "禁用"),
     ENABLED(1, "正常"),
 
     ;@EnumValue

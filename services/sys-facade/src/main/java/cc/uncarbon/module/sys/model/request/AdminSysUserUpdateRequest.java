@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.model.request;
 
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cn.hutool.core.lang.RegexPool;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -16,13 +17,13 @@ import java.io.Serializable;
 
 
 /**
- * 系统用户-后台管理-新增/修改
+ * 系统用户-后台管理-修改
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminSysUserUpsertRequest implements Serializable {
+public class AdminSysUserUpdateRequest implements Serializable {
 
     @Schema(description = "主键ID", title = "仅修改时使用")
     private Long id;
@@ -31,6 +32,10 @@ public class AdminSysUserUpsertRequest implements Serializable {
     @Size(min = 5, max = 16, message = "账号最短{min}位，最长{max}位")
     @NotBlank(message = "账号必填")
     private String pin;
+
+    @Schema(description = "要求用户下次登录时修改密码", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "要求用户下次登录时修改密码必填")
+    private YesOrNoEnum requireNewPwdFlag;
 
     @Schema(description = "昵称", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 20, message = "昵称最长{max}位")
@@ -52,8 +57,5 @@ public class AdminSysUserUpsertRequest implements Serializable {
     @Size(max = 20, message = "手机号最长{max}位")
     @NotBlank(message = "手机号必填")
     private String phoneNo;
-
-    @Schema(description = "所属部门ID")
-    private Long deptId;
 
 }

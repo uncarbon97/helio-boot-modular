@@ -46,13 +46,19 @@ public class AdminUCenterController {
     private final HashidsHelper hashidsHelper;
 
 
-    @Operation(summary = "取当前用户信息资料")
+    @Operation(summary = "取当前用户资料")
     @PostMapping(value = "/profile/get")
     public ApiResult<MyProfileDTO> profileGet() {
         return ApiResult.success(adminUCenterService.getMyProfile());
     }
 
-    // @SysOperateLog(value = "修改当前用户密码")
+    @Operation(summary = "修改当前用户资料")
+    @PostMapping(value = "/profile/update")
+    public ApiResult<Void> profileUpdate(@RequestBody @Valid AdminUpdateMyProfileRequest request) {
+        adminUCenterService.updateMyProfile(request);
+        return ApiResult.success();
+    }
+
     @Operation(summary = "修改当前用户密码")
     @PostMapping(value = "/password/update")
     public ApiResult<Void> passwordUpdate(@RequestBody @Valid AdminUpdateMyPasswordRequest request) {
@@ -63,14 +69,7 @@ public class AdminUCenterController {
         return ApiResult.success();
     }
 
-    @Operation(summary = "更新当前用户信息资料")
-    @PostMapping(value = "/profile/update")
-    public ApiResult<Void> profileUpdate(@RequestBody @Valid AdminUpdateMyProfileRequest request) {
-        adminUCenterService.updateMyProfile(request);
-        return ApiResult.success();
-    }
-
-    @Operation(summary = "更新当前用户头像")
+    @Operation(summary = "修改当前用户头像")
     @PostMapping(value = "/avatar/update")
     public ApiResult<Void> avatarUpdate(@RequestBody FileUploadResultVO request) {
         // 不直接信任前端传来的，需先校验
