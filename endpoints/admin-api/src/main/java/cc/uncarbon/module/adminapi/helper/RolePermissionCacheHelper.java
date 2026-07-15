@@ -32,7 +32,12 @@ public class RolePermissionCacheHelper {
      * @return List<String>
      */
     public List<String> getCurrentUserPermissions() {
-        var rolesIds = UserContextHolder.getUserContext().getRoleIds();
+        var context = UserContextHolder.getContext();
+        if (context == null) {
+            return List.of();
+        }
+
+        var rolesIds = context.getRoleIds();
         if (CollUtil.isEmpty(rolesIds)) {
             return List.of();
         }
