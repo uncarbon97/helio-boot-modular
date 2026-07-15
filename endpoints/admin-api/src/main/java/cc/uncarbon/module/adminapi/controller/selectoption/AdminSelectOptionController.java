@@ -45,18 +45,18 @@ public class AdminSelectOptionController {
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
     @Operation(summary = "字典下拉框")
-    @PostMapping(value = "/dict")
+    @PostMapping(value = "/dict/by-category")
     public ApiResult<List<AdminSelectOptionItemVO>> dict(@RequestParam("code") String code) {
-        return ApiResult.success(AdminSelectOptionItemVO.ofCollection(sysDictService.listItemsByCategory(code, EnabledStatusEnum.ENABLED),
-                SysDictItemDTO::getCode, SysDictItemDTO::getLabel)
-        );
+        return ApiResult.success(AdminSelectOptionItemVO.ofValueLabelBatch(sysDictService.listItemsByCategory(code, EnabledStatusEnum.ENABLED),
+                SysDictItemDTO::getValue, SysDictItemDTO::getLabel,
+                (source, target) -> target.setDictItemCode(source.getCode())));
     }
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
     @Operation(summary = "系统角色下拉框")
     @PostMapping(value = "/sys/role")
     public ApiResult<List<AdminSelectOptionItemVO>> role() {
-        return ApiResult.success(AdminSelectOptionItemVO.ofCollection(sysRoleService.adminListSelectOption(),
+        return ApiResult.success(AdminSelectOptionItemVO.ofIdNameBatch(sysRoleService.adminListSelectOption(),
                 SysRoleDTO::getId, SysRoleDTO::getName));
     }
 
@@ -67,7 +67,7 @@ public class AdminSelectOptionController {
         // true = 让高级 HR 等角色可以调整用户部门，那就需要 TA 可以看到所有部门
         // false = 只能看到本部门及以下
         boolean hasBindDeptPerm = StpKit.ADMIN.hasPermission(AdminPermissionConstant.BIND_DEPT);
-        return ApiResult.success(AdminSelectOptionItemVO.ofCollection(sysDeptService.adminListSelectOption(!hasBindDeptPerm),
+        return ApiResult.success(AdminSelectOptionItemVO.ofIdNameParentBatch(sysDeptService.adminListSelectOption(!hasBindDeptPerm),
                 SysDeptDTO::getId, SysDeptDTO::getName, SysDeptDTO::getParentId));
     }
 
