@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cc.uncarbon.module.sys.dal.mapper.SysUserMapper">
+
+    <select id="pageNoDeptUser" resultType="cc.uncarbon.module.sys.dal.entity.SysUserEntity">
+        SELECT U.*
+        FROM sys_user U
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM sys_user_dept_relation UDR
+            WHERE UDR.user_id = U.id
+        )
+        <if test="phoneNo != null and phoneNo != ''">
+            AND U.phone_no LIKE CONCAT('%', #{phoneNo}, '%')
+        </if>
+        <if test="invisibleUserIds != null and !invisibleUserIds.isEmpty()">
+            AND U.id NOT IN
+            <foreach collection="invisibleUserIds" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        ORDER BY U.id DESC
+    </select>
+
+</mapper>

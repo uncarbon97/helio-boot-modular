@@ -97,6 +97,16 @@ public class SysUserServiceImpl implements SysUserService {
         return convertPage(entityPage, true);
     }
 
+    @Override
+    public PageResult<SysUserDTO> adminListNoDeptUsers(AdminSysUserListQuery query) {
+        Page<SysUserEntity> entityPage = sysUserMapper.pageNoDeptUser(
+                new Page<>(query.getPageNum(), query.getPageSize()),
+                CharSequenceUtil.cleanBlank(query.getPhoneNo()),
+                userRoleHelper.listInvisibleUserIds()
+        );
+        return convertPage(entityPage, false);
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long adminCreate(AdminSysUserCreateRequest request, boolean hasBindDeptPerm) {

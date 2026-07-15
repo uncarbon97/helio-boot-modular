@@ -20,6 +20,11 @@ public interface SysUserService {
     PageResult<SysUserDTO> adminList(AdminSysUserListQuery query);
 
     /**
+     * 后台管理-分页查询未分配部门的用户
+     */
+    PageResult<SysUserDTO> adminListNoDeptUsers(AdminSysUserListQuery query);
+
+    /**
      * 后台管理-新增
      *
      * @param hasBindDeptPerm 当前用户是否有「调整用户部门」权限
