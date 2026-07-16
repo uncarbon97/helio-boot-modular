@@ -242,7 +242,7 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 实体转值对象
      *
-     * @param fillDept 填充部门
+     * @param fillDept 是否填充部门
      */
     private SysUserDTO convertEntity(SysUserEntity entity, boolean fillDept) {
         if (entity == null) return null;
@@ -262,7 +262,7 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 实体转值对象
      *
-     * @param fillDept 填充部门
+     * @param fillDept 是否填充部门
      */
     List<SysUserDTO> convertList(List<SysUserEntity> entityList, boolean fillDept) {
         if (CollUtil.isEmpty(entityList)) {
@@ -274,7 +274,7 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 实体转值对象
      *
-     * @param fillDept 填充部门
+     * @param fillDept 是否填充部门
      */
     PageResult<SysUserDTO> convertPage(Page<SysUserEntity> entityPage, boolean fillDept) {
         return new PageResult<SysUserDTO>()

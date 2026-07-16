@@ -19,10 +19,11 @@ import java.util.Set;
 @Data
 public class AdminTenantPackageBindMenuRequest implements Serializable {
 
+
+    @Schema(description = "主键ID")
+    private Long id;
+
     @Schema(description = "菜单Ids(空=清理关联关系后不再绑定任何菜单)")
     private Set<Long> menuIds;
-
-    @Schema(description = "套餐ID", hidden = true)
-    private Long packageId;
 
 }

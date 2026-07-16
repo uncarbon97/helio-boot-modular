@@ -54,6 +54,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
             throw new BusinessException(tenant.getErrorCode());
         }
 
+        // 临时在 lambda 中保存变量
         var ref = new Object() {
             SysUserEntity userEntity = null;
             boolean loginSuccessFlag = false;
@@ -87,7 +88,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                         ret.setRoleIds(userRole.getRelatedRoleIds())
                                 .setRoleCodes(userRole.getRelatedRoles().stream().map(SysRoleEntity::getCode).toList())
                                 .setPermissions(permByRole.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()))
-                                .setRolePermissionMap(permByRole)
+                                .setPermByRole(permByRole)
                                 .setTenantContext(tenantContext);
 
                         sysUserMapper.updateLastLoginAt(ref.userEntity.getId(), LocalDateTimeUtil.now());
@@ -104,7 +105,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
         } finally {
             // 无论登录成功还是失败，都保存登录记录
             SysLoginLogCreateRequest logRequest = new SysLoginLogCreateRequest()
-                    .setLoginLogType(LoginLogTypeEnum.LOGIN)
+                    .setLoginLogType(LoginLogTypeEnum.PASSWORD_LOGIN)
                     .setUserPin(request.getPin())
                     .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER.getValue())
                     .setVisitorContext(visitorContext)

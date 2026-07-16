@@ -11,6 +11,7 @@ import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 租户用户、角色门面
@@ -36,6 +37,13 @@ public interface TenantUserRoleFacade {
      * 绑定租户角色-菜单关联关系
      */
     void bindTenantRoleMenuRelation(TenantRoleBindMenuRequest request);
+
+    /**
+     * 按租户套餐菜单同步租户角色菜单
+     *
+     * @return 返回租户内角色ID集合
+     */
+    Set<Long> syncTenantRoleMenus(long tenantId, Collection<Long> packageMenuIds);
 
     /**
      * 查询租户用户基本资料

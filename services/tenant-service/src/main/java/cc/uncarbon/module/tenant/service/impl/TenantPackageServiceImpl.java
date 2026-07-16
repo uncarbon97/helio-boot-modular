@@ -7,9 +7,13 @@ import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMapper;
+import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
+import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
+import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.tenant.model.query.AdminTenantPackageListQuery;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageBindMenuRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageUpsertRequest;
+import cc.uncarbon.module.tenant.model.valueobj.TenantPackageBindMenuResult;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
 import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
@@ -37,6 +41,8 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
     private final TenantPackageMapper tenantPackageMapper;
     private final TenantPackageMenuRelationService tenantPackageMenuRelationService;
+    private final TenantMetaMapper tenantMetaMapper;
+    private final TenantUserRoleFacade tenantUserRoleFacade;
 
 
     @Override
@@ -66,10 +72,6 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         BeanUtil.copyProperties(request, entity);
 
         tenantPackageMapper.insert(entity);
-
-        // 更新套餐-菜单关联关系
-        tenantPackageMenuRelationService.cleanAndBind(entity.getId(), request.getMenuIds());
-
         return entity.getId();
     }
 
@@ -84,36 +86,6 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         BeanUtil.copyProperties(request, entity);
 
         tenantPackageMapper.updateById(entity);
-
-        // 更新套餐-菜单关联关系
-        tenantPackageMenuRelationService.cleanAndBind(entity.getId(), request.getMenuIds());
-
-        // TODO 更新现有租户套餐
-//        @Override
-//        @Transactional(rollbackFor = Exception.class)
-//        public void updateTenantMenu(List<Long> newMenuIds, Long packageId) {
-//            List<Long> tenantIdList = this.listIdByPackageId(packageId);
-//            if (CollUtil.isEmpty(tenantIdList)) {
-//                return;
-//            }
-//            // 所有租户角色：删除旧菜单
-//            tenantIdList.forEach(tenantId -> TenantUtils.execute(tenantId, () -> {
-//                // 删除旧菜单
-//                roleMenuApi.deleteByNotInMenuIds(newMenuIds);
-//                // 更新在线用户上下文
-//                Set<Long> roleIdSet = roleMenuApi.listRoleIdByNotInMenuIds(newMenuIds);
-//                roleIdSet.forEach(roleApi::updateUserContext);
-//            }));
-//            // 租户管理员：新增菜单
-//            tenantIdList.forEach(tenantId -> TenantUtils.execute(tenantId, () -> {
-//                Long roleId = roleApi.getIdByCode(RoleCodeEnum.TENANT_ADMIN.getCode());
-//                roleMenuApi.add(newMenuIds, roleId);
-//                // 更新在线用户上下文
-//                roleApi.updateUserContext(roleId);
-//            }));
-//            // 删除缓存
-//            RedisUtils.deleteByPattern(CacheConstants.ROLE_MENU_KEY_PREFIX + StringConstants.ASTERISK);
-//        }
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -125,9 +97,22 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Set<String> adminBindMenus(AdminTenantPackageBindMenuRequest dto) {
-        tenantPackageMenuRelationService.cleanAndBind(dto.getPackageId(), dto.getMenuIds());
-        return Set.of();
+    public TenantPackageBindMenuResult adminBindMenu(AdminTenantPackageBindMenuRequest request) {
+        tenantPackageMenuRelationService.cleanAndBind(request.getId(), request.getMenuIds());
+
+        // 查询受影响的租户ID
+        List<TenantMetaEntity> affectedTenants = tenantMetaMapper.selectList(new LambdaQueryWrapper<TenantMetaEntity>()
+                .select(TenantMetaEntity::getId)
+                .eq(TenantMetaEntity::getPackageId, request.getId())
+        );
+
+        // 及租户内的所有角色
+        Map<Long, Set<Long>> tenantRoleIdsMap = new HashMap<>();
+        for (TenantMetaEntity tenant : affectedTenants) {
+            tenantRoleIdsMap.put(tenant.getId(),
+                    tenantUserRoleFacade.syncTenantRoleMenus(tenant.getId(), request.getMenuIds()));
+        }
+        return new TenantPackageBindMenuResult(request.getId(), tenantRoleIdsMap);
     }
 
     @Override
@@ -150,23 +135,25 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
     /**
      * 实体转值对象
+     *
+     * @param fillMenu 是否填充菜单
      */
     private TenantPackageDTO convertEntity(TenantPackageEntity entity, boolean fillMenu) {
         if (entity == null) return null;
 
-        TenantPackageDTO dto = new TenantPackageDTO();
-        BeanUtil.copyProperties(entity, dto);
-
+        var ret = new TenantPackageDTO();
+        BeanUtil.copyProperties(entity, ret);
+        // 按需改写字段
         if (fillMenu) {
-            dto.setMenuIds(
-                    tenantPackageMenuRelationService.listMenuIdsByPackage(dto.getId())
-            );
+            ret.setMenuIds(tenantPackageMenuRelationService.listMenuIdsByPackage(ret.getId()));
         }
-        return dto;
+        return ret;
     }
 
     /**
      * 实体转值对象
+     *
+     * @param fillMenu 是否填充菜单
      */
     private List<TenantPackageDTO> convertList(List<TenantPackageEntity> entityList, boolean fillMenu) {
         List<TenantPackageDTO> ret = new ArrayList<>(entityList.size());
@@ -178,6 +165,8 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
     /**
      * 实体转值对象
+     *
+     * @param fillMenu 是否填充菜单
      */
     private PageResult<TenantPackageDTO> convertPage(Page<TenantPackageEntity> entityPage, boolean fillMenu) {
         return new PageResult<TenantPackageDTO>()

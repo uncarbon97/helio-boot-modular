@@ -43,8 +43,8 @@ public class AdminLoginResult implements Serializable {
     @Schema(description = "关联菜单权限")
     private Set<String> permissions;
 
-    @Schema(description = "角色-权限 Map，用于更新缓存")
-    private Map<Long, Set<String>> rolePermissionMap;
+    @Schema(description = "角色对应权限")
+    private Map<Long, Set<String>> permByRole;
 
     @Schema(description = "租户上下文")
     private TenantContext tenantContext;

@@ -131,7 +131,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         checkExistence(request.getRoleId());
         checkBeforeBindRoleMenuRelation(request);
         sysRoleMenuRelationService.cleanAndBind(request.getRoleId(), request.getMenuIds());
-        return sysMenuService.listPermissionsByMenus(request.getMenuIds());
+        return sysMenuService.getPermissionsByRole(Set.of(request.getRoleId()))
+                .getOrDefault(request.getRoleId(), Set.of());
     }
 
     /**

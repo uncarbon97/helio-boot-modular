@@ -2,13 +2,13 @@ package cc.uncarbon.module.tenant.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
-import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
@@ -23,6 +23,7 @@ import cc.uncarbon.module.tenant.model.valueobj.TenantUserBasicProfileDTO;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cc.uncarbon.module.tenant.service.TenantService;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -33,7 +34,6 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -137,7 +137,7 @@ public class TenantServiceImpl implements TenantService {
     /**
      * 实体转值对象
      *
-     * @param fillTenantAdminUser 是否根据租户管理员用户ID，查询关联用户信息并填充到BO
+     * @param fillTenantAdminUser 是否填充管理员用户信息
      */
     private TenantMetaDTO convertEntity(TenantMetaEntity entity, boolean fillTenantAdminUser) {
         if (entity == null) return null;
@@ -158,21 +158,19 @@ public class TenantServiceImpl implements TenantService {
     /**
      * 实体转值对象
      *
-     * @param entityList          实体 List
-     * @param fillTenantAdminUser 填充管理员用户信息
+     * @param fillTenantAdminUser 是否填充管理员用户信息
      */
     private List<TenantMetaDTO> convertList(List<TenantMetaEntity> entityList, boolean fillTenantAdminUser) {
-        // 深拷贝
-        List<TenantMetaDTO> ret = new ArrayList<>(entityList.size());
-        entityList.forEach(
-                entity -> ret.add(convertEntity(entity, fillTenantAdminUser))
-        );
-
-        return ret;
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+        return entityList.stream().map(item -> convertEntity(item, fillTenantAdminUser)).toList();
     }
 
     /**
      * 实体转值对象
+     *
+     * @param fillTenantAdminUser 是否填充管理员用户信息
      */
     private PageResult<TenantMetaDTO> convertPage(Page<TenantMetaEntity> entityPage, boolean fillTenantAdminUser) {
         return new PageResult<TenantMetaDTO>()

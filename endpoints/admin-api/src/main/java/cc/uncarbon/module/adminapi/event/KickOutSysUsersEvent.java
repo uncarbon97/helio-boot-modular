@@ -1,7 +1,6 @@
 package cc.uncarbon.module.adminapi.event;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.Collection;
@@ -19,14 +18,10 @@ public final class KickOutSysUsersEvent extends ApplicationEvent {
         this.data = data;
     }
 
-    @Getter
-    @RequiredArgsConstructor
-    public static final class EventData {
-
-        /**
-         * 需要被强制登出的系统用户IDs
-         */
-        private final Collection<Long> sysUserIds;
+    /**
+     * @param sysUserIds 需要被强制登出的系统用户IDs
+     */
+    public record EventData(Collection<Long> sysUserIds) {
 
     }
 }

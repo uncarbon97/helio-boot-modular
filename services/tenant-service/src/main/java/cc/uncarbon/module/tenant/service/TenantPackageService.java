@@ -5,10 +5,10 @@ import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.tenant.model.query.AdminTenantPackageListQuery;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageBindMenuRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageUpsertRequest;
+import cc.uncarbon.module.tenant.model.valueobj.TenantPackageBindMenuResult;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * 租户套餐
@@ -38,7 +38,7 @@ public interface TenantPackageService {
     /**
      * 后台管理-绑定租户套餐菜单
      */
-    Set<String> adminBindMenus(AdminTenantPackageBindMenuRequest dto);
+    TenantPackageBindMenuResult adminBindMenu(AdminTenantPackageBindMenuRequest request);
 
     /**
      * 根据 ID 取详情

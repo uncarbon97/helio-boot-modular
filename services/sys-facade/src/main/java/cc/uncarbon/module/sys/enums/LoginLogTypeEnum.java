@@ -13,7 +13,7 @@ import lombok.Getter;
 @Getter
 public enum LoginLogTypeEnum implements BaseEnum<Integer> {
 
-    LOGIN(1, "登录"),
+    PASSWORD_LOGIN(1, "密码登录"),
     LOGOUT(2, "登出"),
 
     ;@EnumValue

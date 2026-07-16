@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 
 /**
@@ -21,6 +20,7 @@ import java.util.Collection;
 @NoArgsConstructor
 @Data
 public class AdminTenantPackageUpsertRequest implements Serializable {
+
 
     @Schema(description = "主键ID", title = "仅修改时使用")
     private Long id;
@@ -41,8 +41,5 @@ public class AdminTenantPackageUpsertRequest implements Serializable {
     @Schema(description = "套餐描述")
     @Size(max = 255, message = "套餐描述最长{max}位")
     private String description;
-
-    @Schema(description = "菜单ID数组")
-    private Collection<Long> menuIds;
 
 }

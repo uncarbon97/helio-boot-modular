@@ -67,9 +67,6 @@ public class AdminAuthController {
         stpUtil.getSession().set(UserContext.CAMEL_NAME, userContext);
         stpUtil.getSession().set(TenantContext.CAMEL_NAME, loginResult.getTenantContext());
 
-        // 更新角色-权限缓存
-        rolePermissionCacheHelper.putCache(loginResult.getRolePermissionMap());
-
         // 返回用户态
         SysUserLoginVO tokenInfo = new SysUserLoginVO()
                 .setToken(stpUtil.getTokenValue())

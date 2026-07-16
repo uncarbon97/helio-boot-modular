@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
+import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
@@ -17,6 +18,7 @@ import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -97,9 +99,15 @@ public class AdminTenantPackageController {
     @Operation(summary = "绑定租户套餐菜单")
     @PostMapping(value = "/bind-menu")
     public ApiResult<Void> bindMenu(@RequestBody @Valid AdminTenantPackageBindMenuRequest request) {
-        tenantPackageService.adminBindMenus(request);
+        var bindResult = tenantPackageService.adminBindMenu(request);
+        // 角色权限缓存刷新
+        bindResult.getTenantRoleIdsMap().forEach((tenantId, roleIds) ->
+                SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
+                        new RefreshRolePermissionCacheEvent.EventData(roleIds, tenantId)
+                ))
+        );
         // 用于操作日志
-        var old = tenantPackageService.getNonnullById(request.getPackageId());
+        var old = tenantPackageService.getNonnullById(request.getId());
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
