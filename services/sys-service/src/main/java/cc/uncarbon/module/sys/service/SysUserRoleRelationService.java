@@ -11,12 +11,6 @@ import java.util.List;
 public interface SysUserRoleRelationService {
 
     /**
-     * 后台管理-新增
-     * 注：本方法较为特殊，仅供SysTenantFacadeImpl调用
-     */
-    Long adminCreate(Long tenantId, Long userId, Long roleId);
-
-    /**
      * 绑定用户角色，增量更新
      */
     void cleanAndBind(Long userId, @Nullable Collection<Long> roleIds);

@@ -57,7 +57,7 @@ public class CaptchaHelper {
             }
         }
         if (!Boolean.TRUE.equals(successFlag)) {
-            throw new BusinessException(AdminApiErrorCodeEnum.CAPTCHA_GENERATE_FAILED);
+            throw new BusinessException(AdminApiErrorCodeEnum.B04001);
         }
 
         // 定义图形验证码的长、宽、验证码字符数、干扰线宽度

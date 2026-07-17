@@ -31,17 +31,6 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Long adminCreate(Long tenantId, Long userId, Long roleId) {
-        var entity = new SysUserRoleRelationEntity()
-                .setUserId(userId).setRoleId(roleId);
-        entity.setTenantId(tenantId);
-
-        sysUserRoleRelationMapper.insert(entity);
-        return entity.getId();
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
     public void cleanAndBind(Long userId, @Nullable Collection<Long> roleIds) {
         var roleIdsQuery = new LambdaQueryWrapper<SysUserRoleRelationEntity>()
                 .select(SysUserRoleRelationEntity::getRoleId)

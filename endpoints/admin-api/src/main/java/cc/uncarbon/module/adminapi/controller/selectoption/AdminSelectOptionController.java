@@ -18,10 +18,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -44,16 +41,16 @@ public class AdminSelectOptionController {
 
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
-    @Operation(summary = "字典下拉框")
-    @PostMapping(value = "/dict/by-category")
-    public ApiResult<List<AdminSelectOptionItemVO>> dict(@RequestParam("code") String code) {
-        return ApiResult.success(AdminSelectOptionItemVO.ofValueLabelBatch(sysDictService.listItemsByCategory(code, EnabledStatusEnum.ENABLED),
+    @Operation(summary = "字典数据")
+    @PostMapping(value = "/dict/{categoryCode}")
+    public ApiResult<List<AdminSelectOptionItemVO>> dict(@PathVariable String categoryCode) {
+        return ApiResult.success(AdminSelectOptionItemVO.ofValueLabelBatch(sysDictService.listItemsByCategory(categoryCode, EnabledStatusEnum.ENABLED),
                 SysDictItemDTO::getValue, SysDictItemDTO::getLabel,
                 (source, target) -> target.setDictItemCode(source.getCode())));
     }
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
-    @Operation(summary = "系统角色下拉框")
+    @Operation(summary = "系统角色下拉框数据")
     @PostMapping(value = "/sys/role")
     public ApiResult<List<AdminSelectOptionItemVO>> role() {
         return ApiResult.success(AdminSelectOptionItemVO.ofIdNameBatch(sysRoleService.adminListSelectOption(),
@@ -61,7 +58,7 @@ public class AdminSelectOptionController {
     }
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
-    @Operation(summary = "部门下拉框")
+    @Operation(summary = "部门下拉框数据")
     @PostMapping(value = "/sys/dept")
     public ApiResult<List<AdminSelectOptionItemVO>> dept() {
         // true = 让高级 HR 等角色可以调整用户部门，那就需要 TA 可以看到所有部门
