@@ -94,7 +94,7 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
     }
 
     @Override
-    public @NonNull FileDownloadReply downloadById(@Nullable String tenantCode, Long fileMetaId) {
+    public @NonNull FileDownloadReply downloadByTenantAndId(@Nullable String tenantCode, Long fileMetaId) {
         TenantValidateResult tenant = tenantFacade.validateByCode(tenantCode);
         // 不要直接返回前端关于租户的校验结果，隐藏技术细节
         if (!tenant.isValid()) {

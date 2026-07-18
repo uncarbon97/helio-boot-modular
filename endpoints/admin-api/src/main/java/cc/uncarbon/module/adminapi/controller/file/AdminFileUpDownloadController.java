@@ -18,7 +18,6 @@ import ch.qos.logback.core.util.FileSize;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.text.StrPool;
 import cn.hutool.crypto.digest.DigestUtil;
 import cn.hutool.http.Header;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,20 +48,15 @@ import java.util.Optional;
 public class AdminFileUpDownloadController {
 
     /**
-     * 上传路由，文本替换用
+     * 上传请求路由，方便文本替换复用
      */
-    private static final String UPLOAD_ROUTE = "/v1/file/upload";
+    private static final String UPLOAD_ROUTE = "/file/upload";
 
     /**
-     * 如果下载传入该租户编码，视为忽略
+     * 下载请求路由，方便文本替换复用
+     * 增加 v1 方便增加其他的传参契约
      */
-    private static final String DOWNLOAD_IGNORED_TENANT_CODE = StrPool.DASHED;
-
-    /**
-     * 下载路由，文本替换用
-     * 增加 v1 前缀方便增加其他的传参约定
-     */
-    private static final String DOWNLOAD_ROUTE_HASHIDS = "/v1/file/download/{hashIds}/{tenantCode}";
+    private static final String DOWNLOAD_ROUTE_HASHIDS = "/file/download/v1/{hashIds}/{tenantCode}";
 
     private final FileUpDownloadFacade fileUpDownloadFacade;
     private final HashidsHelper hashidsHelper;
@@ -74,7 +68,7 @@ public class AdminFileUpDownloadController {
     private String springServletMultipartMaxFileSize;
 
 
-    @Operation(summary = "上传文件", tags = "")
+    @Operation(summary = "上传文件")
     @PostMapping(value = UPLOAD_ROUTE)
     // 约束：登录后才能上传
     @SaCheckLogin(type = StpLoginType.ADMIN)
@@ -88,7 +82,7 @@ public class AdminFileUpDownloadController {
         String digest = DigestUtil.sha256Hex(file.getBytes());
         FileMetaDTO fileMeta = fileUpDownloadFacade.findByDigestSha256(digest);
         if (fileMeta == null) {
-            // 正常上传
+            // 不存在，走正常上传
             var options = new FacadeUploadOptions();
             options
                     .setOriginalFilename(file.getOriginalFilename())
@@ -104,18 +98,18 @@ public class AdminFileUpDownloadController {
     @Operation(summary = "下载文件V1")
     @GetMapping(value = DOWNLOAD_ROUTE_HASHIDS)
     public void downloadV1(HttpServletResponse servletResponse,
-                           @Parameter(description = "租户编码，用于多租户隔离；无租户时传" + DOWNLOAD_IGNORED_TENANT_CODE,
-                                   example = DOWNLOAD_IGNORED_TENANT_CODE + ",91330105MACPN4X08Y")
-                           @PathVariable String tenantCode,
-                           @PathVariable String hashIds) throws IOException {
+                           @PathVariable String hashIds,
+                           @Parameter(description = "租户编码，用于多租户隔离；无租户时不传",
+                                   example = "91330105MACPN4X08Y")
+                           @PathVariable(required = false) String tenantCode) throws IOException {
         Long id = hashidsHelper.decode(hashIds);
         FileErrorCodeEnum.A02006.throwIfNull(id);
 
         FileDownloadReply reply;
-        if (DOWNLOAD_IGNORED_TENANT_CODE.equals(tenantCode)) {
+        if (CharSequenceUtil.isEmpty(tenantCode)) {
             tenantCode = null;
         }
-        reply = fileUpDownloadFacade.downloadById(tenantCode, id);
+        reply = fileUpDownloadFacade.downloadByTenantAndId(tenantCode, id);
         if (!reply.isSuccess()) {
             throw new BusinessException(reply.getErrorCode());
         }
@@ -169,7 +163,7 @@ public class AdminFileUpDownloadController {
         if (CharSequenceUtil.isEmpty(source.getDirectUrl())) {
             String replacement = CharSequenceUtil.replace(DOWNLOAD_ROUTE_HASHIDS, "{hashIds}", hashIds);
             replacement = CharSequenceUtil.replace(replacement, "{tenantCode}",
-                    Optional.ofNullable(TenantContextHolder.getTenantCode()).orElse(DOWNLOAD_IGNORED_TENANT_CODE));
+                    Optional.ofNullable(TenantContextHolder.getTenantCode()).orElse(""));
             ret.setUrl(CharSequenceUtil.replace(requestUrl, UPLOAD_ROUTE, replacement));
         } else {
             ret.setUrl(source.getDirectUrl());

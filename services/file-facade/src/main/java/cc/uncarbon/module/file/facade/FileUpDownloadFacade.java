@@ -32,6 +32,6 @@ public interface FileUpDownloadFacade {
      * 根据文件ID下载，支持租户切换
      */
     @NonNull
-    FileDownloadReply downloadById(@Nullable String tenantCode, Long fileMetaId);
+    FileDownloadReply downloadByTenantAndId(@Nullable String tenantCode, Long fileMetaId);
 
 }
