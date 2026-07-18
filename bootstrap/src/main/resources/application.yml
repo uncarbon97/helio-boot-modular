@@ -5,8 +5,8 @@ spring:
   application:
     name: helium-monolith
   profiles:
-    # 可通过命令行参数实现多环境切换配置文件
-    active: dev
+    # 切换多环境；本地开发可以单独复制出来一个 local 环境配置文件，但不上传到 Git 服务器
+    active: dev,local
   config:
     import:
       # 通过子配置拆分，提高可读性
