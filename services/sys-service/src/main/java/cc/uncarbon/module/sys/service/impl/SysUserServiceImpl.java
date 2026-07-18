@@ -31,7 +31,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -153,10 +152,7 @@ public class SysUserServiceImpl implements SysUserService {
             checkExistence(id);
             checkBeforeSetStatus(id, request.getNewStatus());
         });
-        sysUserMapper.update(new LambdaUpdateWrapper<SysUserEntity>()
-                .set(SysUserEntity::getStatus, request.getNewStatus())
-                .in(SysUserEntity::getId, request.getIds())
-        );
+        sysUserMapper.updateStatusBatch(request.getIds(), request.getNewStatus());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -166,7 +162,7 @@ public class SysUserServiceImpl implements SysUserService {
         checkBeforeDelete(ids);
         // 解除该用户的部门/角色关联，避免孤儿关系行
         ids.forEach(id -> {
-            sysUserDeptRelationService.cleanAndBind(id, null);      // null = 解除全部部门绑定
+            sysUserDeptRelationService.cleanAndBind(id, null);  // null = 解除全部部门绑定
             sysUserRoleRelationService.cleanAndBind(id, null);  // 空集 = 解除全部角色绑定
         });
         sysUserMapper.deleteByIds(ids);
@@ -202,8 +198,7 @@ public class SysUserServiceImpl implements SysUserService {
                 .setPwdSalt(salt);
 
         if (request.isTenantAdmin()) {
-            entity
-                    .setNickname(request.getTenantName() + "主管理员")
+            entity.setNickname(request.getTenantName() + "主管理员")
                     .setStatus(SysUserStatusEnum.ENABLED);
         }
         sysUserMapper.insert(entity);

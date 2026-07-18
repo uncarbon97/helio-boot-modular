@@ -12,7 +12,6 @@ import cc.uncarbon.module.sys.service.AdminUCenterService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cn.hutool.core.bean.BeanUtil;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -55,20 +54,16 @@ public class AdminUCenterServiceImpl implements AdminUCenterService {
 
     @Override
     public void updateMyProfile(AdminUpdateMyProfileRequest request) {
-        sysUserMapper.update(new LambdaUpdateWrapper<SysUserEntity>()
-                .eq(SysUserEntity::getId, UserContextHolder.getUserId())
-                .set(SysUserEntity::getNickname, request.getNickname())
-                .set(SysUserEntity::getGender, request.getGender())
-                .set(SysUserEntity::getEmail, request.getEmail())
-                .set(SysUserEntity::getPhoneNo, request.getPhoneNo())
-        );
+        var entity = new SysUserEntity();
+        BeanUtil.copyProperties(request, entity);
+        entity.setId(UserContextHolder.getUserId());
+        sysUserMapper.updateById(entity);
     }
 
     @Override
     public void updateMyAvatar(String url) {
-        sysUserMapper.update(new LambdaUpdateWrapper<SysUserEntity>()
-                .eq(SysUserEntity::getId, UserContextHolder.getUserId())
-                .set(SysUserEntity::getAvatarUrl, url)
-        );
+        var entity = new SysUserEntity().setId(UserContextHolder.getUserId())
+                .setAvatarUrl(url);
+        sysUserMapper.updateById(entity);
     }
 }
