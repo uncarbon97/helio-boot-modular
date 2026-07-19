@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>cc.uncarbon.module</groupId>
+        <artifactId>helium-monolith</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>integration-tests</artifactId>
+    <version>${revision}</version>
+    <description>集成测试模块；仿 SeaTunnel 顶层 e2e 模块，专放 *IT.java</description>
+
+    <properties>
+        <bootstrap.version>${revision}</bootstrap.version>
+        <!-- failsafe 版本与 surefire 对齐 -->
+        <maven-failsafe-plugin.version>${maven-surefire-plugin.version}</maven-failsafe-plugin.version>
+    </properties>
+
+    <dependencies>
+        <!--
+            依赖 bootstrap 拿到 @SpringBootApplication 主类 + 全量应用上下文（含各业务模块的传递依赖）。
+            前置：bootstrap/pom.xml 的 spring-boot-maven-plugin 已加 <classifier>exec</classifier>，
+            保留普通 classes jar 作主制品，否则 integration-tests 拿到的是 repackage 后的 fat jar，编译期找不到 Bootstrap 类。
+        -->
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>bootstrap</artifactId>
+            <version>${bootstrap.version}</version>
+        </dependency>
+
+        <!--
+            IT 启动全量上下文时，顺带侦测废弃/迁移过的配置键
+            仅限本测试模块内使用。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-properties-migrator</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <!--
+            默认不跑集成测试（需要外部 DB/Redis 在跑）。
+            触发：mvn -pl integration-tests -am -Prun-it verify
+            failsafe 绑定 integration-test / verify 阶段，跑 src/test/java 下的 *IT.java，不受根 pom 的 surefire skipTests=true 影响。
+        -->
+        <profile>
+            <id>run-it</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven-failsafe-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

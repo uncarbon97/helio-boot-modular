@@ -1,16 +1,14 @@
 package cc.uncarbon.module.filter;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
-import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
-import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.constant.ServletFilterOrder;
 import cc.uncarbon.framework.helium.web.context.SimpleVisitorContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
-import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
 import cc.uncarbon.framework.helium.web.util.IPUtil;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
+import cc.uncarbon.module.context.ContextBinder;
 import cn.dev33.satoken.stp.StpLogic;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -49,13 +47,10 @@ public class ContextBindingFilter extends OncePerRequestFilter {
         TenantContext t = resolveTenant(stpLogic);
 
         try {
-            ScopedValue.where(VisitorContextHolder.scoped(), v)
-                    .where(UserContextHolder.scoped(), u)
-                    .where(TenantContextHolder.scoped(), t)
-                    .call(() -> {
-                        chain.doFilter(servletRequest, servletResponse);
-                        return null;
-                    });
+            ContextBinder.callWithContext(v, u, t, () -> {
+                chain.doFilter(servletRequest, servletResponse);
+                return null;
+            });
         } catch (ServletException | IOException e) {
             throw e;
         } catch (Exception e) {

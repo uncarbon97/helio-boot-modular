@@ -1,0 +1,45 @@
+# 集成测试专用 profile
+# 假定外部 DB/Redis 已启动；按实际测试环境修改以下连接信息。
+# @ActiveProfiles("test") 会覆盖 application.yml 中的 dev,local，故数据源/Redis/文件存储必须在此提供。
+
+---
+spring:
+  datasource:
+    dynamic:
+      datasource:
+        primary: master
+        # 主数据源（建议指向独立的测试库，避免污染开发数据）
+        master:
+          url: jdbc:${MASTER_DB_TYPE:mysql}://${MASTER_DB_HOST:127.0.0.1}:${MASTER_DB_PORT:3306}/${MASTER_DB_NAME:helium_test}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+          username: ${MASTER_DB_USERNAME:helium}
+          password: ${MASTER_DB_PASSWORD:helium}
+          lazy: false
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      # 未设密码请保持注释，避免向 Redis 发送 AUTH 引发启动失败
+      # password:
+      database: 2
+
+---
+mybatis-plus:
+  configuration:
+    # 测试环境下打印 SQL，便于排查
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+---
+# 文件存储（全量上下文启动需要；与 application-dev.yml 对齐，使用本地存储）
+dromara:
+  x-file-storage:
+    default-platform: local-plus-1
+    thumbnail-suffix: ".min.jpg"
+    local-plus:
+      - platform: local-plus-1
+        enable-storage: true
+        enable-access: false
+        domain: ""
+        base-path: /
+        path-patterns: /**
+        # TODO 按实际测试环境改为可写目录
+        storage-path: ./target/it-file-storage

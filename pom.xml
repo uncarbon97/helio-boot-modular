@@ -33,6 +33,7 @@
 
     <modules>
         <module>bootstrap</module>
+        <module>integration-tests</module>
         <module>commons</module>
         <module>endpoints/admin-api</module>
         <module>endpoints/app-api</module>

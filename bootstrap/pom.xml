@@ -47,9 +47,17 @@
     <build>
         <plugins>
             <!-- Spring Boot 打包插件 -->
+            <!--
+                classifier=exec：repackage 后的 fat jar 带上 -exec 后缀，
+                普通 classes jar 保留为主制品，供 integration-tests 模块作为依赖使用。
+                部署/启动脚本请改用 helium-monolith-${products.version}-exec.jar。
+            -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <classifier>exec</classifier>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
