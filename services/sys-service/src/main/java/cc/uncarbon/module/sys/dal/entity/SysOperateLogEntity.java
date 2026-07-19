@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 
 /**
@@ -38,7 +38,7 @@ public class SysOperateLogEntity extends AbstractTenantGenericEntity {
 
 	// 禁用更新
 	@TableField(exist = false)
-	private LocalDateTime updatedAt;
+	private Instant updatedAt;
 	@TableField(exist = false)
 	private String updatedBy;
 
