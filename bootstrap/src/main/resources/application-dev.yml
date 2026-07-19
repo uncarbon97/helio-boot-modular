@@ -9,6 +9,17 @@ spring:
           username: ${MASTER_DB_USERNAME:helium}
           password: ${MASTER_DB_PASSWORD:helium}
           lazy: false
+        # PG 数据源
+        postgres:
+          # TODO 最后的会话时区之类的还要换成PG专用的
+          url: jdbc::postgresql://${PG_HOST:127.0.0.1}:${PG_PORT:5432}/${PG_DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&timezone=${helium.i18n.timezone.db-timezone:${user.timezone:Asia/Shanghai}}
+          username: ${PG_USERNAME:helium}
+          password: ${PG_PASSWORD:helium}
+          lazy: true
+      # HikariCP 全局默认配置
+      hikari:
+        initialization-fail-timeout: -1
+        minimum-idle: 5
   data:
     redis:
       # 连接主机

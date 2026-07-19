@@ -19,6 +19,10 @@ spring:
           username: ${MASTER_DB_USERNAME:helium}
           password: ${MASTER_DB_PASSWORD:helium}
           lazy: false
+      # HikariCP 全局默认配置
+      hikari:
+        initialization-fail-timeout: -1
+        minimum-idle: 5
   data:
     redis:
       # 连接主机
@@ -29,35 +33,3 @@ spring:
       password:
       # 数据库序号
       database: 1
-
----
-mybatis-plus:
-  configuration:
-    # 生产环境下建议去除该配置项，不在控制台打印SQL
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
----
-dromara:
-  x-file-storage:
-    # 文档：https://x-file-storage.xuyanwu.cn/
-    # 默认使用 local-plus-1 存储平台
-    default-platform: local-plus-1
-    # 缩略图后缀
-    thumbnail-suffix: ".min.jpg"
-    local-plus: # 本地存储升级版，不使用的情况下可以不写
-      - platform: local-plus-1 # 存储平台标识
-        enable-storage: true  #启用存储
-        enable-access: false #启用访问（线上请使用 Nginx 配置，效率更高）
-        domain: "" # 访问域名，例如：“http://127.0.0.1:8030/”，注意后面要和 path-patterns 保持一致，“/”结尾，本地存储建议使用相对路径，方便后期更换域名
-        base-path: / # 基础路径
-        path-patterns: /** # 访问路径
-        storage-path: （实际本地存储路径，如 D:/local-plus-1） # 实际本地存储路径
-    minio: # MinIO，由于 MinIO SDK 支持 AWS S3，其它兼容 AWS S3 协议的存储平台也都可配置在这里
-      - platform: minio-1 # 存储平台标识
-        enable-storage: true  # 启用存储
-        access-key: （MinIO AK）
-        secret-key: （MinIO SK）
-        end-point: http://127.0.0.1:9000
-        bucket-name: helium
-        domain: http://127.0.0.1:9000/helium/ # 访问域名，注意“/”结尾，例如：http://minio.abc.com/abc/
-        base-path: / # 基础路径
