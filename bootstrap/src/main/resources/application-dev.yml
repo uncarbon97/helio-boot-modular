@@ -1,18 +1,18 @@
 spring:
   datasource:
     dynamic:
+      primary: mysql
       datasource:
-        primary: master
-        # 主数据源
-        master:
-          url: jdbc:${MASTER_DB_TYPE:mysql}://${MASTER_DB_HOST:127.0.0.1}:${MASTER_DB_PORT:3306}/${MASTER_DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${helium.i18n.timezone.db-timezone:${user.timezone:Asia/Shanghai}}
-          username: ${MASTER_DB_USERNAME:helium}
-          password: ${MASTER_DB_PASSWORD:helium}
+        # MySQL 数据源
+        mysql:
+          url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${DB_TIMEZONE}
+          username: ${MYSQL_USERNAME:helium}
+          password: ${MYSQL_PASSWORD:helium}
+          # 设置 false 会在工程启动时就初始化数据源
           lazy: false
         # PG 数据源
         postgres:
-          # TODO 最后的会话时区之类的还要换成PG专用的
-          url: jdbc::postgresql://${PG_HOST:127.0.0.1}:${PG_PORT:5432}/${PG_DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&timezone=${helium.i18n.timezone.db-timezone:${user.timezone:Asia/Shanghai}}
+          url: jdbc:postgresql://${PG_HOST:127.0.0.1}:${PG_PORT:5432}/${PG_DB_NAME:helium}?reWriteBatchedInserts=true&TimeZone=${DB_TIMEZONE}
           username: ${PG_USERNAME:helium}
           password: ${PG_PASSWORD:helium}
           lazy: true
@@ -20,16 +20,17 @@ spring:
       hikari:
         initialization-fail-timeout: -1
         minimum-idle: 5
+        connection-test-query: "SELECT 1"
   data:
     redis:
-      # 连接主机
-      host: 127.0.0.1
-      # 连接端口
-      port: 6379
-      # 登录密码；如果没有设置密码，请注释掉下面这行，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
-      password:
-      # 数据库序号
-      database: 1
+      # Redis 主机
+      host: ${REDIS_HOST:127.0.0.1}
+      # Redis 端口
+      port: ${REDIS_PORT:6379}
+      # 如果没有设置密码，下面这行直接注释掉，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
+#      password: ""
+      # Redis 数据库序号
+      database: ${REDIS_DATABASE:0}
 
 ---
 mybatis-plus:

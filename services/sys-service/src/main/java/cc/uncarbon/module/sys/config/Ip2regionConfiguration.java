@@ -20,7 +20,7 @@ public class Ip2regionConfiguration {
     @Bean
     public Ip2Region ip2Region() {
         Config v4Config, v6Config;
-        ClassPathResource resource = new ClassPathResource("ip2region_v4.xdb");
+        ClassPathResource resource = new ClassPathResource("ip2region/ip2region_v4.xdb");
         try (InputStream is = resource.getInputStream()) {
             v4Config = Config.custom()
                     .setCachePolicy(Config.BufferCache)     // 指定缓存策略:  NoCache / VIndexCache / BufferCache
@@ -30,7 +30,7 @@ public class Ip2regionConfiguration {
                     .asV4();    // 指定为 v4 配置
         }
 
-        resource = new ClassPathResource("ip2region_v6.xdb");
+        resource = new ClassPathResource("ip2region/ip2region_v6.xdb");
         try (InputStream is = resource.getInputStream()) {
             v6Config = Config.custom()
                     .setCachePolicy(Config.BufferCache)     // 指定缓存策略:  NoCache / VIndexCache / BufferCache

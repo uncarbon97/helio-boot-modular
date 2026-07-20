@@ -6,30 +6,3 @@
   nextdoc4j:
     # 关闭文档生成
     enabled: false
-
----
-spring:
-  datasource:
-    dynamic:
-      datasource:
-        primary: master
-        # 主数据源
-        master:
-          url: jdbc:${MASTER_DB_TYPE:mysql}://${MASTER_DB_HOST:127.0.0.1}:${MASTER_DB_PORT:3306}/${MASTER_DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-          username: ${MASTER_DB_USERNAME:helium}
-          password: ${MASTER_DB_PASSWORD:helium}
-          lazy: false
-      # HikariCP 全局默认配置
-      hikari:
-        initialization-fail-timeout: -1
-        minimum-idle: 5
-  data:
-    redis:
-      # 连接主机
-      host: 127.0.0.1
-      # 连接端口
-      port: 6379
-      # 登录密码；如果没有设置密码，请注释掉下面这行，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
-      password:
-      # 数据库序号
-      database: 1

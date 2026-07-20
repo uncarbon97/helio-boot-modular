@@ -36,7 +36,7 @@ public class RolePermissionCacheHelper {
 
     /**
      * 角色权限缓存 TTL 秒数
-     * 6h
+     * 默认为 6h
      */
     private static final long CACHE_TTL = 6 * 60 * 60;
 

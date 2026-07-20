@@ -1,4 +1,7 @@
 # 工程层相关的配置
+--- # 时区
+# 数据时区；优先级：继承 helium-i18n 组件属性 > 系统属性 > 默认值
+DB_TIMEZONE: ${helium.i18n.timezone.db-timezone:${user.timezone:Asia/Shanghai}}
 
 --- # Spring Boot
 spring:
@@ -14,7 +17,7 @@ spring:
       - classpath:configs/helium-all.yml
       - classpath:configs/dependencies.yml
 
----
+--- # 日志
 logging:
   file:
     # 日志文件落盘路径
