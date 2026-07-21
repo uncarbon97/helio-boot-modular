@@ -28,7 +28,7 @@ import java.util.List;
  * <p>
  * {@code @SaCheckLogin(type = StpLoginType.ADMIN)} 表示只有登录后才能请求
  */
-@Tag(name = "后台管理-#下拉框数据源接口")
+@Tag(name = "后台管理--下拉框数据源接口")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/select-option")
 @RequiredArgsConstructor
 @RestController

@@ -1,4 +1,4 @@
-package cc.uncarbon.module.config;
+package cc.uncarbon.module.support;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,11 +20,11 @@ import java.util.concurrent.ThreadPoolExecutor;
  *
  * @author Uncarbon
  */
-@Slf4j
 @EnableAsync
-@Configuration
 @RequiredArgsConstructor
-public class AsyncConfiguration implements AsyncConfigurer {
+@Configuration
+@Slf4j
+public class DefaultTaskExecutorConfigurer implements AsyncConfigurer {
 
     private static final String LOG_PREFIX = "[异步任务线程池]";
     private static final String EXECUTOR_NAME = "defaultTaskExecutor";

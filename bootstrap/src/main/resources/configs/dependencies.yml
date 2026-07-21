@@ -3,6 +3,7 @@
 
 # 接口文档
 nextdoc4j:
+  enabled: ${helium.openapi3.nextdoc4j.enabled}
   auth:
     enabled: true
     password: helium
@@ -17,6 +18,8 @@ sa-token:
   token-name: Authorization
   # token风格
   token-style: tik
+  # token前缀
+  token-prefix: "Bearer "
   # 是否允许同一账号并发登录
   is-concurrent: false
   # 打印banner

@@ -9,6 +9,7 @@ import cc.uncarbon.framework.helium.web.util.IPUtil;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.context.ContextBinder;
+import cn.dev33.satoken.servlet.util.SaTokenContextJakartaServletUtil;
 import cn.dev33.satoken.stp.StpLogic;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -41,12 +42,15 @@ public class ContextBindingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest servletRequest,
                                     @NonNull HttpServletResponse servletResponse,
                                     @NonNull FilterChain chain) throws ServletException, IOException {
-        VisitorContext v = resolveVisitor(servletRequest);
-        StpLogic stpLogic = resolveStpLogic(servletRequest);
-        UserContext u = resolveUser(stpLogic);
-        TenantContext t = resolveTenant(stpLogic);
-
         try {
+            // TODO 这里不能使用基于thread-local了，得重写成支持虚拟线程的
+            // @see SaTokenContextFilterForJakartaServlet
+            SaTokenContextJakartaServletUtil.setContext(servletRequest, servletResponse);
+
+            VisitorContext v = resolveVisitor(servletRequest);
+            StpLogic stpLogic = resolveStpLogic(servletRequest);
+            UserContext u = resolveUser(stpLogic);
+            TenantContext t = resolveTenant(stpLogic);
             ContextBinder.callWithContext(v, u, t, () -> {
                 chain.doFilter(servletRequest, servletResponse);
                 return null;
@@ -55,11 +59,12 @@ public class ContextBindingFilter extends OncePerRequestFilter {
             throw e;
         } catch (Exception e) {
             throw new ServletException(e);
+        } finally {
+            SaTokenContextJakartaServletUtil.clearContext();
         }
     }
 
-    @NonNull
-    private VisitorContext resolveVisitor(HttpServletRequest servletRequest) {
+    private @NonNull VisitorContext resolveVisitor(HttpServletRequest servletRequest) {
         return new SimpleVisitorContext()
                 .setIp(IPUtil.getClientIPAddress(servletRequest, 0))
                 // SpringMVC 已经对 UA 做了基本的过滤
@@ -68,8 +73,7 @@ public class ContextBindingFilter extends OncePerRequestFilter {
                 .setHttpRequestPath(servletRequest.getRequestURI());
     }
 
-    @Nullable
-    private StpLogic resolveStpLogic(HttpServletRequest servletRequest) {
+    private @Nullable StpLogic resolveStpLogic(HttpServletRequest servletRequest) {
         // 根据路径前缀，确认对应的 StpLogic
         String path = servletRequest.getRequestURI();
         if (pathMatcher.match(ApiPathPrefix.ADMIN_PATTERN, path)) {
@@ -80,8 +84,7 @@ public class ContextBindingFilter extends OncePerRequestFilter {
         return null;
     }
 
-    @Nullable
-    private UserContext resolveUser(@Nullable StpLogic stpLogic) {
+    private @Nullable UserContext resolveUser(@Nullable StpLogic stpLogic) {
         if (stpLogic != null && stpLogic.isLogin()
                 && stpLogic.getSession().get(UserContext.CAMEL_NAME) instanceof UserContext u) {
             return u;
@@ -89,8 +92,7 @@ public class ContextBindingFilter extends OncePerRequestFilter {
         return null;
     }
 
-    @Nullable
-    private TenantContext resolveTenant(@Nullable StpLogic stpLogic) {
+    private @Nullable TenantContext resolveTenant(@Nullable StpLogic stpLogic) {
         if (stpLogic != null && stpLogic.isLogin()
                 && stpLogic.getSession().get(TenantContext.CAMEL_NAME) instanceof TenantContext t) {
             return t;

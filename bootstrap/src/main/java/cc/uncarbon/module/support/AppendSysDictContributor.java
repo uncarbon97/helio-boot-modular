@@ -1,4 +1,4 @@
-package cc.uncarbon.module.config;
+package cc.uncarbon.module.support;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
@@ -17,7 +17,7 @@ import java.util.List;
  * @author Uncarbon
  */
 @Configuration
-public class AppendSysDictConfiguration implements EnumDictContributor {
+public class AppendSysDictContributor implements EnumDictContributor {
 
     @Override
     public Collection<EnumDictSpec> contribute() {

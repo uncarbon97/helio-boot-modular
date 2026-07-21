@@ -1,4 +1,4 @@
-package cc.uncarbon.module.config;
+package cc.uncarbon.module.support;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +14,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
  * @author Uncarbon
  */
 @RestController
-public class NotFoundConfiguration implements ErrorController {
+public class NotFoundController implements ErrorController {
 
     /**
      * 不生成接口文档

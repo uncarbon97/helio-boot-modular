@@ -6,3 +6,8 @@
   nextdoc4j:
     # 关闭文档生成
     enabled: false
+
+"helium.web":
+  # 减少非必要日志量
+  log-business-exception: false
+  log-expected-exception: false

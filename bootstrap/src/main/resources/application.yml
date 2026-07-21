@@ -23,10 +23,11 @@ logging:
     # 日志文件落盘路径
     name: /logs/${spring.application.name}
   level:
-    # 指定日志级别
+    # 指定指定包的日志级别
     "cc.uncarbon.framework": INFO
     "cc.uncarbon.module": INFO
     "cc.uncarbon.test": INFO
+    "org.springframework.web.servlet.PageNotFound": ERROR
 
 --- # app-api
 app-api:

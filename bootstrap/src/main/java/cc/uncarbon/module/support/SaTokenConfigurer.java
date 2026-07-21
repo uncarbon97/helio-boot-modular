@@ -1,4 +1,4 @@
-package cc.uncarbon.module.config;
+package cc.uncarbon.module.support;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
@@ -20,9 +20,9 @@ import java.util.List;
  *
  * @author Uncarbon
  */
-@Component
 @RequiredArgsConstructor
-public class SaTokenConfiguration implements StpInterface, WebMvcConfigurer {
+@Component
+public class SaTokenConfigurer implements StpInterface, WebMvcConfigurer {
 
     private final RolePermissionCacheHelper rolePermissionCacheHelper;
 
