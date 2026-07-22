@@ -23,7 +23,7 @@
 ---
 "helium.tenant":
   # 多租户策略（隔离级别）
-  strategy: LINE
+  strategy: NONE
   # 【行级】多租户忽略的表
   ignored-tables:
     - sys_menu

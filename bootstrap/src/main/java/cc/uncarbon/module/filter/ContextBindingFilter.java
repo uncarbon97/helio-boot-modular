@@ -1,6 +1,7 @@
 package cc.uncarbon.module.filter;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
+import cc.uncarbon.framework.helium.satoken.context.SaTokenContextForScopedValue;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.constant.ServletFilterOrder;
 import cc.uncarbon.framework.helium.web.context.SimpleVisitorContext;
@@ -9,7 +10,7 @@ import cc.uncarbon.framework.helium.web.util.IPUtil;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.context.ContextBinder;
-import cn.dev33.satoken.servlet.util.SaTokenContextJakartaServletUtil;
+import cn.dev33.satoken.context.model.SaTokenContextModelBox;
 import cn.dev33.satoken.stp.StpLogic;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,7 +28,9 @@ import java.io.IOException;
 
 /**
  * 上下文绑定过滤器
- * 覆盖 {@link VisitorContext}、{@link UserContext} 和 {@link TenantContext}
+ * 覆盖 {@link VisitorContext}、{@link UserContext} 和 {@link TenantContext}，同时绑定 sa-token 请求上下文
+ *
+ * <p>所有上下文均基于 {@link ScopedValue}，兼容虚拟线程；作用域内启动的子线程会自动继承绑定。</p>
  *
  * @author Uncarbon
  */
@@ -42,25 +45,25 @@ public class ContextBindingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest servletRequest,
                                     @NonNull HttpServletResponse servletResponse,
                                     @NonNull FilterChain chain) throws ServletException, IOException {
-        try {
-            // TODO 这里不能使用基于thread-local了，得重写成支持虚拟线程的
-            // @see SaTokenContextFilterForJakartaServlet
-            SaTokenContextJakartaServletUtil.setContext(servletRequest, servletResponse);
 
-            VisitorContext v = resolveVisitor(servletRequest);
-            StpLogic stpLogic = resolveStpLogic(servletRequest);
-            UserContext u = resolveUser(stpLogic);
-            TenantContext t = resolveTenant(stpLogic);
-            ContextBinder.callWithContext(v, u, t, () -> {
-                chain.doFilter(servletRequest, servletResponse);
+        VisitorContext v = resolveVisitor(servletRequest);
+        StpLogic stpLogic = resolveStpLogic(servletRequest);
+        SaTokenContextModelBox box = SaTokenContextForScopedValue.boxOf(servletRequest, servletResponse);
+        try {
+            SaTokenContextForScopedValue.where(box).call(() -> {
+                UserContext u = resolveUser(stpLogic);
+                TenantContext t = resolveTenant(stpLogic);
+                // 内层：复用 ContextBinder 绑定三类业务上下文（嵌套 ScopedValue，天然继承外层绑定）
+                ContextBinder.callWithContext(v, u, t, () -> {
+                    chain.doFilter(servletRequest, servletResponse);
+                    return null;
+                });
                 return null;
             });
         } catch (ServletException | IOException e) {
             throw e;
         } catch (Exception e) {
             throw new ServletException(e);
-        } finally {
-            SaTokenContextJakartaServletUtil.clearContext();
         }
     }
 

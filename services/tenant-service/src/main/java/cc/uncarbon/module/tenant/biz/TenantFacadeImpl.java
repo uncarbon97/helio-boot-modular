@@ -1,5 +1,6 @@
 package cc.uncarbon.module.tenant.biz;
 
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.tenant.props.HeliumTenantProperties;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
@@ -30,17 +31,19 @@ public class TenantFacadeImpl implements TenantFacade {
             return TenantValidateResult.pass();
         }
         if (tenantCode != null) {
-            TenantMetaDTO tenantMeta = tenantService.getByCode(tenantCode, false);
-            if (Objects.nonNull(tenantMeta)) {
-                return TenantValidateResult.pass(tenantMeta);
+            try {
+                // 忽略租户态，从主数据库查询租户元数据
+                return TenantContextHolder.callIgnored(() -> {
+                    TenantMetaDTO tenantMeta = tenantService.getByCode(tenantCode, false);
+                    if (Objects.nonNull(tenantMeta)) {
+                        return TenantValidateResult.pass(tenantMeta);
+                    }
+                    return TenantValidateResult.fail(TenantErrorCodeEnum.A03001);
+                });
+            } catch (Exception e) {
+                return TenantValidateResult.fail(TenantErrorCodeEnum.B03001);
             }
         }
         return TenantValidateResult.fail(TenantErrorCodeEnum.A03001);
     }
-
-    /*
-    ----------------------------------------------------------------
-                        私有方法 private methods
-    ----------------------------------------------------------------
-     */
 }

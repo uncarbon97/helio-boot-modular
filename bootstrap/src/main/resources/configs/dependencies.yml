@@ -1,25 +1,39 @@
 # 外部依赖的配置，都写在本文件内
 ---
+# 统一认证头名称
+AUTH_HEADER_NAME: "Authorization"
 
 # 接口文档
 nextdoc4j:
   enabled: ${helium.openapi3.nextdoc4j.enabled}
   auth:
     enabled: true
-    password: helium
+    password: "helium"
+  plugin:
+    security:
+      enabled: true
 springdoc:
   # 平铺显示复合入参对象
   default-flat-param-object: true
+  components:
+    security-schemes:
+      # 接口文档安全方案，基础的只有请求头传递 Bearer Token
+      ${AUTH_HEADER_NAME}:
+        type: HTTP
+        in: HEADER
+        name: ${AUTH_HEADER_NAME}
+        scheme: Bearer
+        description: "请输入 Bearer Token，格式：Bearer {token}"
 
 ---
 # SA-Token；详细配置文档：https://sa-token.cc/doc.html#/use/config
 sa-token:
   # token名称
-  token-name: Authorization
+  token-name: ${AUTH_HEADER_NAME}
   # token风格
   token-style: tik
-  # token前缀
-  token-prefix: "Bearer "
+  # token前缀；注意最后不要手动加空格
+  token-prefix: "Bearer"
   # 是否允许同一账号并发登录
   is-concurrent: false
   # 打印banner

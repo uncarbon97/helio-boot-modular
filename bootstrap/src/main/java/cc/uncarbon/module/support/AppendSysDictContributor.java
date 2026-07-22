@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 追加系统字典
+ * 手动追加系统字典
  *
  * @author Uncarbon
  */
@@ -24,13 +24,13 @@ public class AppendSysDictContributor implements EnumDictContributor {
         List<EnumDictSpec> ret = new ArrayList<>();
 
         /*
-        手动登记框架内置枚举
+        框架内置枚举
          */
-        ret.add(EnumDictSpec.of("enabled_status", "启用状态", null,
+        ret.add(EnumDictSpec.of("enabled_status", "启用状态枚举", null,
                 EnabledStatusEnum.class, EnabledStatusEnum::getValue, EnabledStatusEnum::getLabel));
-        ret.add(EnumDictSpec.of("gender", "生理性别", null,
+        ret.add(EnumDictSpec.of("gender", "生理性别枚举", null,
                 GenderEnum.class, GenderEnum::getValue, GenderEnum::getLabel));
-        ret.add(EnumDictSpec.of("yes_or_no", "是否", null,
+        ret.add(EnumDictSpec.of("yes_or_no", "是或否枚举", null,
                 YesOrNoEnum.class, YesOrNoEnum::getValue, YesOrNoEnum::getLabel));
 
         return ret;

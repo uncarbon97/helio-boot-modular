@@ -77,7 +77,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                         }
 
                         if (SysUserStatusEnum.DISABLED == ref.userEntity.getStatus()) {
-                            throw new BusinessException(SysErrorCodeEnum.A01004);
+                            throw new BusinessException(SysErrorCodeEnum.A01002);
                         }
 
                         UserRoleScope userRole = userRoleHelper.getSpecifiedUserRole(ref.userEntity.getId());

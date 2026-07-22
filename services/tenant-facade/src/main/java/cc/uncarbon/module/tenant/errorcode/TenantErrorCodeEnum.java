@@ -29,6 +29,11 @@ public enum TenantErrorCodeEnum implements StructuredErrorCode {
     // CANNOT_DELETE_PRIVILEGED_TENANT(403, "不能删除超级租户"),
     // NEED_DELETE_EXISTING_TENANT_ADMIN_ROLE(500, "租户ID {} 对应的租户管理员角色已存在，请使用超级管理员账号删除"),
 
+    /*
+    B 开头错误码，表示本服务内部错误
+    */
+    B03001("验证租户编码失败"),
+
     ;private final String errorMsgFriendly;
 
 }

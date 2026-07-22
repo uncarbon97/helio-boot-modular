@@ -18,8 +18,13 @@ spring:
           lazy: true
       # HikariCP 全局默认配置
       hikari:
-        initialization-fail-timeout: -1
+        # 虚拟线程环境下，适当提高连接数，但不要无限拉高，数据库端连接是有限的
+        maximum-pool-size: 50
         minimum-idle: 5
+        # 连接等待超时适当缩短，快速失败而非长时间堵塞
+        connection-timeout: 3000
+        # 连接最大生命周期，防止数据库侧超时
+        max-lifetime: 1800000
         connection-test-query: "SELECT 1"
   data:
     redis:
