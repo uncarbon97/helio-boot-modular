@@ -30,3 +30,6 @@ spring:
     resources:
       # 不为工程中的资源文件建立映射
       add-mappings: false
+  autoconfigure:
+    exclude:
+      - "cn.dev33.satoken.spring.SaTokenContextRegister"

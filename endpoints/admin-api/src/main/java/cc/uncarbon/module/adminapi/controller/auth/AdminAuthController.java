@@ -7,7 +7,6 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.helper.CaptchaHelper;
-import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.adminapi.model.internal.AdminCaptchaScope;
 import cc.uncarbon.module.adminapi.model.response.AdminAuthChallengeVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
@@ -31,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@Tag(name = "后台管理-鉴权接口")
+@Tag(name = "后台管理--鉴权接口")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/auth")
 @RequiredArgsConstructor
 @RestController
@@ -39,7 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminAuthController {
 
     private final AdminLoginService adminLoginService;
-    private final RolePermissionCacheHelper rolePermissionCacheHelper;
     private final CaptchaHelper captchaHelper;
 
 

@@ -12,6 +12,12 @@ nextdoc4j:
   plugin:
     security:
       enabled: true
+  extension:
+    enabled: true
+    brand:
+      # 品牌信息默认外显为空文本
+      title: ""
+      footer-text: ""
 springdoc:
   # 平铺显示复合入参对象
   default-flat-param-object: true
