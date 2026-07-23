@@ -51,8 +51,8 @@ public record EnumDictSpec(
         List<Item> items = Arrays.stream(enumClass.getEnumConstants())
                 .map(e -> new Item(
                         e.name(),
-                        labelMapper.apply(e),
                         String.valueOf(valueMapper.apply(e)),
+                        labelMapper.apply(e),
                         e.ordinal()))
                 .toList();
         return new EnumDictSpec(code, name, description, items);

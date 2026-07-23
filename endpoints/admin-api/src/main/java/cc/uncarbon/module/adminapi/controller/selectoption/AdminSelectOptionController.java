@@ -43,8 +43,10 @@ public class AdminSelectOptionController {
     @SaCheckLogin(type = StpLoginType.ADMIN)
     @Operation(summary = "字典数据")
     @PostMapping(value = "/dict/{categoryCode}")
-    public ApiResult<List<AdminSelectOptionItemVO>> dict(@PathVariable String categoryCode) {
-        return ApiResult.success(AdminSelectOptionItemVO.ofValueLabelBatch(sysDictService.listItemsByCategory(categoryCode, EnabledStatusEnum.ENABLED),
+    // SpringDoc 可能扫描有问题，不能用 @PathVariable 的 bare 写法，需要手动指定 value
+    public ApiResult<List<AdminSelectOptionItemVO>> dict(@PathVariable(value = "categoryCode") String categoryCode) {
+        return ApiResult.success(AdminSelectOptionItemVO.ofValueLabelBatch(
+                sysDictService.listItemsByCategory(categoryCode, EnabledStatusEnum.ENABLED),
                 SysDictItemDTO::getValue, SysDictItemDTO::getLabel,
                 (source, target) -> target.setDictItemCode(source.getCode())));
     }

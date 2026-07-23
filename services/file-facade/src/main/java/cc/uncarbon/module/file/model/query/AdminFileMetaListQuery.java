@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 文件元数据-后台管理-分页查询
@@ -29,6 +31,9 @@ public class AdminFileMetaListQuery implements Serializable, PageQuery {
 
     @Schema(description = "时间区间止")
     private LocalDateTime endAt;
+
+    @Schema(description = "时间区间起止", maxLength = 2)
+    private List<Instant> periodBetween;
 
     @Schema(description = "原始存储点ID")
     private Long storageId;
