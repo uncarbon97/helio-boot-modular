@@ -3,22 +3,45 @@
 
 server:
   port: 7003
+  # 优雅停机模式
+  shutdown: GRACEFUL
+  tomcat:
+    threads:
+      # 虚拟线程模式下可放大 ≈ 期望 RPS × 平均 RT(s)
+      max: 500
+    # 最大连接数，配合虚拟线程提升并发
+    max-connections: 20000
+    max-keep-alive-requests: 200
+    # OS backlog
+    accept-count: 200
+    # 连接超时
+    connection-timeout: 5s
+    keep-alive-timeout: 30s
 
 spring:
   #  messages:
   #    # 国际化资源目录，一般不做修改
   #    basename: i18n/messages
+  threads:
+    virtual:
+      # 启用虚拟线程
+      enabled: true
+  lifecycle:
+    # 优雅停机总闸门，必须大于下面所有 await-xxx 的值
+    timeout-per-shutdown-phase: 45s
   task:
-    # spring-schedule
-    scheduling:
-      pool:
-        # 线程池容量
-        size: 8
     # spring-async
     execution:
-      pool:
-        # 线程池容量
-        core-size: 8
+      thread-name-prefix: "async-vt-"
+      shutdown:
+        await-termination: true
+        await-termination-period: 30s
+    # spring-schedule
+    scheduling:
+      thread-name-prefix: "sched-vt-"
+      shutdown:
+        await-termination: true
+        await-termination-period: 30s
   servlet:
     multipart:
       # 文件上传大小限制（两个一起配）
@@ -32,4 +55,5 @@ spring:
       add-mappings: false
   autoconfigure:
     exclude:
+      # 改为使用自定义 SA-Token 上下文注册类
       - "cn.dev33.satoken.spring.SaTokenContextRegister"

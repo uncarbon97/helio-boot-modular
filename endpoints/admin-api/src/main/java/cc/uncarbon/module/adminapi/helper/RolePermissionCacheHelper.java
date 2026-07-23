@@ -5,9 +5,9 @@ import cc.uncarbon.module.sys.service.SysMenuService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -43,7 +43,11 @@ public class RolePermissionCacheHelper {
 
     private final RedisTemplate<String, Collection<String>> stringSetRedisTemplate;
     private final SysMenuService sysMenuService;
-    private final ThreadPoolTaskExecutor taskExecutor;
+
+    /**
+     * 虚拟线程执行器
+     */
+    private final TaskExecutor taskExecutor;
 
 
     /**

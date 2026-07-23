@@ -22,9 +22,15 @@ spring:
         maximum-pool-size: 50
         minimum-idle: 5
         # 连接等待超时适当缩短，快速失败而非长时间堵塞
-        connection-timeout: 3000
+        connection-timeout: 5000
+        # 泄漏定位阈值
+        leak-detection-threshold: 30000
+        # 长连接空闲被防火墙/云负载均衡切断的常见场景，主动 ping 续命
+        keepalive-time: 300000
         # 连接最大生命周期，防止数据库侧超时
         max-lifetime: 1800000
+        # 连接验证超时
+        validation-timeout: 4000
         connection-test-query: "SELECT 1"
   data:
     redis:
