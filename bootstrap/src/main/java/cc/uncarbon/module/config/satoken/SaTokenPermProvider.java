@@ -1,38 +1,25 @@
-package cc.uncarbon.module.support;
+package cc.uncarbon.module.config.satoken;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
-import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-
 /**
- * SA-Token 二次配置类
- *
- * @author Uncarbon
+ * SA-Token 权限数据源
  */
 @RequiredArgsConstructor
 @Configuration
-public class SaTokenConfigurer implements StpInterface, WebMvcConfigurer {
+public class SaTokenPermProvider implements StpInterface {
 
     private final RolePermissionCacheHelper rolePermissionCacheHelper;
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        // 注解拦截器
-        registry
-                .addInterceptor(new SaInterceptor())
-                .addPathPatterns("/**");
-    }
 
     /**
      * 返回一个账号所拥有的权限码集合

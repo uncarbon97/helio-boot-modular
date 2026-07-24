@@ -1,4 +1,4 @@
-package cc.uncarbon.module.support;
+package cc.uncarbon.module.config.satoken;
 
 import cc.uncarbon.framework.helium.satoken.context.SaTokenContextForScopedValue;
 import cn.dev33.satoken.SaManager;

@@ -1,4 +1,4 @@
-package cc.uncarbon.module.support;
+package cc.uncarbon.module.config;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
