@@ -40,7 +40,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
     public static final int USER_AGENT_MAX_LENGTH = 255;
 
     private final SysLoginLogMapper sysLoginLogMapper;
-    private final IPLocationResolver ipLocationResolver;
+    private final List<IPLocationResolver> ipLocationResolvers;
 
 
     /**
@@ -78,7 +78,10 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 
         String ipLocation = null;
         if (Objects.nonNull(visitorContext.getIp())) {
-            ipLocation = ipLocationResolver.resolve(visitorContext.getIp());
+            for (IPLocationResolver locationResolver : ipLocationResolvers) {
+                ipLocation = locationResolver.resolve(visitorContext.getIp());
+                if (ipLocation != null) break;
+            }
         }
 
         entity.setVisitorIp(visitorContext.getIp())

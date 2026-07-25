@@ -37,7 +37,7 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
     public static final int USER_AGENT_MAX_LENGTH = 255;
 
     private final SysOperateLogMapper sysOperateLogMapper;
-    private final IPLocationResolver ipLocationResolver;
+    private final List<IPLocationResolver> ipLocationResolvers;
 
 
     @Override
@@ -89,7 +89,10 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
 
         String ipLocation = null;
         if (Objects.nonNull(entity.getVisitorIp())) {
-            ipLocation = ipLocationResolver.resolve(entity.getVisitorIp());
+            for (IPLocationResolver locationResolver : ipLocationResolvers) {
+                ipLocation = locationResolver.resolve(entity.getVisitorIp());
+                if (ipLocation != null) break;
+            }
         }
 
         entity.setVisitorUserAgent(ua)
