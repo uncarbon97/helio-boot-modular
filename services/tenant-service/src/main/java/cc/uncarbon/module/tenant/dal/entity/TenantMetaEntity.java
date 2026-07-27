@@ -32,7 +32,7 @@ public class TenantMetaEntity extends AbstractGenericEntity {
 
 
     @Schema(description = "主键ID")
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @Schema(description = "租户编码")

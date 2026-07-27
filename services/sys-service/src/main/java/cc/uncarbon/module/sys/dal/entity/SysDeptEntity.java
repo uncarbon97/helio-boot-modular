@@ -32,7 +32,7 @@ public class SysDeptEntity extends AbstractTenantGenericEntity {
 
 
 	@Schema(description = "主键ID")
-	@TableId(type = IdType.ASSIGN_ID)
+	@TableId(type = IdType.AUTO)
 	private Long id;
 
 	@Schema(description = "部门名称")

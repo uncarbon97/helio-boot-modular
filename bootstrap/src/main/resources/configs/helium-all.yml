@@ -27,10 +27,14 @@
   # 【行级】多租户忽略的表
   ignored-tables:
     - sys_menu
-    - sys_tenant
+    # RBAC
     - sys_role_menu_relation
     - sys_user_dept_relation
     - sys_user_role_relation
+    # 多租户
+    - tenant_meta
+    - tenant_package
+    - tenant_package_menu_relation
 
 ---
 "helium.bizlog":
