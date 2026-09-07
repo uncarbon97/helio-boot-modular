@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 
@@ -49,7 +50,7 @@ public class SysUserDTO implements Serializable {
     private String phoneNo;
 
     @Schema(description = "最后登录时刻")
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
     @Schema(description = "所属部门ID")
     private Long deptId;

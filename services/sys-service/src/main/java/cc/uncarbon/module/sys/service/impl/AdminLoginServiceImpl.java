@@ -25,11 +25,11 @@ import cc.uncarbon.module.sys.util.PwdUtil;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -91,7 +91,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                                 .setPermByRole(permByRole)
                                 .setTenantContext(tenantContext);
 
-                        sysUserMapper.updateLastLoginAt(ref.userEntity.getId(), LocalDateTimeUtil.now());
+                        sysUserMapper.updateLastLoginAt(ref.userEntity.getId(), Instant.now());
                         ref.loginSuccessFlag = true;
                         return ret;
                     }

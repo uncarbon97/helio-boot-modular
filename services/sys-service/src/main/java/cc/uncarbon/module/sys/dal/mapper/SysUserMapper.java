@@ -13,7 +13,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.jspecify.annotations.NonNull;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collection;
 
 /**
@@ -41,7 +41,7 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
     /**
      * 更新最后一次登录时刻
      */
-    default void updateLastLoginAt(long userId, LocalDateTime lastLoginAt) {
+    default void updateLastLoginAt(long userId, Instant lastLoginAt) {
         SysUserEntity update = new SysUserEntity();
         update.setLastLoginAt(lastLoginAt)
                 .setId(userId);
@@ -51,7 +51,7 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
     default void updateEncryptedPwd(long userId, String encryptedPwd) {
         updateById(new SysUserEntity().setId(userId)
                 .setPwd(encryptedPwd)
-                .setPwdUpdatedAt(LocalDateTime.now())
+                .setPwdLastUpdatedAt(Instant.now())
                 .setRequireNewPwdFlag(YesOrNoEnum.NO)
         );
     }

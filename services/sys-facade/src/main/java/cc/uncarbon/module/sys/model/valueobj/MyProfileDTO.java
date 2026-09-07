@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 
 /**
@@ -28,7 +28,7 @@ public class MyProfileDTO implements Serializable {
     private String nickname;
 
     @Schema(description = "最后登录时刻")
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
     @Schema(description = "性别")
     private GenderEnum gender;

@@ -3,11 +3,12 @@ package cc.uncarbon.module.sys.config;
 import lombok.SneakyThrows;
 import org.lionsoul.ip2region.service.Config;
 import org.lionsoul.ip2region.service.Ip2Region;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -16,8 +17,8 @@ import java.io.InputStream;
  *
  * @see cc.uncarbon.module.sys.resolver.Ip2regionBasedIPLocationResolver
  */
+@ConditionalOnExpression(value = "${sys.ip2region.enabled:false}")
 @Configuration
-@ConditionalOnProperty(name = "sys.ip2region.enabled", havingValue = "true")
 public class Ip2regionConfiguration {
 
     /**
@@ -53,7 +54,7 @@ public class Ip2regionConfiguration {
         return ret;
     }
 
-    private static InputStream loadXdb(ClassPathResource resource) {
+    private static InputStream loadXdb(ClassPathResource resource) throws IOException {
         if (!resource.exists()) {
             throw new IllegalStateException(
                     "已开启 sys.ip2region.enabled，但未找到 " + resource.getPath()

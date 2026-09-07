@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 
 /**
@@ -54,8 +54,8 @@ public class SysUserEntity extends AbstractTenantGenericEntity {
      * 密码最近一次更新时刻
      */
     @Schema(description = "密码最近一次更新时刻")
-    @TableField(value = "pwd_updated_at")
-    private LocalDateTime pwdUpdatedAt;
+    @TableField(value = "pwd_last_updated_at")
+    private Instant pwdLastUpdatedAt;
 
     @Schema(description = "昵称")
     @TableField(value = "nickname")
@@ -67,7 +67,7 @@ public class SysUserEntity extends AbstractTenantGenericEntity {
 
     @Schema(description = "最后登录时刻")
     @TableField(value = "last_login_at")
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
     @Schema(description = "性别")
     @TableField(value = "gender")
