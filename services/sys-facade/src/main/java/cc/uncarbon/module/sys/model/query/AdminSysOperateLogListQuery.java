@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 系统操作日志-后台管理-分页查询
@@ -26,10 +26,10 @@ public class AdminSysOperateLogListQuery implements Serializable, PageQuery {
     private PageParam pageParam;
 
     @Schema(description = "时间区间起")
-    private LocalDateTime beginAt;
+    private Instant beginAt;
 
     @Schema(description = "时间区间止")
-    private LocalDateTime endAt;
+    private Instant endAt;
 
     @Schema(description = "业务类型")
     private String bizType;

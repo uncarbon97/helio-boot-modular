@@ -25,6 +25,7 @@ public enum SysErrorCodeEnum implements StructuredErrorCode {
     A01004("原密码有误"),
     A01005("当前用户没有可用角色"),
     A01006("当前角色没有可用菜单"),
+    A01007("新密码不能与旧密码相同"),
 
     // 以下枚举用于角色的越权检查
     A01010("不能使用 {} 作为角色编码"),

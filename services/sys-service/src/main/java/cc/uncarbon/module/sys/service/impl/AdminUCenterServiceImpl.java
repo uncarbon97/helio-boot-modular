@@ -49,6 +49,9 @@ public class AdminUCenterServiceImpl implements AdminUCenterService {
         if (entity == null || !entity.getPwd().equals(PwdUtil.encrypt(request.getOld(), entity.getPwdSalt()))) {
             throw new BusinessException(SysErrorCodeEnum.A01004);
         }
+        if (entity.getPwd().equals(PwdUtil.encrypt(request.getNeo(), entity.getPwdSalt()))) {
+            throw new BusinessException(SysErrorCodeEnum.A01007);
+        }
         sysUserMapper.updateEncryptedPwd(userId, PwdUtil.encrypt(request.getConfirmNeo(), entity.getPwdSalt()));
     }
 

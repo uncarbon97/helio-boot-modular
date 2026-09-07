@@ -11,7 +11,6 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -27,10 +26,10 @@ public class AdminFileMetaListQuery implements Serializable, PageQuery {
     private PageParam pageParam;
 
     @Schema(description = "时间区间起")
-    private LocalDateTime beginAt;
+    private Instant beginAt;
 
     @Schema(description = "时间区间止")
-    private LocalDateTime endAt;
+    private Instant endAt;
 
     @Schema(description = "时间区间起止", maxLength = 2)
     private List<Instant> periodBetween;

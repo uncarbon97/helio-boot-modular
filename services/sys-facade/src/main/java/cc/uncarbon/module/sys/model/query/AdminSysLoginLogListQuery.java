@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 
 /**
@@ -32,9 +32,9 @@ public class AdminSysLoginLogListQuery implements Serializable, PageQuery {
     private LogResultStatusEnum resultStatus;
 
     @Schema(description = "时间区间起")
-    private LocalDateTime beginAt;
+    private Instant beginAt;
 
     @Schema(description = "时间区间止")
-    private LocalDateTime endAt;
+    private Instant endAt;
 
 }

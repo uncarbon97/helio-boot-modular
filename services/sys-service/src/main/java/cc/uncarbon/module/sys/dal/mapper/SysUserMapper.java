@@ -51,6 +51,7 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
     default void updateEncryptedPwd(long userId, String encryptedPwd) {
         updateById(new SysUserEntity().setId(userId)
                 .setPwd(encryptedPwd)
+                .setPwdUpdatedAt(LocalDateTime.now())
                 .setRequireNewPwdFlag(YesOrNoEnum.NO)
         );
     }

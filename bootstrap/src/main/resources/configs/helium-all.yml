@@ -40,3 +40,9 @@
 "helium.bizlog":
   # 启用业务日志记录能力
   enabled: true
+
+---
+"sys.ip2region":
+  # 是否启用 ip2region 离线IP归属地查询
+  # 本地DB体积较大，需要将 ip2region_v4.xdb、ip2region_v6.xdb 放置于 classpath:ip2region/ 目录后，方可开启
+  enabled: false

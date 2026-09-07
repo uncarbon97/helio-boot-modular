@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 文件存储点-后台管理-分页查询
@@ -27,10 +27,10 @@ public class AdminFileStorageListQuery implements Serializable, PageQuery {
     private PageParam pageParam;
 
     @Schema(description = "时间区间起")
-    private LocalDateTime beginAt;
+    private Instant beginAt;
 
     @Schema(description = "时间区间止")
-    private LocalDateTime endAt;
+    private Instant endAt;
 
     @Schema(description = "存储点编码")
     private String code;
