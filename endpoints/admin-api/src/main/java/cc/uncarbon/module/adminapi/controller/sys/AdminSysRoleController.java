@@ -10,6 +10,7 @@ import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.model.request.IdRequest;
+import cc.uncarbon.module.commons.model.response.IdResponse;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleBindMenuRequest;
@@ -66,9 +67,9 @@ public class AdminSysRoleController {
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
-    public ApiResult<Void> create(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
-        sysRoleService.adminCreate(request);
-        return ApiResult.success();
+    public ApiResult<IdResponse<Long>> create(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
+        Long newId = sysRoleService.adminCreate(request);
+        return ApiResult.success(new IdResponse<>(newId));
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改角色",
