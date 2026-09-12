@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.helper;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
@@ -49,6 +50,23 @@ public class UserRoleHelper {
             userRoles = List.of();
         }
         return new UserRoleScope(userRoleIds, userRoles);
+    }
+
+    /**
+     * 取指定用户关联角色信息（仅包含启用状态的角色），用于登录会话快照
+     */
+    public UserRoleScope getSpecifiedEnabledUserRole(Long specifiedUserId) {
+        List<Long> userRoleIds = sysUserRoleRelationMapper.listRoleIdsByUser(specifiedUserId);
+        if (CollUtil.isEmpty(userRoleIds)) {
+            return new UserRoleScope(List.of(), List.of());
+        }
+        List<SysRoleEntity> userRoles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
+                .in(SysRoleEntity::getId, userRoleIds)
+                .eq(SysRoleEntity::getStatus, EnabledStatusEnum.ENABLED)
+                .orderByAsc(SysRoleEntity::getId)
+        );
+        List<Long> enabledRoleIds = userRoles.stream().map(SysRoleEntity::getId).toList();
+        return new UserRoleScope(enabledRoleIds, userRoles);
     }
 
     /**

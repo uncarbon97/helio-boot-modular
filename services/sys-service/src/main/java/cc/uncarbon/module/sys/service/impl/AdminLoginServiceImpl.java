@@ -80,7 +80,8 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                             throw new BusinessException(SysErrorCodeEnum.A01002);
                         }
 
-                        UserRoleScope userRole = userRoleHelper.getSpecifiedUserRole(ref.userEntity.getId());
+                        // 已禁用的角色不参与登录会话快照
+                        UserRoleScope userRole = userRoleHelper.getSpecifiedEnabledUserRole(ref.userEntity.getId());
                         Map<Long, Set<String>> permByRole = sysMenuService.getPermissionsByRole(userRole.getRelatedRoleIds());
 
                         AdminLoginResult ret = new AdminLoginResult();

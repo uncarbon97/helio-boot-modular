@@ -1,7 +1,9 @@
 package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
@@ -55,6 +57,11 @@ public interface SysRoleService {
      * @return 新菜单ID集合对应的权限名
      */
     Set<String> adminBindMenu(AdminSysRoleBindMenuRequest dto);
+
+    /**
+     * 后台管理-修改角色状态
+     */
+    void adminSetStatus(AdminBatchSetStatusRequest<Long, EnabledStatusEnum> request);
 
     /**
      * 后台管理-列举下拉框数据

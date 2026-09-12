@@ -6,9 +6,11 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
@@ -45,6 +47,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     private static final String LOG_PREFIX = "[系统管理][菜单]";
 
     private final SysMenuMapper sysMenuMapper;
+    private final SysRoleMapper sysRoleMapper;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
 
     /**
@@ -105,6 +108,20 @@ public class SysMenuServiceImpl implements SysMenuService {
         sysMenuMapper.deleteByIds(ids);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminSetStatus(AdminBatchSetStatusRequest<Long, EnabledStatusEnum> request) {
+        log.info(LOG_PREFIX + "修改状态 >> {}", request);
+        Long id = CollUtil.getFirst(request.getIds());
+        var entity = sysMenuMapper.selectById(id);
+        NoRecordException.throwIfNull(entity);
+
+        SysMenuEntity template = new SysMenuEntity()
+                .setId(id)
+                .setStatus(request.getNewStatus());
+        sysMenuMapper.updateById(template);
+    }
+
     @Override
     public SysMenuDTO getById(Long id) {
         if (id == null) return null;
@@ -135,8 +152,17 @@ public class SysMenuServiceImpl implements SysMenuService {
             return Map.of();
         }
         Map<Long, Set<String>> ret = new HashMap<>(roleIds.size(), 1);
+        // 一次性过滤出启用状态的角色；已禁用、已删除的角色一律视为无权限
+        Set<Long> enabledRoleIds = sysRoleMapper.listEnabledRoleIds(roleIds);
         for (Long roleId : roleIds) {
             Set<String> permissions;
+
+            if (!enabledRoleIds.contains(roleId)) {
+                // 已禁用或已不存在的角色不参与鉴权；仍写入空集合，确保空结果被缓存
+                permissions = Set.of();
+                ret.put(roleId, permissions);
+                continue;
+            }
 
             if (SysConstant.SUPER_ADMIN_ROLE_ID.equals(roleId)) {
                 // 超级管理员读取所有权限，不管有没有被禁用

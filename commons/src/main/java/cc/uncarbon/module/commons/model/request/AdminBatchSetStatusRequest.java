@@ -1,6 +1,9 @@
 package cc.uncarbon.module.commons.model.request;
 
 import cc.uncarbon.framework.helium.base.enums.BaseEnum;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
+import cn.hutool.core.collection.CollUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -29,4 +32,13 @@ public class AdminBatchSetStatusRequest<I extends Serializable, E extends BaseEn
     @NotNull(message = "新状态必填")
     private E newStatus;
 
+    /**
+     * 当主键ID数组长度大于阈值时，抛出异常
+     */
+    public void throwIfIdsSizeGt(int threshold) throws BusinessException {
+        int size = CollUtil.size(ids);
+        if (size > threshold) {
+            throw new BusinessException(DefaultErrorCodeEnum.A00003, threshold);
+        }
+    }
 }

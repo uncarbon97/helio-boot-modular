@@ -1,8 +1,10 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDeptMapper;
@@ -88,6 +90,20 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 解除关联关系
         ids.forEach(sysUserDeptRelationService::cleanAllBindings);
         sysDeptMapper.deleteByIds(ids);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminSetStatus(AdminBatchSetStatusRequest<Long, EnabledStatusEnum> request) {
+        log.info(LOG_PREFIX + "修改状态 >> {}", request);
+        Long id = CollUtil.getFirst(request.getIds());
+        var entity = sysDeptMapper.selectById(id);
+        NoRecordException.throwIfNull(entity);
+
+        SysDeptEntity template = new SysDeptEntity()
+                .setId(id)
+                .setStatus(request.getNewStatus());
+        sysDeptMapper.updateById(template);
     }
 
     @Override

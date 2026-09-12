@@ -32,7 +32,7 @@ public class AdminSysDeptUpsertRequest implements Serializable {
     @Schema(description = "上级部门ID(根部门设置为0)")
     private Long parentId;
 
-    @Schema(description = "排序")
+    @Schema(description = "排序(数值越大越靠前)")
     private Integer sort;
 
     @Schema(description = "状态")

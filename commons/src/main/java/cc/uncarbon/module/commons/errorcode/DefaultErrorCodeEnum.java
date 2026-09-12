@@ -20,6 +20,7 @@ public enum DefaultErrorCodeEnum implements StructuredErrorCode {
      */
     A00001("重复数据"),
     A00002("不存在数据"),
+    A00003("长度不得大于 {}"),
 
     ;private final String errorMsgFriendly;
 

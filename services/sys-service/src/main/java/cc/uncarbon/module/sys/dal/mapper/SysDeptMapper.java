@@ -17,7 +17,7 @@ public interface SysDeptMapper extends BaseMapper<SysDeptEntity> {
      * 列举已排序好的所有部门列表
      */
     default List<SysDeptEntity> selectSortedList() {
-        return selectList(new LambdaQueryWrapper<SysDeptEntity>().orderByAsc(SysDeptEntity::getSort));
+        return selectList(new LambdaQueryWrapper<SysDeptEntity>().orderByDesc(SysDeptEntity::getSort));
     }
 
 }
