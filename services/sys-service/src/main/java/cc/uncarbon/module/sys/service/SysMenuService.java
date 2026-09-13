@@ -59,7 +59,7 @@ public interface SysMenuService {
     List<SysMenuDTO> adminListSideMenus();
 
     /**
-     * 后台管理-取可用菜单
+     * 后台管理-取所有可见菜单
      */
     List<SysMenuDTO> adminListVisibleMenus();
 

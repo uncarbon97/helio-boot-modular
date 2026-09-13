@@ -101,8 +101,9 @@ public class AdminSysMenuController {
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = sysMenuService.getNonnullById(request.getId());
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         sysMenuService.adminSetStatus(request);
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 

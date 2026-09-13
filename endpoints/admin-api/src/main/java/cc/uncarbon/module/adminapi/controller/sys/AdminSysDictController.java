@@ -99,8 +99,9 @@ public class AdminSysDictController {
     @PostMapping(value = "/category/set-status")
     public ApiResult<Void> setStatusCategory(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = sysDictService.getCategoryNonnullById(request.getId());
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         sysDictService.adminSetStatusCategory(request);
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 
@@ -154,8 +155,9 @@ public class AdminSysDictController {
     @PostMapping(value = "/item/set-status")
     public ApiResult<Void> setStatusItem(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = sysDictService.getItemNonnullById(request.getId());
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         sysDictService.adminSetStatusItem(request);
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 

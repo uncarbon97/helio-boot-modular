@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.Instant;
 
 
 /**
@@ -24,12 +23,6 @@ public class SysMenuDTO implements Serializable {
     @Schema(description = "主键ID")
     private Long id;
 
-    @Schema(description = "创建时刻")
-    private Instant createdAt;
-
-    @Schema(description = "更新时刻")
-    private Instant updatedAt;
-
     @Schema(description = "名称")
     private String name;
 
@@ -38,6 +31,9 @@ public class SysMenuDTO implements Serializable {
 
     @Schema(description = "菜单类型")
     private MenuTypeEnum menuType;
+
+    @Schema(description = "路由地址(目录为可读slug, 页面为全路径)")
+    private String path;
 
     @Schema(description = "授权标识")
     private String permission;
@@ -56,14 +52,5 @@ public class SysMenuDTO implements Serializable {
 
     @Schema(description = "外链地址")
     private String externalLink;
-
-    @Schema(description = "【用于Vben Admin】路由地址", hidden = true)
-    private String path;
-
-    @Schema(description = "【用于Vben Admin】菜单名(全局唯一, 不能重复)", hidden = true)
-    private String menuName;
-
-    @Schema(description = "【用于Vben Admin】菜单详情", hidden = true)
-    private VbenAdminMenuMetaVO meta;
 
 }

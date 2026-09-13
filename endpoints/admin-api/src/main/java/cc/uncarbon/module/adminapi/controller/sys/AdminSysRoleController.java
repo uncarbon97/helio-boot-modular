@@ -111,12 +111,13 @@ public class AdminSysRoleController {
     @PostMapping(value = "/bind-menu")
     public ApiResult<Void> bindMenu(@RequestBody @Valid AdminSysRoleBindMenuRequest request) {
         var old = sysRoleService.getNonnullById(request.getRoleId());
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         sysRoleService.adminBindMenu(request);
         SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
                 new RefreshRolePermissionCacheEvent.EventData(
                         Set.of(request.getRoleId()), TenantContextHolder.getTenantId())
         ));
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 
@@ -127,12 +128,13 @@ public class AdminSysRoleController {
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = sysRoleService.getNonnullById(request.getId());
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         sysRoleService.adminSetStatus(request);
         SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
                 new RefreshRolePermissionCacheEvent.EventData(
                         Set.of(request.getId()), TenantContextHolder.getTenantId())
         ));
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 }

@@ -38,13 +38,21 @@ public class AdminSysMenuUpsertRequest implements Serializable {
     @NotNull(message = "菜单类型必填")
     private MenuTypeEnum menuType;
 
-    @Schema(description = "前端组件名称")
-    @Size(max = 255, message = "前端组件名称最长{max}位")
-    private String component;
+    @Schema(description = "路由地址(目录为可读slug, 页面为全路径)")
+    @Size(max = 255, message = "路由地址最长{max}位")
+    private String path;
 
     @Schema(description = "授权标识")
     @Size(max = 255, message = "权限标识最长{max}位")
     private String permission;
+
+    @Schema(description = "前端组件名称")
+    @Size(max = 255, message = "前端组件名称最长{max}位")
+    private String component;
+
+    @Schema(description = "状态")
+    @NotNull(message = "状态必填")
+    private EnabledStatusEnum status;
 
     @Schema(description = "图标")
     @Size(max = 255, message = "图标最长{max}位")
@@ -52,9 +60,6 @@ public class AdminSysMenuUpsertRequest implements Serializable {
 
     @Schema(description = "排序")
     private Integer sort;
-
-    @Schema(description = "状态")
-    private EnabledStatusEnum status;
 
     @Schema(description = "外链地址")
     @Size(max = 255, message = "外链地址最长255位")

@@ -48,6 +48,10 @@ public class SysMenuEntity extends AbstractTenantGenericEntity {
 	@TableField(value = "menu_type")
 	private MenuTypeEnum menuType;
 
+	@Schema(description = "路由地址(目录为可读slug, 页面为全路径)")
+	@TableField(value = "path")
+	private String path;
+
 	@Schema(description = "授权标识")
 	@TableField(value = "permission")
 	private String permission;

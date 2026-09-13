@@ -15,15 +15,12 @@ import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
-import cc.uncarbon.module.sys.model.valueobj.VbenAdminMenuMetaVO;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.text.StrPool;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -49,11 +46,6 @@ public class SysMenuServiceImpl implements SysMenuService {
     private final SysMenuMapper sysMenuMapper;
     private final SysRoleMapper sysRoleMapper;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
-
-    /**
-     * 仅用于输出一个，可按时间流逝而增长的纯数字，避免重复
-     */
-    private static final Snowflake SNOWFLAKE = IdUtil.getSnowflake(0L, 0L);
 
 
     @Override
@@ -137,13 +129,15 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Override
     public List<SysMenuDTO> adminListSideMenus() {
         Set<Long> visibleMenuIds = listCurrentUserVisibleMenuIds();
-        return listByIds(visibleMenuIds, MenuTypeEnum.forAdminSide());
+        return listByIds(visibleMenuIds, MenuTypeEnum.forAdminSide())
+                .stream().peek(menu -> menu.setPermission(null)).toList();
     }
 
     @Override
     public List<SysMenuDTO> adminListVisibleMenus() {
         Set<Long> visibleMenuIds = listCurrentUserVisibleMenuIds();
-        return listByIds(visibleMenuIds, MenuTypeEnum.all());
+        return listByIds(visibleMenuIds, MenuTypeEnum.all())
+                .stream().peek(menu -> menu.setPermission(null)).toList();
     }
 
     @Override
@@ -223,28 +217,17 @@ public class SysMenuServiceImpl implements SysMenuService {
             ret.setParentId(null);
         }
 
-        String snowflakeIdStr = SNOWFLAKE.nextIdStr();
-        ret
-                .setName(ret.getName())
-                .setMeta(new VbenAdminMenuMetaVO(ret.getName(), false, ret.getIcon()));
+        // 防止用户忘记加了, 主动补充/
+        if (CharSequenceUtil.isNotBlank(ret.getPath()) && !ret.getPath().startsWith(StrPool.SLASH)) {
+            ret.setPath(StrPool.SLASH + ret.getPath());
+        }
 
         switch (ret.getMenuType()) {
             case DIR, BUTTON -> ret
-                    .setComponent(SysConstant.VBEN_ADMIN_BLANK_VIEW)
-                    .setExternalLink(null)
-                    .setPath(StrPool.SLASH + snowflakeIdStr);
-            case MENU -> {
-                ret
-                        .setExternalLink(null)
-                        .setPath(ret.getComponent());
-                // 防止用户忘记加了, 主动补充/
-                if (CharSequenceUtil.isNotBlank(ret.getPath()) && !ret.getPath().startsWith(StrPool.SLASH)) {
-                    ret.setPath(StrPool.SLASH + ret.getPath());
-                }
-            }
-            case EXTERNAL_LINK -> ret
-                    .setComponent(ret.getExternalLink())
-                    .setPath(ret.getExternalLink());
+                    .setComponent(null)
+                    .setExternalLink(null);
+            case MENU -> ret.setExternalLink(null);
+            case EXTERNAL_LINK -> ret.setComponent(null);
         }
         return ret;
     }
