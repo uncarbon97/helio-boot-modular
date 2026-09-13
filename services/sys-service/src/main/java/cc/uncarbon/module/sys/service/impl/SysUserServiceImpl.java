@@ -6,7 +6,7 @@ import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
@@ -29,7 +29,6 @@ import cc.uncarbon.module.sys.util.PwdUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -117,11 +116,9 @@ public class SysUserServiceImpl implements SysUserService {
         var entity = new SysUserEntity();
         BeanUtil.copyProperties(request, entity);
 
-        String salt = IdUtil.randomUUID();
         entity
                 .setPin(request.getPin())
-                .setPwd(PwdUtil.encrypt(request.getInitPwd(), salt))
-                .setPwdSalt(salt)
+                .setPwd(PwdUtil.hash(request.getInitPwd()))
                 // 默认新用户是禁用状态
                 .setStatus(SysUserStatusEnum.DISABLED);
 
@@ -146,13 +143,11 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminSetStatus(AdminBatchSetStatusRequest<Long, SysUserStatusEnum> request) {
+    public void adminSetStatus(AdminSetStatusRequest<Long, SysUserStatusEnum> request) {
         log.info(LOG_PREFIX + "修改状态 >> {}", request);
-        request.getIds().forEach(id -> {
-            checkExistence(id);
-            checkBeforeSetStatus(id, request.getNewStatus());
-        });
-        sysUserMapper.updateStatusBatch(request.getIds(), request.getNewStatus());
+        checkExistence(request.getId());
+        checkBeforeSetStatus(request.getId(), request.getNewStatus());
+        sysUserMapper.updateStatusBatch(List.of(request.getId()), request.getNewStatus());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -192,10 +187,7 @@ public class SysUserServiceImpl implements SysUserService {
         var entity = new SysUserEntity();
         BeanUtil.copyProperties(request, entity);
         // 按需改写字段
-        String salt = IdUtil.randomUUID();
-        entity
-                .setPwd(PwdUtil.encrypt(request.getPwdPlain(), salt))
-                .setPwdSalt(salt);
+        entity.setPwd(PwdUtil.hash(request.getPwdPlain()));
 
         if (request.isTenantAdmin()) {
             entity.setNickname(request.getTenantName() + "主管理员")
@@ -206,12 +198,12 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public void adminResetSpecifiedUserPassword(AdminSysUserResetSpecifiedOnePasswordRequest request) {
+    public void adminResetPassword(AdminSysUserResetPasswordRequest request) {
         checkBeforeUpdate(request.getUserId());
         checkExistence(request.getUserId());
         var user = sysUserMapper.selectById(request.getUserId());
         sysUserMapper.updateEncryptedPwd(user.getId(),
-                PwdUtil.encrypt(request.getRandomPassword(), user.getPwdSalt()));
+                PwdUtil.hash(request.getRandomPassword()));
     }
 
     @Override

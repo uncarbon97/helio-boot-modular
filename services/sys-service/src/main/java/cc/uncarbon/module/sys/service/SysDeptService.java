@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
@@ -38,7 +38,7 @@ public interface SysDeptService {
     /**
      * 后台管理-修改状态
      */
-    void adminSetStatus(AdminBatchSetStatusRequest<Long, EnabledStatusEnum> request);
+    void adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request);
 
     /**
      * 后台管理-列举下拉框数据

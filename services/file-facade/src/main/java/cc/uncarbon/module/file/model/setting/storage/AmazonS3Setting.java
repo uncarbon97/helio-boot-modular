@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
- * {@code org.dromara.x.file.storage.core.FileStorageProperties.AmazonS3Config}
+ * {@link org.dromara.x.file.storage.core.FileStorageProperties.AmazonS3Config}
  */
 @Accessors(chain = true)
 @AllArgsConstructor

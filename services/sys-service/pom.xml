@@ -62,5 +62,12 @@
             <groupId>org.lionsoul</groupId>
             <artifactId>ip2region</artifactId>
         </dependency>
+
+        <!-- 密码哈希 (Argon2id) -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+            <version>1.81</version>
+        </dependency>
     </dependencies>
 </project>

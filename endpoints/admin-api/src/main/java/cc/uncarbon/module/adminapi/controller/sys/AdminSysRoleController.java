@@ -10,7 +10,7 @@ import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.model.response.IdResponse;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
@@ -22,7 +22,6 @@ import cc.uncarbon.module.sys.service.SysRoleService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -122,19 +121,17 @@ public class AdminSysRoleController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改角色状态",
-            bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}，新状态：{{#request.newStatus}}")
+            bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}，新状态：{{#request.newStatus.label}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "set-status")
     @Operation(summary = "修改角色状态")
     @PostMapping(value = "/set-status")
-    public ApiResult<Void> setStatus(@RequestBody @Valid AdminBatchSetStatusRequest<Long, EnabledStatusEnum> request) {
-        // 限制 ID 数量
-        request.throwIfIdsSizeGt(1);
-        var old = sysRoleService.getNonnullById(CollUtil.getFirst(request.getIds()));
+    public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        var old = sysRoleService.getNonnullById(request.getId());
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         sysRoleService.adminSetStatus(request);
         SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
                 new RefreshRolePermissionCacheEvent.EventData(
-                       request.getIds(), TenantContextHolder.getTenantId())
+                        Set.of(request.getId()), TenantContextHolder.getTenantId())
         ));
         return ApiResult.success();
     }

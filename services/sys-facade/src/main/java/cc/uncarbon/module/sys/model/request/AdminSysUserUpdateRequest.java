@@ -1,7 +1,6 @@
 package cc.uncarbon.module.sys.model.request;
 
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
-import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cn.hutool.core.lang.RegexPool;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -32,10 +31,6 @@ public class AdminSysUserUpdateRequest implements Serializable {
     @Size(min = 5, max = 16, message = "账号最短{min}位，最长{max}位")
     @NotBlank(message = "账号必填")
     private String pin;
-
-    @Schema(description = "要求用户下次登录时修改密码", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotNull(message = "要求用户下次登录时修改密码必填")
-    private YesOrNoEnum requireNewPwdFlag;
 
     @Schema(description = "昵称", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 20, message = "昵称最长{max}位")

@@ -72,7 +72,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                             throw new BusinessException(SysErrorCodeEnum.A01001);
                         }
 
-                        if (!PwdUtil.encrypt(request.getPwd(), ref.userEntity.getPwdSalt()).equals(ref.userEntity.getPwd())) {
+                        if (!PwdUtil.verify(request.getPwd(), ref.userEntity.getPwd())) {
                             throw new BusinessException(SysErrorCodeEnum.A01001);
                         }
 

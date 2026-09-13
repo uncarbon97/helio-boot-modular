@@ -6,7 +6,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
@@ -110,9 +110,9 @@ public class SysMenuServiceImpl implements SysMenuService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminSetStatus(AdminBatchSetStatusRequest<Long, EnabledStatusEnum> request) {
+    public void adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         log.info(LOG_PREFIX + "修改状态 >> {}", request);
-        Long id = CollUtil.getFirst(request.getIds());
+        Long id = request.getId();
         var entity = sysMenuMapper.selectById(id);
         NoRecordException.throwIfNull(entity);
 

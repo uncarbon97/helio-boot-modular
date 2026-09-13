@@ -8,7 +8,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
@@ -17,7 +17,6 @@ import cc.uncarbon.module.sys.service.SysDeptService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -97,14 +96,12 @@ public class AdminSysDeptController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改部门状态",
-            bizNo = "{{#request.id}}", success = "被操作部门：{{#old.name}}，新状态：{{#request.newStatus}}")
+            bizNo = "{{#request.id}}", success = "被操作部门：{{#old.name}}，新状态：{{#request.newStatus.label}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "set-status")
     @Operation(summary = "修改部门状态")
     @PostMapping(value = "/set-status")
-    public ApiResult<Void> setStatus(@RequestBody @Valid AdminBatchSetStatusRequest<Long, EnabledStatusEnum> request) {
-        // 限制 ID 数量
-        request.throwIfIdsSizeGt(1);
-        var old = sysDeptService.getNonnullById(CollUtil.getFirst(request.getIds()));
+    public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        var old = sysDeptService.getNonnullById(request.getId());
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         sysDeptService.adminSetStatus(request);
         return ApiResult.success();

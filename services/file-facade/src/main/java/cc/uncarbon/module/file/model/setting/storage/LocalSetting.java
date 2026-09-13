@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
- * {@code org.dromara.x.file.storage.core.FileStorageProperties.LocalPlusConfig}
+ * {@link org.dromara.x.file.storage.core.FileStorageProperties.LocalPlusConfig}
  */
 @Accessors(chain = true)
 @AllArgsConstructor

@@ -7,7 +7,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
@@ -139,8 +139,8 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminSetStatus(AdminBatchSetStatusRequest<Long, EnabledStatusEnum> request) {
-        Long id = CollUtil.getFirst(request.getIds());
+    public void adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        Long id = request.getId();
         var entity = sysRoleMapper.selectById(id);
         NoRecordException.throwIfNull(entity);
         denyBuiltinOp(entity, SysErrorCodeEnum.A01013);

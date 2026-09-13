@@ -9,7 +9,7 @@ import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
@@ -22,7 +22,6 @@ import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,7 +46,7 @@ import java.util.Set;
 @Slf4j
 public class AdminSysUserController {
 
-    private static final String PERMISSION_PREFIX = "SysUser:";
+    private static final String PERMISSION_PREFIX = "sys:user:";
     static final String BIZ_TYPE = "系统用户管理";
 
     private final SysUserService sysUserService;
@@ -106,13 +105,13 @@ public class AdminSysUserController {
         return ApiResult.success();
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "重置指定用户密码",
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "重置密码",
             bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "resetPassword")
-    @Operation(summary = "重置指定用户密码")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "reset-password")
+    @Operation(summary = "重置密码")
     @PostMapping(value = "/reset-password")
-    public ApiResult<Void> resetPassword(@RequestBody @Valid AdminSysUserResetSpecifiedOnePasswordRequest request) {
-        sysUserService.adminResetSpecifiedUserPassword(request);
+    public ApiResult<Void> resetPassword(@RequestBody @Valid AdminSysUserResetPasswordRequest request) {
+        sysUserService.adminResetPassword(request);
         kickOutAsync(request.getUserId());
         // 用于操作日志
         var old = sysUserService.getNonnullById(request.getUserId());
@@ -122,7 +121,7 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "绑定用户角色",
             bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bindRole")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bind-role")
     @Operation(summary = "绑定用户角色")
     @PostMapping(value = "/bind-role")
     public ApiResult<Void> bindRole(@RequestBody @Valid AdminSysUserBindRoleRequest request) {
@@ -148,24 +147,21 @@ public class AdminSysUserController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改用户状态",
-            success = "被操作用户ID：{{#request.ids[0]}}，新状态：{{#request.newStatus.label}}")
+            success = "被操作用户ID：{{#request.id}}，新状态：{{#request.newStatus.label}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "修改用户状态")
     @PostMapping(value = "/set-status")
-    public ApiResult<Void> setStatus(@RequestBody @Valid AdminBatchSetStatusRequest<Long, SysUserStatusEnum> request) {
-        // 只处理第一个
-        request.setIds(List.of(CollUtil.getFirst(request.getIds())));
-
+    public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, SysUserStatusEnum> request) {
         sysUserService.adminSetStatus(request);
         if (request.getNewStatus() == SysUserStatusEnum.DISABLED) {
-            kickOutAsync(request.getIds());
+            kickOutAsync(request.getId());
         }
         return ApiResult.success();
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "踢用户下线",
             bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "kickOut")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "kick-out")
     @Operation(summary = "踢用户下线")
     @PostMapping(value = "/kick-out")
     public ApiResult<Void> kickOut(@RequestBody @Valid IdRequest<Long> request) {

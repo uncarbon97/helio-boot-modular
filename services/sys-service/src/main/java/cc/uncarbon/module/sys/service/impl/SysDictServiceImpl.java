@@ -10,6 +10,7 @@ import cc.uncarbon.module.commons.enumdict.EnumDictContributor;
 import cc.uncarbon.module.commons.enumdict.EnumDictSpec;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDictCategoryMapper;
@@ -169,6 +170,20 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     @Override
+    public void adminSetStatusCategory(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        log.info(LOG_PREFIX + "修改分类状态 >> {}", request);
+        Long id = request.getId();
+        var entity = sysDictCategoryMapper.selectById(id);
+        NoRecordException.throwIfNull(entity);
+
+        sysDictCategoryMapper.updateById(
+                new SysDictCategoryEntity()
+                        .setId(id)
+                        .setStatus(request.getNewStatus())
+        );
+    }
+
+    @Override
     public SysDictCategoryDTO getCategoryNonnullById(Long id) throws NoRecordException {
         if (id == null) {
             throw new NoRecordException();
@@ -236,6 +251,20 @@ public class SysDictServiceImpl implements SysDictService {
         log.info(LOG_PREFIX + "删除字典项 >> {}", ids);
         sysDictItemMapper.delete(new LambdaQueryWrapper<SysDictItemEntity>()
                 .in(SysDictItemEntity::getId, ids)
+        );
+    }
+
+    @Override
+    public void adminSetStatusItem(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        log.info(LOG_PREFIX + "修改字典项状态 >> {}", request);
+        Long id = request.getId();
+        var entity = sysDictItemMapper.selectById(id);
+        NoRecordException.throwIfNull(entity);
+
+        sysDictItemMapper.updateById(
+                new SysDictItemEntity()
+                        .setId(id)
+                        .setStatus(request.getNewStatus())
         );
     }
 

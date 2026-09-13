@@ -46,10 +46,10 @@ public class AdminUCenterServiceImpl implements AdminUCenterService {
         Long userId = UserContextHolder.getUserId();
         assert userId != null;
         var entity = sysUserMapper.selectById(userId);
-        if (entity == null || !entity.getPwd().equals(PwdUtil.encrypt(request.getOld(), entity.getPwdSalt()))) {
+        if (entity == null || !PwdUtil.verify(request.getOld(), entity.getPwd())) {
             throw new BusinessException(SysErrorCodeEnum.A01004);
         }
-        final String encryptPwd = PwdUtil.encrypt(request.getNeo(), entity.getPwdSalt());
+        final String encryptPwd = PwdUtil.hash(request.getNeo());
         if (entity.getPwd().equals(encryptPwd)) {
             throw new BusinessException(SysErrorCodeEnum.A01007);
         }

@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
 
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /**
  * 系统操作日志
@@ -24,10 +24,10 @@ public class SysOperateLogDTO implements Serializable {
     private Long id;
 
     @Schema(description = "创建时刻")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Schema(description = "更新时刻")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Schema(description = "业务类型")
     private String bizType;
@@ -66,7 +66,7 @@ public class SysOperateLogDTO implements Serializable {
     private String visitorIpLocation;
 
     @Schema(description = "结果状态")
-    private EnabledStatusEnum resultStatus;
+    private LogResultStatusEnum resultStatus;
 
     @Schema(description = "失败原因文本")
     private String failedMsg;

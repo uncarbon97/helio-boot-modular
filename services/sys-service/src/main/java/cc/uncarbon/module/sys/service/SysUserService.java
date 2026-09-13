@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
@@ -40,7 +40,7 @@ public interface SysUserService {
     /**
      * 后台管理-修改状态
      */
-    void adminSetStatus(AdminBatchSetStatusRequest<Long, SysUserStatusEnum> request);
+    void adminSetStatus(AdminSetStatusRequest<Long, SysUserStatusEnum> request);
 
     /**
      * 后台管理-删除
@@ -68,9 +68,9 @@ public interface SysUserService {
     TenantUserCreateResult createTenantUser(TenantUserCreateRequest request);
 
     /**
-     * 后台管理-重置指定用户密码
+     * 后台管理-重置密码
      */
-    void adminResetSpecifiedUserPassword(AdminSysUserResetSpecifiedOnePasswordRequest request);
+    void adminResetPassword(AdminSysUserResetPasswordRequest request);
 
     /**
      * 后台管理-绑定用户角色

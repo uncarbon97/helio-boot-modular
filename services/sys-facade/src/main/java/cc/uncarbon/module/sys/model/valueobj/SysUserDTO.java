@@ -10,7 +10,6 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 
 /**
@@ -26,10 +25,10 @@ public class SysUserDTO implements Serializable {
     private Long id;
 
     @Schema(description = "创建时刻")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Schema(description = "更新时刻")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Schema(description = "账号")
     private String pin;

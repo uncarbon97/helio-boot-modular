@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 
 /**
@@ -24,10 +24,10 @@ public class TenantMetaDTO implements Serializable {
     private Long id;
 
     @Schema(description = "创建时刻")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Schema(description = "更新时刻")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Schema(description = "租户编码")
     private String code;

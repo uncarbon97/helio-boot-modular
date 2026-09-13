@@ -46,10 +46,6 @@ public class SysUserEntity extends AbstractTenantGenericEntity {
     @TableField(value = "pwd")
     private String pwd;
 
-    @Schema(description = "密码加盐")
-    @TableField(value = "pwd_salt")
-    private String pwdSalt;
-
     /**
      * 密码最近一次更新时刻
      */

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collection;
 
 
@@ -25,10 +25,10 @@ public class TenantPackageDTO implements Serializable {
     private Long id;
 
     @Schema(description = "创建时刻")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Schema(description = "更新时刻")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Schema(description = "套餐编码")
     private String code;

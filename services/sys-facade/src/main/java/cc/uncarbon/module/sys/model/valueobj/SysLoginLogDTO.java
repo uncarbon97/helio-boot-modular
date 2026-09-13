@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 
 /**
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 public class SysLoginLogDTO implements Serializable {
 
     @Schema(description = "创建时刻")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Schema(description = "登录日志类型")
     private LoginLogTypeEnum loginLogType;

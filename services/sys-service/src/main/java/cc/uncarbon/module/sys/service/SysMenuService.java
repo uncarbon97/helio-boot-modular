@@ -2,7 +2,7 @@ package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.model.request.AdminBatchSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
 
@@ -41,7 +41,7 @@ public interface SysMenuService {
      * <p>
      * 禁用/启用菜单不会立即刷新已缓存的角色权限串（Redis 缓存最长 6 小时后过期），新登录用户即时生效
      */
-    void adminSetStatus(AdminBatchSetStatusRequest<Long, EnabledStatusEnum> request);
+    void adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request);
 
     /**
      * 根据 ID 取详情
