@@ -44,7 +44,7 @@ public class SysDictItemDTO implements Serializable {
     @Schema(description = "状态")
     private EnabledStatusEnum status;
 
-    @Schema(description = "排序")
+    @Schema(description = "排序(数值越小越优先)")
     private Integer sort;
 
     @Schema(description = "字典项描述")

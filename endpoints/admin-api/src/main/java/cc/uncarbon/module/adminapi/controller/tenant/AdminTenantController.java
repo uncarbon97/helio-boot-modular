@@ -1,12 +1,12 @@
 package cc.uncarbon.module.adminapi.controller.tenant;
 
-import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.tenant.model.query.AdminTenantMetaListQuery;
@@ -22,7 +22,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Set;
 
@@ -35,7 +38,7 @@ import java.util.Set;
 @Slf4j
 public class AdminTenantController {
 
-    private static final String PERMISSION_PREFIX = "Tenant:";
+    private static final String PERMISSION_PREFIX = "tenant:meta:";
     static final String BIZ_TYPE = "租户管理";
 
     private final TenantService tenantService;

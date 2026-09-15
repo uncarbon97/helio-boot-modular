@@ -43,6 +43,6 @@ public class MyProfileDTO implements Serializable {
     private String avatarUrl;
 
     @Schema(description = "要求用户下次登录时修改密码")
-    private YesOrNoEnum requireNewPwdFlag;
+    private YesOrNoEnum mustChangePassword;
 
 }

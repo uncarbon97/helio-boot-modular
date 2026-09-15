@@ -1,6 +1,5 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
-import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
@@ -10,6 +9,7 @@ import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.model.response.IdResponse;
@@ -44,7 +44,7 @@ import java.util.Set;
 @Slf4j
 public class AdminSysRoleController {
 
-    private static final String PERMISSION_PREFIX = "SysRole:";
+    private static final String PERMISSION_PREFIX = "sys:role:";
     static final String BIZ_TYPE = "系统角色管理";
 
     private final SysRoleService sysRoleService;
@@ -103,27 +103,9 @@ public class AdminSysRoleController {
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
-
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "绑定角色菜单",
-            bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bind-menu")
-    @Operation(summary = "绑定角色菜单")
-    @PostMapping(value = "/bind-menu")
-    public ApiResult<Void> bindMenu(@RequestBody @Valid AdminSysRoleBindMenuRequest request) {
-        var old = sysRoleService.getNonnullById(request.getRoleId());
-        sysRoleService.adminBindMenu(request);
-        SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
-                new RefreshRolePermissionCacheEvent.EventData(
-                        Set.of(request.getRoleId()), TenantContextHolder.getTenantId())
-        ));
-        // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
-        return ApiResult.success();
-    }
-
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改角色状态",
             bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}，新状态：{{#request.newStatus.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "set-status")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "修改角色状态")
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
@@ -132,6 +114,23 @@ public class AdminSysRoleController {
         SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
                 new RefreshRolePermissionCacheEvent.EventData(
                         Set.of(request.getId()), TenantContextHolder.getTenantId())
+        ));
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "授权",
+            bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bind-menu")
+    @Operation(summary = "授权")
+    @PostMapping(value = "/bind-menu")
+    public ApiResult<Void> bindMenu(@RequestBody @Valid AdminSysRoleBindMenuRequest request) {
+        var old = sysRoleService.getNonnullById(request.getRoleId());
+        sysRoleService.adminBindMenu(request);
+        SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
+                new RefreshRolePermissionCacheEvent.EventData(
+                        Set.of(request.getRoleId()), TenantContextHolder.getTenantId())
         ));
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);

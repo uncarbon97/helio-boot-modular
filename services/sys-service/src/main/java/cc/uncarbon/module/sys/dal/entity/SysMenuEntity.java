@@ -64,7 +64,7 @@ public class SysMenuEntity extends AbstractTenantGenericEntity {
 	@TableField(value = "icon")
 	private String icon;
 
-	@Schema(description = "排序")
+	@Schema(description = "排序(数值越小越优先)")
 	@TableField(value = "sort")
 	private Integer sort;
 

@@ -58,7 +58,7 @@ public class AdminSysMenuUpsertRequest implements Serializable {
     @Size(max = 255, message = "图标最长{max}位")
     private String icon;
 
-    @Schema(description = "排序")
+    @Schema(description = "排序(数值越小越优先)")
     private Integer sort;
 
     @Schema(description = "外链地址")

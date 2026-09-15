@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
@@ -53,7 +54,7 @@ public class AdminUCenterServiceImpl implements AdminUCenterService {
         if (entity.getPwd().equals(encryptPwd)) {
             throw new BusinessException(SysErrorCodeEnum.A01007);
         }
-        sysUserMapper.updateEncryptedPwd(userId, encryptPwd);
+        sysUserMapper.updateEncryptedPwd(userId, encryptPwd, YesOrNoEnum.NO);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
-import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
@@ -9,6 +8,7 @@ import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpKit;
@@ -105,6 +105,46 @@ public class AdminSysUserController {
         return ApiResult.success();
     }
 
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改用户状态",
+            success = "被操作用户ID：{{#request.id}}，新状态：{{#request.newStatus.label}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @Operation(summary = "修改用户状态")
+    @PostMapping(value = "/set-status")
+    public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, SysUserStatusEnum> request) {
+        sysUserService.adminSetStatus(request);
+        if (request.getNewStatus() == SysUserStatusEnum.DISABLED) {
+            kickOutAsync(request.getId());
+        }
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "分配角色",
+            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bind-role")
+    @Operation(summary = "分配角色")
+    @PostMapping(value = "/bind-role")
+    public ApiResult<Void> bindRole(@RequestBody @Valid AdminSysUserBindRoleRequest request) {
+        sysUserService.adminBindRole(request);
+        // 为了快速更新对应权限；可以视业务需要决定是否删除该代码
+        kickOutAsync(request.getUserId());
+        // 用于操作日志
+        var old = sysUserService.getNonnullById(request.getUserId());
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改部门",
+            bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}，目标部门ID：{{#request.deptId}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = AdminPermissionConstant.BIND_DEPT)
+    @Operation(summary = "修改部门")
+    @PostMapping(value = "/bind-dept")
+    public ApiResult<Void> bindDept(@RequestBody @Valid AdminSysUserBindDeptRequest request) {
+        // 用于操作日志
+        var old = sysUserService.getNonnullById(request.getUserId());
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "重置密码",
             bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "reset-password")
@@ -119,50 +159,10 @@ public class AdminSysUserController {
         return ApiResult.success();
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "绑定用户角色",
-            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bind-role")
-    @Operation(summary = "绑定用户角色")
-    @PostMapping(value = "/bind-role")
-    public ApiResult<Void> bindRole(@RequestBody @Valid AdminSysUserBindRoleRequest request) {
-        sysUserService.adminBindRole(request);
-        // 为了快速更新对应权限；可以视业务需要决定是否删除该代码
-        kickOutAsync(request.getUserId());
-        // 用于操作日志
-        var old = sysUserService.getNonnullById(request.getUserId());
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
-        return ApiResult.success();
-    }
-
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "调整用户部门",
-            bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}，目标部门ID：{{#request.deptId}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = AdminPermissionConstant.BIND_DEPT)
-    @Operation(summary = "调整用户部门")
-    @PostMapping(value = "/bind-dept")
-    public ApiResult<Void> bindDept(@RequestBody @Valid AdminSysUserBindDeptRequest request) {
-        // 用于操作日志
-        var old = sysUserService.getNonnullById(request.getUserId());
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
-        return ApiResult.success();
-    }
-
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改用户状态",
-            success = "被操作用户ID：{{#request.id}}，新状态：{{#request.newStatus.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
-    @Operation(summary = "修改用户状态")
-    @PostMapping(value = "/set-status")
-    public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, SysUserStatusEnum> request) {
-        sysUserService.adminSetStatus(request);
-        if (request.getNewStatus() == SysUserStatusEnum.DISABLED) {
-            kickOutAsync(request.getId());
-        }
-        return ApiResult.success();
-    }
-
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "踢用户下线",
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "踢下线",
             bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "kick-out")
-    @Operation(summary = "踢用户下线")
+    @Operation(summary = "踢下线")
     @PostMapping(value = "/kick-out")
     public ApiResult<Void> kickOut(@RequestBody @Valid IdRequest<Long> request) {
         kickOutAsync(request.getId());

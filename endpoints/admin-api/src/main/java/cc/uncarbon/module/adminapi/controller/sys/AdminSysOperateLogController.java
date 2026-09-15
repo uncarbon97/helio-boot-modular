@@ -1,10 +1,10 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
 
-import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.query.AdminSysOperateLogListQuery;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminSysOperateLogController {
 
     // 功能权限串前缀
-    private static final String PERMISSION_PREFIX = "SysOperateLog:";
+    private static final String PERMISSION_PREFIX = "sys:operate-log:";
 
     private final SysOperateLogService sysOperateLogService;
 

@@ -1,13 +1,13 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
 
-import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
@@ -39,7 +39,7 @@ import java.util.Set;
 @Slf4j
 public class AdminSysDeptController {
 
-    private static final String PERMISSION_PREFIX = "SysDept:";
+    private static final String PERMISSION_PREFIX = "sys:dept:";
     static final String BIZ_TYPE = "部门管理";
 
     private final SysDeptService sysDeptService;
@@ -97,7 +97,7 @@ public class AdminSysDeptController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改部门状态",
             bizNo = "{{#request.id}}", success = "被操作部门：{{#old.name}}，新状态：{{#request.newStatus.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "set-status")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "修改部门状态")
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {

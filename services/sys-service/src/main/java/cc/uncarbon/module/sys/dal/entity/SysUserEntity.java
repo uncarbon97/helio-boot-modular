@@ -46,9 +46,6 @@ public class SysUserEntity extends AbstractTenantGenericEntity {
     @TableField(value = "pwd")
     private String pwd;
 
-    /**
-     * 密码最近一次更新时刻
-     */
     @Schema(description = "密码最近一次更新时刻")
     @TableField(value = "pwd_last_updated_at")
     private Instant pwdLastUpdatedAt;
@@ -82,7 +79,7 @@ public class SysUserEntity extends AbstractTenantGenericEntity {
     private String avatarUrl;
 
     @Schema(description = "要求用户下次登录时修改密码")
-    @TableField(value = "require_new_pwd_flag")
-    private YesOrNoEnum requireNewPwdFlag;
+    @TableField(value = "must_change_password")
+    private YesOrNoEnum mustChangePassword;
 
 }

@@ -48,11 +48,11 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
         updateById(update);
     }
 
-    default void updateEncryptedPwd(long userId, String encryptedPwd) {
+    default void updateEncryptedPwd(long userId, String encryptedPwd, YesOrNoEnum mustChangePassword) {
         updateById(new SysUserEntity().setId(userId)
                 .setPwd(encryptedPwd)
                 .setPwdLastUpdatedAt(Instant.now())
-                .setRequireNewPwdFlag(YesOrNoEnum.NO)
+                .setMustChangePassword(mustChangePassword)
         );
     }
 

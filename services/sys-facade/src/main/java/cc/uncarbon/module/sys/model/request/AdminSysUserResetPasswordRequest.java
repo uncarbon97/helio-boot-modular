@@ -32,6 +32,6 @@ public class AdminSysUserResetPasswordRequest implements Serializable {
 
     @Schema(description = "要求用户下次登录时修改密码", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "要求用户下次登录时修改密码必填")
-    private YesOrNoEnum requireNewPwdFlag;
+    private YesOrNoEnum mustChangePassword;
 
 }

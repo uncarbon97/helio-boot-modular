@@ -43,7 +43,7 @@ public class SysDeptEntity extends AbstractTenantGenericEntity {
 	@TableField(value = "parent_id")
 	private Long parentId;
 
-	@Schema(description = "排序")
+	@Schema(description = "排序(数值越小越优先)")
 	@TableField(value = "sort")
 	private Integer sort;
 

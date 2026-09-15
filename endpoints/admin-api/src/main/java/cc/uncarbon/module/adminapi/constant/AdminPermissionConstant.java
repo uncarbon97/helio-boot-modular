@@ -9,7 +9,7 @@ import lombok.experimental.UtilityClass;
 public class AdminPermissionConstant {
 
     /**
-     * 系统用户-调整用户部门
+     * 系统用户-修改部门
      */
     public final String BIND_DEPT = "sys:user:bind-dept";
 

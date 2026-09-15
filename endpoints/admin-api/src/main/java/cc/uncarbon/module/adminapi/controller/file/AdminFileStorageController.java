@@ -1,13 +1,13 @@
 package cc.uncarbon.module.adminapi.controller.file;
 
 
-import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.file.model.query.AdminFileStorageListQuery;
@@ -38,7 +38,7 @@ import java.util.Set;
 public class AdminFileStorageController {
 
     // 功能权限串前缀
-    private static final String PERMISSION_PREFIX = "FileStorage:";
+    private static final String PERMISSION_PREFIX = "file:storage:";
     static final String BIZ_TYPE = "文件存储点管理";
 
     private final FileStorageDataService fileStorageDataService;

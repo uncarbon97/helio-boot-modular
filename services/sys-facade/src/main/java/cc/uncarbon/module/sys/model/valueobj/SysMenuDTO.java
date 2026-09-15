@@ -44,7 +44,7 @@ public class SysMenuDTO implements Serializable {
     @Schema(description = "图标")
     private String icon;
 
-    @Schema(description = "排序")
+    @Schema(description = "排序(数值越小越优先)")
     private Integer sort;
 
     @Schema(description = "前端组件名称")

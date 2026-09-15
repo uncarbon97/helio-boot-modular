@@ -48,7 +48,7 @@ public class AdminSysDictItemUpsertRequest implements Serializable {
     @NotNull(message = "状态必填")
     private EnabledStatusEnum status;
 
-    @Schema(description = "排序", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "排序(数值越小越优先)", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "排序必填")
     private Integer sort;
 

@@ -1,12 +1,12 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
-import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
@@ -38,7 +38,7 @@ import java.util.Set;
 @Slf4j
 public class AdminSysMenuController {
 
-    private static final String PERMISSION_PREFIX = "SysMenu:";
+    private static final String PERMISSION_PREFIX = "sys:menu:";
     static final String BIZ_TYPE = "系统菜单管理";
 
     private final SysMenuService sysMenuService;
@@ -96,7 +96,7 @@ public class AdminSysMenuController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改菜单状态",
             bizNo = "{{#request.id}}", success = "被操作菜单：{{#old.name}}，新状态：{{#request.newStatus.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "set-status")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "修改菜单状态")
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {

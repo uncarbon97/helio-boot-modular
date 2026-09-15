@@ -203,7 +203,7 @@ public class SysUserServiceImpl implements SysUserService {
         checkExistence(request.getUserId());
         var user = sysUserMapper.selectById(request.getUserId());
         sysUserMapper.updateEncryptedPwd(user.getId(),
-                PwdUtil.hash(request.getRandomPassword()));
+                PwdUtil.hash(request.getRandomPassword()), request.getMustChangePassword());
     }
 
     @Override

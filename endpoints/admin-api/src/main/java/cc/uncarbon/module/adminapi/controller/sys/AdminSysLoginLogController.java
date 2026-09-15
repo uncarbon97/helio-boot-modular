@@ -1,9 +1,9 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
-import cc.uncarbon.framework.helium.base.constant.PermissionPattern;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;
@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class AdminSysLoginLogController {
 
-    private static final String PERMISSION_PREFIX = "SysLoginLog:";
+    private static final String PERMISSION_PREFIX = "sys:login-log:";
 
     private final SysLoginLogService sysLoginLogService;
 
