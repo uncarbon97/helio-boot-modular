@@ -11,7 +11,6 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.List;
 
 /**
  * 文件元数据-后台管理-分页查询
@@ -31,20 +30,8 @@ public class AdminFileMetaListQuery implements Serializable, PageQuery {
     @Schema(description = "时间区间止")
     private Instant endAt;
 
-    @Schema(description = "时间区间起止", maxLength = 2)
-    private List<Instant> periodBetween;
-
-    @Schema(description = "原始存储点ID")
-    private Long storageId;
-
     @Schema(description = "存储点编码")
     private String storageCode;
-
-    @Schema(description = "存储文件名")
-    private String storageFilename;
-
-    @Schema(description = "原始文件名")
-    private String originalFilename;
 
     @Schema(description = "扩展名")
     private String extendName;

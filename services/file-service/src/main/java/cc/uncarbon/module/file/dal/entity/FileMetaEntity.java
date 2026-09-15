@@ -50,11 +50,11 @@ public class FileMetaEntity extends AbstractTenantGenericEntity {
     @TableField(value = "sub_dir_path")
     private String subDirPath;
 
-    @Schema(description = "存储文件名")
+    @Schema(description = "存储文件名（不含扩展名）")
     @TableField(value = "storage_filename")
     private String storageFilename;
 
-    @Schema(description = "原始文件名")
+    @Schema(description = "原始文件名（不含扩展名）")
     @TableField(value = "original_filename")
     private String originalFilename;
 

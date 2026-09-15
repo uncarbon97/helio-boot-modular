@@ -67,6 +67,20 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
     }
 
     /**
+     * 后台管理-下拉框数据
+     */
+    @Override
+    public List<FileStorageDTO> adminListSelectOption() {
+        List<FileStorageEntity> entityList = fileStorageMapper.selectList(new LambdaQueryWrapper<FileStorageEntity>()
+                // 只取特定字段
+                .select(FileStorageEntity::getId, FileStorageEntity::getName)
+                // 排序
+                .orderByAsc(FileStorageEntity::getId)
+        );
+        return convertList(entityList);
+    }
+
+    /**
      * 把配置属性转换成JSON字符串
      */
     @SneakyThrows

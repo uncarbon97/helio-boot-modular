@@ -1,5 +1,6 @@
 package cc.uncarbon.module.file.model.valueobj;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -40,10 +41,10 @@ public class FileMetaDTO implements Serializable {
     @Schema(description = "子目录路径")
     private String subDirPath;
 
-    @Schema(description = "存储文件名")
+    @Schema(description = "存储文件名（不含扩展名）")
     private String storageFilename;
 
-    @Schema(description = "原始文件名")
+    @Schema(description = "原始文件名（不含扩展名）")
     private String originalFilename;
 
     @Schema(description = "扩展名")
@@ -65,14 +66,20 @@ public class FileMetaDTO implements Serializable {
      * 取完整的存储文件名（带扩展名）
      */
     public String getStorageFilenameFull() {
-        return String.format("%s.%s", this.getStorageFilename(), this.getExtendName());
+        return appendExtendName(getStorageFilename());
     }
 
     /**
      * 取完整的原始文件名（带扩展名）
      */
     public String getOriginalFilenameFull() {
-        return String.format("%s.%s", this.getOriginalFilename(), this.getExtendName());
+        return appendExtendName(getOriginalFilename());
+    }
+
+    private String appendExtendName(String filename) {
+        return CharSequenceUtil.isEmpty(this.getExtendName())
+                ? filename
+                : String.format("%s.%s", filename, this.getExtendName());
     }
 
 }

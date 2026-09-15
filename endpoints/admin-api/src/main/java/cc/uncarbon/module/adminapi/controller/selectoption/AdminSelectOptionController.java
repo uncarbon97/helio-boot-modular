@@ -7,6 +7,8 @@ import cc.uncarbon.module.adminapi.model.response.AdminSelectOptionItemVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
+import cc.uncarbon.module.file.service.FileStorageDataService;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
@@ -18,7 +20,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -38,6 +43,7 @@ public class AdminSelectOptionController {
     private final SysDictService sysDictService;
     private final SysRoleService sysRoleService;
     private final SysDeptService sysDeptService;
+    private final FileStorageDataService fileStorageDataService;
 
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
@@ -68,6 +74,15 @@ public class AdminSelectOptionController {
         boolean hasBindDeptPerm = StpKit.ADMIN.hasPermission(AdminPermissionConstant.BIND_DEPT);
         return ApiResult.success(AdminSelectOptionItemVO.ofIdNameParentBatch(sysDeptService.adminListSelectOption(!hasBindDeptPerm),
                 SysDeptDTO::getId, SysDeptDTO::getName, SysDeptDTO::getParentId));
+    }
+
+    @SaCheckLogin(type = StpLoginType.ADMIN)
+    @Operation(summary = "文件存储点下拉框数据")
+    @PostMapping(value = "/file/storage")
+    public ApiResult<List<AdminSelectOptionItemVO>> fileStorage() {
+        return ApiResult.success(AdminSelectOptionItemVO.ofIdNameBatch(fileStorageDataService.adminListSelectOption(),
+                FileStorageDTO::getId, FileStorageDTO::getName,
+                (source, target) -> target.setStorageCode(source.getCode())));
     }
 
 }

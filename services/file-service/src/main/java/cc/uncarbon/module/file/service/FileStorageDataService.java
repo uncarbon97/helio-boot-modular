@@ -7,6 +7,7 @@ import cc.uncarbon.module.file.model.request.AdminFileStorageUpsertRequest;
 import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * 文件存储点
@@ -17,6 +18,11 @@ public interface FileStorageDataService {
      * 后台管理-分页查询
      */
     PageResult<FileStorageDTO> adminList(AdminFileStorageListQuery query);
+
+    /**
+     * 后台管理-下拉框数据
+     */
+    List<FileStorageDTO> adminListSelectOption();
 
     /**
      * 后台管理-新增

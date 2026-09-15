@@ -14,6 +14,7 @@ import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
 import cc.uncarbon.module.file.service.FileMetaService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -44,16 +45,10 @@ public class FileMetaServiceImpl implements FileMetaService {
         Page<FileMetaEntity> entityPage = fileMetaMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
                 new LambdaQueryWrapper<FileMetaEntity>()
-                        // 原始存储点ID
-                        .eq(Objects.nonNull(query.getStorageId()), FileMetaEntity::getStorageId, query.getStorageId())
                         // 存储点编码
-                        .like(CharSequenceUtil.isNotBlank(query.getStorageCode()), FileMetaEntity::getStorageCode, CharSequenceUtil.cleanBlank(query.getStorageCode()))
-                        // 存储文件名
-                        .like(CharSequenceUtil.isNotBlank(query.getStorageFilename()), FileMetaEntity::getStorageFilename, CharSequenceUtil.cleanBlank(query.getStorageFilename()))
-                        // 原始文件名
-                        .like(CharSequenceUtil.isNotBlank(query.getOriginalFilename()), FileMetaEntity::getOriginalFilename, CharSequenceUtil.cleanBlank(query.getOriginalFilename()))
+                        .eq(CharSequenceUtil.isNotBlank(query.getStorageCode()), FileMetaEntity::getStorageCode, CharSequenceUtil.cleanBlank(query.getStorageCode()))
                         // 扩展名
-                        .like(CharSequenceUtil.isNotBlank(query.getExtendName()), FileMetaEntity::getExtendName, CharSequenceUtil.cleanBlank(query.getExtendName()))
+                        .eq(CharSequenceUtil.isNotBlank(query.getExtendName()), FileMetaEntity::getExtendName, CharSequenceUtil.cleanBlank(query.getExtendName()))
                         // 文件主分类
                         .like(CharSequenceUtil.isNotBlank(query.getCategory()), FileMetaEntity::getCategory, CharSequenceUtil.cleanBlank(query.getCategory()))
                         // 时间区间
@@ -100,8 +95,9 @@ public class FileMetaServiceImpl implements FileMetaService {
                 .setStorageCode(storage.getCode())
                 .setStorageBasePath(fileInfo.getBasePath())
                 .setSubDirPath(fileInfo.getPath())
-                .setStorageFilename(fileInfo.getFilename())
-                .setOriginalFilename(fileInfo.getOriginalFilename())
+                // 落库文件名不含扩展名，读取时经 xxxFull 拼回
+                .setStorageFilename(FileNameUtil.mainName(fileInfo.getFilename()))
+                .setOriginalFilename(FileNameUtil.mainName(fileInfo.getOriginalFilename()))
                 .setExtendName(fileInfo.getExt())
                 .setFileSize(fileInfo.getSize())
                 .setDigestSha256(options.getDigestSha256())
