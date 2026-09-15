@@ -3,6 +3,7 @@ package cc.uncarbon.module.file.biz;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.module.file.adapter.DynamicFileStorageRegistrar;
 import cc.uncarbon.module.file.errorcode.FileErrorCodeEnum;
 import cc.uncarbon.module.file.facade.FileUpDownloadFacade;
 import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
@@ -15,7 +16,6 @@ import cc.uncarbon.module.file.service.FileStorageDataService;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.x.file.storage.core.FileInfo;
@@ -44,6 +44,9 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
 
     private final FileMetaService fileMetaService;
     private final FileStorageDataService fileStorageDataService;
+    /**
+     * 文档: <a href="https://x-file-storage.xuyanwu.cn/">...</a>
+     */
     private final FileStorageService fileStorageService;
     private final TenantFacade tenantFacade;
 
@@ -53,44 +56,18 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
         return fileMetaService.findByDigestSha256(sha256);
     }
 
-    @Override
-    public FileMetaDTO upload(byte[] fileBytes,
-                              @NonNull FacadeUploadOptions options,
-                              @Nullable FileAttrExtraRequest attr) throws BusinessException {
-        // 要上传到的平台名
-        String platform = ObjectUtil.defaultIfNull(options.getPlatform(),
-                fileStorageService.getProperties()::getDefaultPlatform);
-        // 找对应的存储点
-        FileStorageDTO storage = fileStorageDataService.getByStorageCode(platform);
-        FileErrorCodeEnum.B02003.throwIfNull(storage);
-
-        // 如果需要缩略图: .setSaveThFilename().setThContentType()
-        UploadPretreatment uploadPretreatment = fileStorageService
-                .of(fileBytes)
-                .setOriginalFilename(options.getOriginalFilename())
-                // 不手动指定，由框架自动生成存储文件名
-                .setSaveFilename(null)
-                .setContentType(options.getContentType())
-                .setPlatform(storage.getCode())
-                .setPath(formatDatePath(LocalDateTime.now()));
-        if (options.isUseOriginalFilenameAsDownloadFileName() && fileStorageService.isSupportMetadata(platform)) {
-            String downFileName = URLEncoder.encode(options.getOriginalFilename(), StandardCharsets.UTF_8);
-            uploadPretreatment.putMetadata(Constant.Metadata.CONTENT_DISPOSITION, "attachment;filename=" + downFileName);
-        }
-
-        FileInfo fileInfo;
-        try {
-            fileInfo = uploadPretreatment.upload();
-        } catch (FileStorageRuntimeException fsre) {
-            log.error(LOG_PREFIX + "[上传] FileStorageRuntimeException >> ", fsre);
-            throw new BusinessException(FileErrorCodeEnum.B02001);
-        }
-
-        log.info(LOG_PREFIX + "[上传] 正常上传成功 >> successFileInfo={}", fileInfo);
-        if (attr == null) {
-            attr = new FileAttrExtraRequest();
-        }
-        return fileMetaService.save(fileInfo, storage, options, attr);
+    /**
+     * 转换为 FileInfo 对象
+     */
+    private static FileInfo toFileInfo(Long tenantId, FileMetaDTO source) {
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.setPlatform(DynamicFileStorageRegistrar.formatFullPlatform(tenantId, source.getStorageCode()));
+        fileInfo.setBasePath(source.getStorageBasePath());
+        fileInfo.setPath(source.getSubDirPath());
+        fileInfo.setFilename(source.getStorageFilenameFull());
+        fileInfo.setSize(source.getFileSize());
+        fileInfo.setOriginalFilename(source.getOriginalFilenameFull());
+        return fileInfo;
     }
 
     @Override
@@ -168,29 +145,48 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
         return String.format("%d/%02d/%02d/", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
     }
 
-    /**
-     * 格式化出完整平台名
-     *
-     * @param storageCode 存储点编码
-     */
-    private static String formatFullPlatform(Long tenantId, String storageCode) {
-        if (tenantId == null) {
-            return storageCode;
+    @Override
+    public FileMetaDTO upload(byte[] fileBytes,
+                              @NonNull FacadeUploadOptions options,
+                              @Nullable FileAttrExtraRequest attr) throws BusinessException {
+        // 找对应的存储点：优先取指定编码的，未指定则取主存储点
+        FileStorageDTO storage;
+        if (CharSequenceUtil.isNotBlank(options.getPlatform())) {
+            storage = fileStorageDataService.getByStorageCode(options.getPlatform());
+        } else {
+            storage = fileStorageDataService.getPrimary();
         }
-        return tenantId + "_" + storageCode;
-    }
+        FileErrorCodeEnum.B02003.throwIfNull(storage);
+        // 底层存储平台按 租户ID_存储点编码 注册
+        String fullPlatform = DynamicFileStorageRegistrar.formatFullPlatform(
+                TenantContextHolder.getTenantId(), storage.getCode());
 
-    /**
-     * 转换为 FileInfo 对象
-     */
-    private static FileInfo toFileInfo(Long tenantId, FileMetaDTO source) {
-        FileInfo fileInfo = new FileInfo();
-        fileInfo.setPlatform(formatFullPlatform(tenantId, source.getStorageCode()));
-        fileInfo.setBasePath(source.getStorageBasePath());
-        fileInfo.setPath(source.getSubDirPath());
-        fileInfo.setFilename(source.getStorageFilenameFull());
-        fileInfo.setSize(source.getFileSize());
-        fileInfo.setOriginalFilename(source.getOriginalFilenameFull());
-        return fileInfo;
+        // 如果需要缩略图: .setSaveThFilename().setThContentType()
+        UploadPretreatment uploadPretreatment = fileStorageService
+                .of(fileBytes)
+                .setOriginalFilename(options.getOriginalFilename())
+                // 不手动指定，由框架自动生成存储文件名
+                .setSaveFilename(null)
+                .setContentType(options.getContentType())
+                .setPlatform(fullPlatform)
+                .setPath(formatDatePath(LocalDateTime.now()));
+        if (options.isUseOriginalFilenameAsDownloadFileName() && fileStorageService.isSupportMetadata(fullPlatform)) {
+            String downFileName = URLEncoder.encode(options.getOriginalFilename(), StandardCharsets.UTF_8);
+            uploadPretreatment.putMetadata(Constant.Metadata.CONTENT_DISPOSITION, "attachment;filename=" + downFileName);
+        }
+
+        FileInfo fileInfo;
+        try {
+            fileInfo = uploadPretreatment.upload();
+        } catch (FileStorageRuntimeException fsre) {
+            log.error(LOG_PREFIX + "[上传] FileStorageRuntimeException >> ", fsre);
+            throw new BusinessException(FileErrorCodeEnum.B02001);
+        }
+
+        log.info(LOG_PREFIX + "[上传] 正常上传成功 >> successFileInfo={}", fileInfo);
+        if (attr == null) {
+            attr = new FileAttrExtraRequest();
+        }
+        return fileMetaService.save(fileInfo, storage, options, attr);
     }
 }

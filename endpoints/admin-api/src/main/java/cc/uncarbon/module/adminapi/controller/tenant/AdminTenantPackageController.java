@@ -18,12 +18,12 @@ import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +44,7 @@ public class AdminTenantPackageController {
     static final String BIZ_TYPE = "租户套餐";
 
     private final TenantPackageService tenantPackageService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
@@ -79,6 +80,7 @@ public class AdminTenantPackageController {
         var old = tenantPackageService.getNonnullById(request.getId());
         tenantPackageService.adminUpdate(request);
         // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
+        LogRecordContext.putVariable("old", old);
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();
     }
@@ -92,7 +94,7 @@ public class AdminTenantPackageController {
         var old = tenantPackageService.getNonnullById(request.getId());
         tenantPackageService.adminDelete(Set.of(request.getId()));
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 
@@ -105,13 +107,13 @@ public class AdminTenantPackageController {
         var bindResult = tenantPackageService.adminBindMenu(request);
         // 角色权限缓存刷新
         bindResult.getTenantRoleIdsMap().forEach((tenantId, roleIds) ->
-                SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
+                eventPublisher.publishEvent(new RefreshRolePermissionCacheEvent(
                         new RefreshRolePermissionCacheEvent.EventData(roleIds, tenantId)
                 ))
         );
         // 用于操作日志
         var old = tenantPackageService.getNonnullById(request.getId());
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 

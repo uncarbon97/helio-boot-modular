@@ -2,11 +2,13 @@ package cc.uncarbon.module.file.service.impl;
 
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.file.dal.entity.FileStorageEntity;
 import cc.uncarbon.module.file.dal.mapper.FileStorageMapper;
+import cc.uncarbon.module.file.event.FileStorageChangedEvent;
 import cc.uncarbon.module.file.model.query.AdminFileStorageListQuery;
 import cc.uncarbon.module.file.model.request.AdminFileStorageUpsertRequest;
 import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
@@ -17,8 +19,12 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +41,8 @@ import java.util.Objects;
 public class FileStorageDataServiceImpl implements FileStorageDataService {
 
     private final FileStorageMapper fileStorageMapper;
+    private static final JsonMapper JSON_MAPPER = new JsonMapper();
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @Override
@@ -48,10 +56,6 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
                         .like(CharSequenceUtil.isNotBlank(query.getName()), FileStorageEntity::getName, CharSequenceUtil.cleanBlank(query.getName()))
                         // 存储平台类型
                         .eq(Objects.nonNull(query.getPlatformType()), FileStorageEntity::getPlatformType, query.getPlatformType())
-                        // 主存储点标识
-                        .eq(Objects.nonNull(query.getPrimaryFlag()), FileStorageEntity::getPrimaryFlag, query.getPrimaryFlag())
-                        // 时间区间
-                        .between(Objects.nonNull(query.getBeginAt()) && Objects.nonNull(query.getEndAt()), FileStorageEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
                         // 排序
                         .orderByDesc(FileStorageEntity::getId)
         );
@@ -62,10 +66,38 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         return convertPage(entityPage);
     }
 
+    /**
+     * 把配置属性转换成JSON字符串
+     */
+    @SneakyThrows
+    private static void serializeSetting(AdminFileStorageUpsertRequest request, FileStorageEntity entity) {
+        if (request.getSettingBody() != null) {
+            var settingInstance
+                    = BeanUtil.copyProperties(request.getSettingBody(), request.getPlatformType().getSettingClass());
+            entity.setSettingJson(JSON_MAPPER.writeValueAsString((settingInstance)));
+        }
+    }
+
+    /**
+     * 从JSON字符串解析出配置属性类
+     */
+    private static void deserializeSetting(FileStorageDTO ret, FileStorageEntity entity) {
+        if (JSONUtil.isTypeJSONObject(entity.getSettingJson())) {
+            try {
+                var settingInstance = JSON_MAPPER.readValue(
+                        entity.getSettingJson(), entity.getPlatformType().getSettingClass());
+                ret.setSettingBody(settingInstance);
+            } catch (JsonProcessingException jpe) {
+                log.error("[文件存储点]反序列化配置属性类失败 >> {}", jpe.getMessage());
+            }
+        }
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Long adminCreate(AdminFileStorageUpsertRequest request) {
         checkRepeat(request);
+        checkPrimaryFlag(request);
 
         request.setId(null);
         var entity = new FileStorageEntity();
@@ -74,26 +106,8 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         serializeSetting(request, entity);
 
         fileStorageMapper.insert(entity);
+        publishChangedEvent(FileStorageChangedEvent.ChangeType.CREATE);
         return entity.getId();
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void adminUpdate(AdminFileStorageUpsertRequest request) {
-        checkRepeat(request);
-
-        var entity = new FileStorageEntity();
-        BeanUtil.copyProperties(request, entity);
-        // 按需改写字段
-        serializeSetting(request, entity);
-
-        fileStorageMapper.updateById(entity);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void adminDelete(Collection<Long> ids) {
-        fileStorageMapper.deleteByIds(ids);
     }
 
     @Override
@@ -116,11 +130,33 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         return convertEntity(entity);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminUpdate(AdminFileStorageUpsertRequest request) {
+        checkRepeat(request);
+        checkPrimaryFlag(request);
+
+        var entity = new FileStorageEntity();
+        BeanUtil.copyProperties(request, entity);
+        // 按需改写字段
+        serializeSetting(request, entity);
+
+        fileStorageMapper.updateById(entity);
+        publishChangedEvent(FileStorageChangedEvent.ChangeType.UPDATE);
+    }
+
     /*
     ----------------------------------------------------------------
                         私有方法 private methods
     ----------------------------------------------------------------
      */
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminDelete(Collection<Long> ids) {
+        fileStorageMapper.deleteByIds(ids);
+        publishChangedEvent(FileStorageChangedEvent.ChangeType.DELETE);
+    }
 
     /**
      * 实体转值对象
@@ -175,25 +211,42 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         }
     }
 
-    /**
-     * 把配置属性转换成JSON字符串
-     */
-    private static void serializeSetting(AdminFileStorageUpsertRequest request, FileStorageEntity entity) {
-        if (request.getSettingBody() != null) {
-            var settingInstance
-                    = BeanUtil.copyProperties(request.getSettingBody(), request.getPlatformType().getSettingClass());
-            entity.setSettingJson(JSONUtil.toJsonStr(settingInstance));
-        }
+    @Override
+    public FileStorageDTO getPrimary() {
+        var entity = fileStorageMapper.selectOne(new LambdaQueryWrapper<FileStorageEntity>()
+                // 主存储点标识
+                .eq(FileStorageEntity::getPrimaryFlag, YesOrNoEnum.YES)
+                .last(SQLSegment.LIMIT_1)
+        );
+        return convertEntity(entity);
     }
 
     /**
-     * 从JSON字符串解析出配置属性类
+     * 发布存储点变化事件，事务提交后由 DynamicFileStorageRegistrar 动态同步底层存储平台
      */
-    private static void deserializeSetting(FileStorageDTO ret, FileStorageEntity entity) {
-        if (JSONUtil.isTypeJSONObject(entity.getSettingJson())) {
-            var settingInstance
-                    = BeanUtil.copyProperties(entity.getSettingJson(), entity.getPlatformType().getSettingClass());
-            ret.setSettingBody(settingInstance);
+    private void publishChangedEvent(FileStorageChangedEvent.ChangeType type) {
+        eventPublisher.publishEvent(
+                new FileStorageChangedEvent(new FileStorageChangedEvent.EventData(type)));
+    }
+
+    /**
+     * 检查是否已有其他记录被设置为主存储点
+     */
+    private void checkPrimaryFlag(AdminFileStorageUpsertRequest request) {
+        if (request.getPrimaryFlag() == YesOrNoEnum.YES) {
+            var entity = fileStorageMapper.selectOne(new LambdaQueryWrapper<FileStorageEntity>()
+                    // 仅取主键ID
+                    .select(FileStorageEntity::getId)
+                    // 并非原地更新
+                    .ne(Objects.nonNull(request.getId()), FileStorageEntity::getId, request.getId())
+                    // 已是主存储点
+                    .eq(FileStorageEntity::getPrimaryFlag, YesOrNoEnum.YES)
+                    .last(SQLSegment.LIMIT_1)
+            );
+
+            if (entity != null) {
+                throw new HasRepeatRecordException("已存在其他主存储点");
+            }
         }
     }
 }

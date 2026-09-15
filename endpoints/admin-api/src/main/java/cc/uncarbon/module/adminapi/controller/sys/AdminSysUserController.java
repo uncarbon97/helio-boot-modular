@@ -22,12 +22,12 @@ import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,6 +51,7 @@ public class AdminSysUserController {
 
     private final SysUserService sysUserService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
@@ -188,15 +189,15 @@ public class AdminSysUserController {
     /**
      * 异步强制登出指定用户
      */
-    private static void kickOutAsync(long userId) {
+    private void kickOutAsync(long userId) {
         kickOutAsync(Set.of(userId));
     }
 
     /**
      * 异步强制登出指定用户
      */
-    private static void kickOutAsync(Collection<Long> userIds) {
-        SpringUtil.publishEvent(new KickOutSysUsersEvent(
+    private void kickOutAsync(Collection<Long> userIds) {
+        eventPublisher.publishEvent(new KickOutSysUsersEvent(
                 new KickOutSysUsersEvent.EventData(userIds)
         ));
     }

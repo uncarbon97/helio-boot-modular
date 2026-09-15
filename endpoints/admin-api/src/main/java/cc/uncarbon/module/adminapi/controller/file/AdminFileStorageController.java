@@ -3,22 +3,28 @@ package cc.uncarbon.module.adminapi.controller.file;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
-import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
+import cc.uncarbon.module.adminapi.helper.FileUploadResultHelper;
+import cc.uncarbon.module.adminapi.model.response.FileUploadResultVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.file.facade.FileUpDownloadFacade;
+import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
 import cc.uncarbon.module.file.model.query.AdminFileStorageListQuery;
 import cc.uncarbon.module.file.model.request.AdminFileStorageUpsertRequest;
+import cc.uncarbon.module.file.model.request.FileAttrExtraRequest;
+import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
 import cc.uncarbon.module.file.service.FileStorageDataService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.crypto.digest.DigestUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
@@ -42,6 +49,8 @@ public class AdminFileStorageController {
     static final String BIZ_TYPE = "文件存储点管理";
 
     private final FileStorageDataService fileStorageDataService;
+    private final FileUpDownloadFacade fileUpDownloadFacade;
+    private final FileUploadResultHelper fileUploadResultHelper;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
@@ -77,7 +86,7 @@ public class AdminFileStorageController {
         var old = fileStorageDataService.getNonnullById(request.getId());
         fileStorageDataService.adminUpdate(request);
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 
@@ -90,8 +99,41 @@ public class AdminFileStorageController {
         var old = fileStorageDataService.getNonnullById(request.getId());
         fileStorageDataService.adminDelete(Set.of(request.getId()));
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
+    }
+
+    /**
+     * 安全设计：
+     * 1. 复用「修改文件存储点」的权限门禁，不放宽通用上传接口 /file/upload 的任意登录即可上传限制；
+     * 2. 服务端生成固定小文本作为测试文件，不接收用户上传内容，规避恶意文件托管与大小/后缀风险；
+     * 3. 存储点按 ID 在租户上下文内查找，不暴露按编码任意指定平台；
+     * 4. 测试文件打上 category=storage-test 标记，便于后续批量清理；
+     * 5. @SysOperateLog 审计。
+     */
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "测试文件存储点",
+            bizNo = "{{#request.id}}", success = "被测试文件存储点：{{#old.name}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @Operation(summary = "测试上传，验证存储点可用性")
+    @PostMapping(value = "/test-upload")
+    public ApiResult<FileUploadResultVO> testUpload(HttpServletRequest servletRequest,
+                                                    @RequestBody @Valid IdRequest<Long> request) {
+        var storage = fileStorageDataService.getNonnullById(request.getId());
+        // 服务端生成固定小文本，内容含时间戳保证每次都会真实走一次上传
+        byte[] testBytes = ("storage-test:" + storage.getCode() + ":" + System.currentTimeMillis())
+                .getBytes(StandardCharsets.UTF_8);
+        var options = new FacadeUploadOptions()
+                .setOriginalFilename("storage-test-" + storage.getCode() + ".txt")
+                .setContentType("text/plain")
+                .setDigestSha256(DigestUtil.sha256Hex(testBytes))
+                // 指定目标存储点
+                .setPlatform(storage.getCode())
+                .setUseOriginalFilenameAsDownloadFileName(false);
+        FileAttrExtraRequest attr = new FileAttrExtraRequest().setCategory("storage-test");
+        FileMetaDTO fileMeta = fileUpDownloadFacade.upload(testBytes, options, attr);
+        // 用于操作日志
+        LogRecordContext.putVariable("old", storage);
+        return ApiResult.success(fileUploadResultHelper.toUploadResult(fileMeta, servletRequest));
     }
 
 }

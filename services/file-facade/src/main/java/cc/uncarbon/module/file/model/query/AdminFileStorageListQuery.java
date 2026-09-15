@@ -3,7 +3,6 @@ package cc.uncarbon.module.file.model.query;
 
 import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageQuery;
-import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.file.enums.PlatformTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -12,7 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
-import java.time.Instant;
 
 /**
  * 文件存储点-后台管理-分页查询
@@ -26,12 +24,6 @@ public class AdminFileStorageListQuery implements Serializable, PageQuery {
     @Schema(description = "分页查询参数")
     private PageParam pageParam;
 
-    @Schema(description = "时间区间起")
-    private Instant beginAt;
-
-    @Schema(description = "时间区间止")
-    private Instant endAt;
-
     @Schema(description = "存储点编码")
     private String code;
 
@@ -40,8 +32,5 @@ public class AdminFileStorageListQuery implements Serializable, PageQuery {
 
     @Schema(description = "存储平台类型")
     private PlatformTypeEnum platformType;
-
-    @Schema(description = "主存储点标识")
-    private YesOrNoEnum primaryFlag;
 
 }

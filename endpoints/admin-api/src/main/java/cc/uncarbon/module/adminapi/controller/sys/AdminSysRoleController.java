@@ -22,12 +22,12 @@ import cc.uncarbon.module.sys.service.SysRoleService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,6 +48,7 @@ public class AdminSysRoleController {
     static final String BIZ_TYPE = "系统角色管理";
 
     private final SysRoleService sysRoleService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
@@ -95,10 +96,7 @@ public class AdminSysRoleController {
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
         var old = sysRoleService.getNonnullById(request.getId());
         sysRoleService.adminDelete(Set.of(request.getId()));
-        SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
-                new RefreshRolePermissionCacheEvent.EventData(
-                        Set.of(request.getId()), TenantContextHolder.getTenantId())
-        ));
+        refreshRolePermissionCacheAsync(request.getId());
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
@@ -111,10 +109,7 @@ public class AdminSysRoleController {
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = sysRoleService.getNonnullById(request.getId());
         sysRoleService.adminSetStatus(request);
-        SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
-                new RefreshRolePermissionCacheEvent.EventData(
-                        Set.of(request.getId()), TenantContextHolder.getTenantId())
-        ));
+        refreshRolePermissionCacheAsync(request.getId());
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
@@ -128,12 +123,25 @@ public class AdminSysRoleController {
     public ApiResult<Void> bindMenu(@RequestBody @Valid AdminSysRoleBindMenuRequest request) {
         var old = sysRoleService.getNonnullById(request.getRoleId());
         sysRoleService.adminBindMenu(request);
-        SpringUtil.publishEvent(new RefreshRolePermissionCacheEvent(
-                new RefreshRolePermissionCacheEvent.EventData(
-                        Set.of(request.getRoleId()), TenantContextHolder.getTenantId())
-        ));
+        refreshRolePermissionCacheAsync(request.getRoleId());
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法 private methods
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 异步刷新角色权限缓存
+     */
+    private void refreshRolePermissionCacheAsync(Long roleId) {
+        eventPublisher.publishEvent(new RefreshRolePermissionCacheEvent(
+                new RefreshRolePermissionCacheEvent.EventData(
+                        Set.of(roleId), TenantContextHolder.getTenantId())
+        ));
     }
 }

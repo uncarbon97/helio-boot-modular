@@ -48,4 +48,9 @@ public interface FileStorageDataService {
      */
     FileStorageDTO getByStorageCode(String storageCode);
 
+    /**
+     * 取主存储点详情，不存在时返回null
+     */
+    FileStorageDTO getPrimary();
+
 }
