@@ -5,6 +5,7 @@ import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
+import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
@@ -22,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,17 +33,18 @@ import java.util.Set;
 
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
-@Tag(name = "租户管理-" + AdminTenantController.BIZ_TYPE)
+@Tag(name = "租户管理-" + AdminTenantMetaController.BIZ_TYPE)
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/tenant")
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-public class AdminTenantController {
+public class AdminTenantMetaController {
 
     private static final String PERMISSION_PREFIX = "tenant:meta:";
     static final String BIZ_TYPE = "租户管理";
 
     private final TenantService tenantService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
@@ -75,7 +78,13 @@ public class AdminTenantController {
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminTenantMetaUpdateRequest request) {
         var old = tenantService.getNonnullById(request.getId());
-        tenantService.adminUpdate(request);
+        var affectedRoleIds = tenantService.adminUpdate(request);
+        if (!affectedRoleIds.isEmpty()) {
+            // 套餐发生变化，刷新角色权限缓存
+            eventPublisher.publishEvent(new RefreshRolePermissionCacheEvent(
+                    new RefreshRolePermissionCacheEvent.EventData(affectedRoleIds, request.getId())
+            ));
+        }
         // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();

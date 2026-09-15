@@ -1,4 +1,4 @@
-package cc.uncarbon.module.adminapi.controller.auth;
+package cc.uncarbon.module.adminapi.controller.common;
 
 
 import cc.uncarbon.framework.helium.base.context.SimpleUserContext;

@@ -1,4 +1,4 @@
-package cc.uncarbon.module.adminapi.controller.selectoption;
+package cc.uncarbon.module.adminapi.controller.common;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;

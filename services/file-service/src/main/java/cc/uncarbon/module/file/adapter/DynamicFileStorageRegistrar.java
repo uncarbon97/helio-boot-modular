@@ -34,9 +34,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>完整平台名约定为 {@code tenantId_code}（租户ID为空时退化为纯 code），
  * 与上传、下载路径保持一致；YAML 静态配置的平台不受影响，与DB平台共存。</p>
  */
-@Slf4j
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class DynamicFileStorageRegistrar {
 
     private static final String LOG_PREFIX = "[动态文件存储点注册器]";

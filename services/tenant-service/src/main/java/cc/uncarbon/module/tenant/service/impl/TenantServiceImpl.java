@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 
 /**
@@ -89,14 +90,25 @@ public class TenantServiceImpl implements TenantService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminUpdate(AdminTenantMetaUpdateRequest request) {
+    public Set<Long> adminUpdate(AdminTenantMetaUpdateRequest request) {
         log.info(LOG_PREFIX + "修改 >> {}", request);
-        checkExistence(request.getId());
+        var old = tenantMetaMapper.selectById(request.getId());
+        NoRecordException.throwIfNull(old);
+        TenantPackageDTO pkg = checkPackage(request.getPackageId());
 
         var entity = new TenantMetaEntity();
         BeanUtil.copyProperties(request, entity);
 
         tenantMetaMapper.updateById(entity);
+
+        if (Objects.equals(old.getPackageId(), request.getPackageId())) {
+            return Set.of();
+        }
+        // 套餐发生变化，将该租户全部角色菜单裁剪至新套餐范围；套餐置空 = 清空
+        return tenantUserRoleFacade.syncTenantRoleMenus(
+                request.getId(),
+                pkg != null ? pkg.getMenuIds() : Set.of()
+        );
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -194,19 +206,6 @@ public class TenantServiceImpl implements TenantService {
         if (entity != null) {
             throw new HasRepeatRecordException("已存在相同的租户编码");
         }
-    }
-
-    /**
-     * 检查是否存在
-     */
-    private void checkExistence(Long id) {
-        boolean exists = tenantMetaMapper.exists(
-                new LambdaQueryWrapper<TenantMetaEntity>()
-                        .select(TenantMetaEntity::getId)
-                        .eq(TenantMetaEntity::getId, id)
-                        .last(SQLSegment.LIMIT_1)
-        );
-        NoRecordException.throwIfFalse(exists);
     }
 
     /**

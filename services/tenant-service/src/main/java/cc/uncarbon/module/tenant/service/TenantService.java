@@ -9,6 +9,7 @@ import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * 租户
@@ -27,8 +28,10 @@ public interface TenantService {
 
     /**
      * 后台管理-修改
+     *
+     * @return 套餐发生变化时受影响的角色ID集合，否则为空集合；用于调用方按需刷新权限缓存
      */
-    void adminUpdate(AdminTenantMetaUpdateRequest request);
+    Set<Long> adminUpdate(AdminTenantMetaUpdateRequest request);
 
     /**
      * 后台管理-删除

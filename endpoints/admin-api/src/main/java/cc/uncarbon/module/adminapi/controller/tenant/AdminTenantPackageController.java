@@ -98,10 +98,10 @@ public class AdminTenantPackageController {
         return ApiResult.success();
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "绑定租户套餐菜单",
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "授权",
             bizNo = "{{#request.id}}", success = "被操作租户套餐：{{#old.code}}|{{#old.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bindMenu")
-    @Operation(summary = "绑定租户套餐菜单")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @Operation(summary = "授权")
     @PostMapping(value = "/bind-menu")
     public ApiResult<Void> bindMenu(@RequestBody @Valid AdminTenantPackageBindMenuRequest request) {
         var bindResult = tenantPackageService.adminBindMenu(request);

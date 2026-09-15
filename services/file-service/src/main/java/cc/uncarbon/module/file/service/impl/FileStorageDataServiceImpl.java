@@ -73,7 +73,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
     public List<FileStorageDTO> adminListSelectOption() {
         List<FileStorageEntity> entityList = fileStorageMapper.selectList(new LambdaQueryWrapper<FileStorageEntity>()
                 // 只取特定字段
-                .select(FileStorageEntity::getId, FileStorageEntity::getName)
+                .select(FileStorageEntity::getId, FileStorageEntity::getName, FileStorageEntity::getCode)
                 // 排序
                 .orderByAsc(FileStorageEntity::getId)
         );
