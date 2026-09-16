@@ -87,7 +87,7 @@ public class AdminSysUserController {
     public ApiResult<Void> update(@RequestBody @Valid AdminSysUserUpdateRequest request) {
         var old = sysUserService.getNonnullById(request.getId());
         sysUserService.adminUpdate(request);
-        // 用于操作日志；OLD_OBJECT 即 "old"，同时作为 Diff 比较的 old 对象，类型必须一致
+        // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();
     }
@@ -102,7 +102,7 @@ public class AdminSysUserController {
         sysUserService.adminDelete(Set.of(request.getId()));
         kickOutAsync(request.getId());
         // 用于操作日志
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 
@@ -130,7 +130,7 @@ public class AdminSysUserController {
         kickOutAsync(request.getUserId());
         // 用于操作日志
         var old = sysUserService.getNonnullById(request.getUserId());
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 
@@ -142,7 +142,7 @@ public class AdminSysUserController {
     public ApiResult<Void> bindDept(@RequestBody @Valid AdminSysUserBindDeptRequest request) {
         // 用于操作日志
         var old = sysUserService.getNonnullById(request.getUserId());
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 
@@ -156,7 +156,7 @@ public class AdminSysUserController {
         kickOutAsync(request.getUserId());
         // 用于操作日志
         var old = sysUserService.getNonnullById(request.getUserId());
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 
@@ -169,7 +169,7 @@ public class AdminSysUserController {
         kickOutAsync(request.getId());
         // 用于操作日志
         var old = sysUserService.getNonnullById(request.getId());
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 

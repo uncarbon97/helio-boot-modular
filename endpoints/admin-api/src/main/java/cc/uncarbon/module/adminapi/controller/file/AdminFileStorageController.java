@@ -3,6 +3,7 @@ package cc.uncarbon.module.adminapi.controller.file;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
+import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.helper.FileUploadResultHelper;
@@ -86,7 +87,7 @@ public class AdminFileStorageController {
         var old = fileStorageDataService.getNonnullById(request.getId());
         fileStorageDataService.adminUpdate(request);
         // 用于操作日志
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 
@@ -99,7 +100,7 @@ public class AdminFileStorageController {
         var old = fileStorageDataService.getNonnullById(request.getId());
         fileStorageDataService.adminDelete(Set.of(request.getId()));
         // 用于操作日志
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 
@@ -132,7 +133,7 @@ public class AdminFileStorageController {
         FileAttrExtraRequest attr = new FileAttrExtraRequest().setCategory("storage-test");
         FileMetaDTO fileMeta = fileUpDownloadFacade.upload(testBytes, options, attr);
         // 用于操作日志
-        LogRecordContext.putVariable("old", storage);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, storage);
         return ApiResult.success(fileUploadResultHelper.toUploadResult(fileMeta, servletRequest));
     }
 

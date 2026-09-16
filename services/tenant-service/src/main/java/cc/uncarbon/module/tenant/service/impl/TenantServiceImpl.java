@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
@@ -109,6 +110,24 @@ public class TenantServiceImpl implements TenantService {
                 request.getId(),
                 pkg != null ? pkg.getMenuIds() : Set.of()
         );
+    }
+
+    @Override
+    public List<Long> adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        log.info(LOG_PREFIX + "修改状态 >> {}", request);
+        NoRecordException.throwIfNull(tenantMetaMapper.selectById(request.getId()));
+
+        List<Long> tenantUserIds = List.of();
+        if (EnabledStatusEnum.DISABLED == request.getNewStatus()) {
+            // 禁用时，取该租户全部用户ID，供调用方强制登出
+            tenantUserIds = tenantUserRoleFacade.listUserIdsByTenantId(request.getId(), null);
+        }
+
+        var entity = new TenantMetaEntity()
+                .setId(request.getId())
+                .setStatus(request.getNewStatus());
+        tenantMetaMapper.updateById(entity);
+        return tenantUserIds;
     }
 
     @Transactional(rollbackFor = Exception.class)

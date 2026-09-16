@@ -24,6 +24,7 @@ public enum TenantErrorCodeEnum implements StructuredErrorCode {
     A03003("已有租户正在使用此套餐，无法禁用"),
     A03004("已存在相同的套餐编码"),
     A03005("已存在相同的租户编码"),
+    A03006("租户已禁用"),
 
     /*
     B 开头错误码，表示本服务内部错误

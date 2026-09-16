@@ -3,6 +3,7 @@ package cc.uncarbon.module.adminapi.controller.file;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
+import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
@@ -64,7 +65,7 @@ public class AdminFileMetaController {
         var old = fileMetaService.getNonnullById(request.getId());
         fileMetaService.adminDelete(Set.of(request.getId()));
         // 用于操作日志
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 

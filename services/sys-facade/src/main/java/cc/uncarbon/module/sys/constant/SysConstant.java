@@ -19,6 +19,11 @@ public final class SysConstant {
     public static final Long SUPER_ADMIN_ROLE_ID = 1L;
 
     /**
+     * 固定超级管理员用户ID
+     */
+    public static final Long SUPER_ADMIN_USER_ID = 1L;
+
+    /**
      * 固定超级管理员角色编码
      */
     public static final String SUPER_ADMIN_ROLE_CODE = "SuperAdmin";

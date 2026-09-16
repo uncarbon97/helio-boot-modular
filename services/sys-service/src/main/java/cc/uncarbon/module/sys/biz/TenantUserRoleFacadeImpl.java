@@ -3,8 +3,11 @@ package cc.uncarbon.module.sys.biz;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
@@ -44,6 +47,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
     private final SysRoleMapper sysRoleMapper;
+    private final SysUserMapper sysUserMapper;
 
 
     @SneakyThrows
@@ -116,8 +120,19 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
                 });
     }
 
+    @SneakyThrows
     @Override
     public List<Long> listUserIdsByTenantId(Long tenantId, Collection<EnabledStatusEnum> statusEnums) {
-        return List.of();
+        return TenantContextHolder.callWithContext(
+                new SimpleTenantContext(tenantId, null, null),
+                () -> sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                                .select(SysUserEntity::getId)
+                                // 不列举出超级管理员
+                                .ne(SysUserEntity::getId, SysConstant.SUPER_ADMIN_USER_ID)
+                                .in(CollUtil.isNotEmpty(statusEnums), SysUserEntity::getStatus, statusEnums)
+                        )
+                        .stream()
+                        .map(SysUserEntity::getId)
+                        .toList());
     }
 }

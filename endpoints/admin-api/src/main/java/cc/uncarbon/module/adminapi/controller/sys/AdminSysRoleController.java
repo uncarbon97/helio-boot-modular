@@ -83,7 +83,7 @@ public class AdminSysRoleController {
     public ApiResult<Void> update(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
         var old = sysRoleService.getNonnullById(request.getId());
         sysRoleService.adminUpdate(request);
-        // 用于操作日志；OLD_OBJECT 即 "old"，同时作为 Diff 比较的 old 对象，类型必须一致
+        // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();
     }
@@ -98,7 +98,7 @@ public class AdminSysRoleController {
         sysRoleService.adminDelete(Set.of(request.getId()));
         refreshRolePermissionCacheAsync(request.getId());
         // 用于操作日志
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改角色状态",
@@ -111,7 +111,7 @@ public class AdminSysRoleController {
         sysRoleService.adminSetStatus(request);
         refreshRolePermissionCacheAsync(request.getId());
         // 用于操作日志
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 
@@ -125,7 +125,7 @@ public class AdminSysRoleController {
         sysRoleService.adminBindMenu(request);
         refreshRolePermissionCacheAsync(request.getRoleId());
         // 用于操作日志
-        LogRecordContext.putVariable("old", old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
 

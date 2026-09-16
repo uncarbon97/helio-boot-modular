@@ -1,5 +1,6 @@
 package cc.uncarbon.module.tenant.biz;
 
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.tenant.props.HeliumTenantProperties;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
@@ -36,6 +37,9 @@ public class TenantFacadeImpl implements TenantFacade {
                 return TenantContextHolder.callIgnored(() -> {
                     TenantMetaDTO tenantMeta = tenantService.getByCode(tenantCode, false);
                     if (Objects.nonNull(tenantMeta)) {
+                        if (EnabledStatusEnum.DISABLED == tenantMeta.getStatus()) {
+                            return TenantValidateResult.fail(TenantErrorCodeEnum.A03006);
+                        }
                         return TenantValidateResult.pass(tenantMeta);
                     }
                     return TenantValidateResult.fail(TenantErrorCodeEnum.A03001);

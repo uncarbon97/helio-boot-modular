@@ -1,5 +1,6 @@
 package cc.uncarbon.module.tenant.service;
 
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -46,7 +47,7 @@ public interface TenantPackageService {
     /**
      * 后台管理-修改状态
      *
-     * @throws cc.uncarbon.framework.helium.base.exception.BusinessException 禁用时，仍有租户依赖此套餐
+     * @throws BusinessException 禁用时，仍有租户依赖此套餐
      */
     void adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request);
 

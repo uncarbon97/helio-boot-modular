@@ -2,13 +2,16 @@ package cc.uncarbon.module.tenant.service;
 
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.tenant.model.query.AdminTenantMetaListQuery;
 import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -32,6 +35,13 @@ public interface TenantService {
      * @return 套餐发生变化时受影响的角色ID集合，否则为空集合；用于调用方按需刷新权限缓存
      */
     Set<Long> adminUpdate(AdminTenantMetaUpdateRequest request);
+
+    /**
+     * 后台管理-修改状态
+     *
+     * @return 禁用时返回该租户全部用户ID，启用时为空集合；用于调用方按需强制登出
+     */
+    List<Long> adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request);
 
     /**
      * 后台管理-删除

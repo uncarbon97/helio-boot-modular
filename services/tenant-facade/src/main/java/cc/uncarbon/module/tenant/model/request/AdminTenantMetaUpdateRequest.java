@@ -1,6 +1,5 @@
 package cc.uncarbon.module.tenant.model.request;
 
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -26,14 +25,11 @@ public class AdminTenantMetaUpdateRequest implements Serializable {
     private Long id;
 
     @Schema(description = "租户名称", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Size(max = 50, message = "【租户名称】最长50位")
+    @Size(max = 50, message = "租户名称最长50位")
     @NotBlank(message = "租户名称必填")
     private String name;
 
     @Schema(description = "所属租户套餐ID")
     private Long packageId;
-
-    @Schema(description = "状态")
-    private EnabledStatusEnum status;
 
 }
