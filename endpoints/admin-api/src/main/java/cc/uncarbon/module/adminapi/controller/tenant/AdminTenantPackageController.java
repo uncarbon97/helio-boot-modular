@@ -3,11 +3,13 @@ package cc.uncarbon.module.adminapi.controller.tenant;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.constant.PermissionPattern;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.tenant.model.query.AdminTenantPackageListQuery;
@@ -79,9 +81,21 @@ public class AdminTenantPackageController {
     public ApiResult<Void> update(@RequestBody @Valid AdminTenantPackageUpsertRequest request) {
         var old = tenantPackageService.getNonnullById(request.getId());
         tenantPackageService.adminUpdate(request);
-        // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
-        LogRecordContext.putVariable("old", old);
+        // 用于操作日志；OLD_OBJECT 即 "old"，同时作为 Diff 比较的 old 对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改租户套餐状态",
+            bizNo = "{{#request.id}}", success = "被操作租户套餐：{{#old.code}}|{{#old.name}}，新状态：{{#request.newStatus.label}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @Operation(summary = "修改状态")
+    @PostMapping(value = "/set-status")
+    public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        var old = tenantPackageService.getNonnullById(request.getId());
+        tenantPackageService.adminSetStatus(request);
+        // 用于操作日志
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 

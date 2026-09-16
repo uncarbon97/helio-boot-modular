@@ -204,7 +204,7 @@ public class TenantServiceImpl implements TenantService {
         );
 
         if (entity != null) {
-            throw new HasRepeatRecordException("已存在相同的租户编码");
+            throw new HasRepeatRecordException(TenantErrorCodeEnum.A03005);
         }
     }
 

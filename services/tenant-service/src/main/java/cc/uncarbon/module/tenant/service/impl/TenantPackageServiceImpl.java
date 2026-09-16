@@ -2,14 +2,16 @@ package cc.uncarbon.module.tenant.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
-import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
-import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMapper;
-import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
-import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
+import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
+import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
+import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
+import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMapper;
+import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.model.query.AdminTenantPackageListQuery;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageBindMenuRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageUpsertRequest;
@@ -70,6 +72,8 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         request.setId(null);
         var entity = new TenantPackageEntity();
         BeanUtil.copyProperties(request, entity);
+        // 新增默认为禁用
+        entity.setStatus(EnabledStatusEnum.DISABLED);
 
         tenantPackageMapper.insert(entity);
         return entity.getId();
@@ -97,6 +101,30 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
+    public void adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        log.info(LOG_PREFIX + "修改状态 >> {}", request);
+        checkExistence(request.getId());
+
+        // 禁用前检查：是否仍有租户依赖当前套餐
+        if (EnabledStatusEnum.DISABLED == request.getNewStatus()) {
+            boolean tenantUsing = tenantMetaMapper.exists(new LambdaQueryWrapper<TenantMetaEntity>()
+                    .select(TenantMetaEntity::getId)
+                    .eq(TenantMetaEntity::getPackageId, request.getId())
+                    .last(SQLSegment.LIMIT_1)
+            );
+            if (tenantUsing) {
+                throw new BusinessException(TenantErrorCodeEnum.A03003);
+            }
+        }
+
+        var entity = new TenantPackageEntity()
+                .setId(request.getId())
+                .setStatus(request.getNewStatus());
+        tenantPackageMapper.updateById(entity);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
     public TenantPackageBindMenuResult adminBindMenu(AdminTenantPackageBindMenuRequest request) {
         tenantPackageMenuRelationService.cleanAndBind(request.getId(), request.getMenuIds());
 
@@ -113,6 +141,19 @@ public class TenantPackageServiceImpl implements TenantPackageService {
                     tenantUserRoleFacade.syncTenantRoleMenus(tenant.getId(), request.getMenuIds()));
         }
         return new TenantPackageBindMenuResult(request.getId(), tenantRoleIdsMap);
+    }
+
+    @Override
+    public List<TenantPackageDTO> adminListSelectOption() {
+        List<TenantPackageEntity> entityList = tenantPackageMapper.selectList(new LambdaQueryWrapper<TenantPackageEntity>()
+                // 只取特定字段
+                .select(TenantPackageEntity::getId, TenantPackageEntity::getCode, TenantPackageEntity::getName)
+                // 只显示启用中的套餐
+                .eq(TenantPackageEntity::getStatus, EnabledStatusEnum.ENABLED)
+                // 排序
+                .orderByAsc(TenantPackageEntity::getId)
+        );
+        return convertList(entityList, false);
     }
 
     @Override
@@ -190,7 +231,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         );
 
         if (entity != null) {
-            throw new BusinessException(DefaultErrorCodeEnum.A00001, "已存在相同的套餐编码");
+            throw new BusinessException(TenantErrorCodeEnum.A03004);
         }
     }
 

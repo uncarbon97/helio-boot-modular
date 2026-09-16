@@ -1,6 +1,5 @@
 package cc.uncarbon.module.tenant.model.request;
 
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -34,9 +33,6 @@ public class AdminTenantPackageUpsertRequest implements Serializable {
     @Size(max = 100, message = "套餐名称最长{max}位")
     @NotBlank(message = "套餐名称必填")
     private String name;
-
-    @Schema(description = "状态")
-    private EnabledStatusEnum status;
 
     @Schema(description = "套餐描述")
     @Size(max = 255, message = "套餐描述最长{max}位")

@@ -85,7 +85,7 @@ public class AdminTenantMetaController {
                     new RefreshRolePermissionCacheEvent.EventData(affectedRoleIds, request.getId())
             ));
         }
-        // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
+        // 用于操作日志；OLD_OBJECT 即 "old"，同时作为 Diff 比较的 old 对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();
     }
@@ -99,7 +99,7 @@ public class AdminTenantMetaController {
         var old = tenantService.getNonnullById(request.getId());
         tenantService.adminDelete(Set.of(request.getId()));
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 

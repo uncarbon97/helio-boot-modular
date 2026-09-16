@@ -31,6 +31,8 @@ public enum FileErrorCodeEnum implements StructuredErrorCode {
     A02004("上传的文件类型超出限制"),
     A02005("上传的文件不能为空"),
     A02006("文件不存在或无权限访问"),
+    A02007("已存在相同的存储点编码"),
+    A02008("已存在其他主存储点"),
 
     /*
      B 开头错误码，表示本服务内部错误

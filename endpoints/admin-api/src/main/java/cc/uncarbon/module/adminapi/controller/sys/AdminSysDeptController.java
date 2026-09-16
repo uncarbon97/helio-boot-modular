@@ -77,7 +77,7 @@ public class AdminSysDeptController {
     public ApiResult<Void> update(@RequestBody @Valid AdminSysDeptUpsertRequest request) {
         var old = sysDeptService.getNonnullById(request.getId());
         sysDeptService.adminUpdate(request);
-        // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
+        // 用于操作日志；OLD_OBJECT 即 "old"，同时作为 Diff 比较的 old 对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();
     }
@@ -91,20 +91,20 @@ public class AdminSysDeptController {
         var old = sysDeptService.getNonnullById(request.getId());
         sysDeptService.adminDelete(Set.of(request.getId()));
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改部门状态",
             bizNo = "{{#request.id}}", success = "被操作部门：{{#old.name}}，新状态：{{#request.newStatus.label}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
-    @Operation(summary = "修改部门状态")
+    @Operation(summary = "修改状态")
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = sysDeptService.getNonnullById(request.getId());
         sysDeptService.adminSetStatus(request);
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 

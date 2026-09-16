@@ -8,6 +8,7 @@ import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.file.dal.entity.FileStorageEntity;
 import cc.uncarbon.module.file.dal.mapper.FileStorageMapper;
+import cc.uncarbon.module.file.errorcode.FileErrorCodeEnum;
 import cc.uncarbon.module.file.event.FileStorageChangedEvent;
 import cc.uncarbon.module.file.model.query.AdminFileStorageListQuery;
 import cc.uncarbon.module.file.model.request.AdminFileStorageUpsertRequest;
@@ -221,7 +222,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         );
 
         if (entity != null) {
-            throw new HasRepeatRecordException("已存在相同的存储点编码");
+            throw new HasRepeatRecordException(FileErrorCodeEnum.A02007);
         }
     }
 
@@ -259,7 +260,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
             );
 
             if (entity != null) {
-                throw new HasRepeatRecordException("已存在其他主存储点");
+                throw new HasRepeatRecordException(FileErrorCodeEnum.A02008);
             }
         }
     }

@@ -74,7 +74,7 @@ public class AdminSysDictController {
     public ApiResult<Void> update(@RequestBody @Valid AdminSysDictCategoryUpsertRequest request) {
         var old = sysDictService.getCategoryNonnullById(request.getId());
         sysDictService.adminUpdateCategory(request);
-        // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
+        // 用于操作日志；OLD_OBJECT 即 "old"，同时作为 Diff 比较的 old 对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();
     }
@@ -88,7 +88,7 @@ public class AdminSysDictController {
         var old = sysDictService.getCategoryNonnullById(request.getId());
         sysDictService.adminDeleteCategory(Set.of(request.getId()));
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 
@@ -101,7 +101,7 @@ public class AdminSysDictController {
         var old = sysDictService.getCategoryNonnullById(request.getId());
         sysDictService.adminSetStatusCategory(request);
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 
@@ -130,7 +130,7 @@ public class AdminSysDictController {
     public ApiResult<Void> update(@RequestBody @Valid AdminSysDictItemUpsertRequest request) {
         var old = sysDictService.getItemNonnullById(request.getId());
         sysDictService.adminUpdateItem(request);
-        // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
+        // 用于操作日志；OLD_OBJECT 即 "old"，同时作为 Diff 比较的 old 对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();
     }
@@ -144,7 +144,7 @@ public class AdminSysDictController {
         var old = sysDictService.getItemNonnullById(request.getId());
         sysDictService.adminDeleteItem(Set.of(request.getId()));
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 
@@ -157,7 +157,7 @@ public class AdminSysDictController {
         var old = sysDictService.getItemNonnullById(request.getId());
         sysDictService.adminSetStatusItem(request);
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 

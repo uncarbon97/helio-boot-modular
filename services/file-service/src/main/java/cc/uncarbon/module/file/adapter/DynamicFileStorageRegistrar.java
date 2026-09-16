@@ -5,6 +5,7 @@ import cc.uncarbon.module.file.dal.entity.FileStorageEntity;
 import cc.uncarbon.module.file.dal.mapper.FileStorageMapper;
 import cc.uncarbon.module.file.event.FileStorageChangedEvent;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.dromara.x.file.storage.core.FileStorageServiceBuilder;
 import org.dromara.x.file.storage.core.platform.FileStorage;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -76,8 +78,11 @@ public class DynamicFileStorageRegistrar {
     /**
      * 应用启动完成后，全量注册DB存储点
      */
+    @Async
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
+        // 稍等几秒再注册
+        ThreadUtil.safeSleep(3000);
         reloadAll();
     }
 

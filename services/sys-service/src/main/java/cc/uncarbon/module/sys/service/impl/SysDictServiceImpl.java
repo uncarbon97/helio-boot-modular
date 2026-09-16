@@ -15,6 +15,7 @@ import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDictCategoryMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysDictItemMapper;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
@@ -393,7 +394,7 @@ public class SysDictServiceImpl implements SysDictService {
         );
 
         if (entity != null) {
-            throw new HasRepeatRecordException("已存在相同的字典分类编码");
+            throw new HasRepeatRecordException(SysErrorCodeEnum.A01033);
         }
     }
 
@@ -413,7 +414,7 @@ public class SysDictServiceImpl implements SysDictService {
         );
 
         if (entity != null) {
-            throw new HasRepeatRecordException("同一分类下，已存在相同的字典项编码");
+            throw new HasRepeatRecordException(SysErrorCodeEnum.A01034);
         }
     }
 

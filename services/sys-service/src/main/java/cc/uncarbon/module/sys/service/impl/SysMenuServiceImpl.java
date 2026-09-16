@@ -317,7 +317,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             );
 
             if (entity != null) {
-                throw new HasRepeatRecordException("已存在相同的权限标识");
+                throw new HasRepeatRecordException(SysErrorCodeEnum.A01032);
             }
         }
     }

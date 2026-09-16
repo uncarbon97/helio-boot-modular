@@ -3,7 +3,6 @@ package cc.uncarbon.module.adminapi.controller.file;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
-import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
@@ -57,7 +56,7 @@ public class AdminFileMetaController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除文件",
-            bizNo = "{{#request.id}}", success = "被操作文件：{{#old.storageFilename}}.{{#old.extendName}}")
+            bizNo = "{{#request.id}}", success = "被操作文件：{{#old.getStorageFilenameFull()}}(存储点：{{#old.storageCode}})")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
@@ -65,7 +64,7 @@ public class AdminFileMetaController {
         var old = fileMetaService.getNonnullById(request.getId());
         fileMetaService.adminDelete(Set.of(request.getId()));
         // 用于操作日志
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable("old", old);
         return ApiResult.success();
     }
 

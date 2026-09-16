@@ -15,6 +15,8 @@ import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 import cc.uncarbon.module.sys.service.SysDeptService;
 import cc.uncarbon.module.sys.service.SysDictService;
 import cc.uncarbon.module.sys.service.SysRoleService;
+import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
+import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,6 +46,7 @@ public class AdminSelectOptionController {
     private final SysRoleService sysRoleService;
     private final SysDeptService sysDeptService;
     private final FileStorageDataService fileStorageDataService;
+    private final TenantPackageService tenantPackageService;
 
 
     @SaCheckLogin(type = StpLoginType.ADMIN)
@@ -85,4 +88,11 @@ public class AdminSelectOptionController {
                 (source, target) -> target.setStorageCode(source.getCode())));
     }
 
+    @SaCheckLogin(type = StpLoginType.ADMIN)
+    @Operation(summary = "租户套餐下拉框数据")
+    @PostMapping(value = "/tenant/package")
+    public ApiResult<List<AdminSelectOptionItemVO>> tenantPackage() {
+        return ApiResult.success(AdminSelectOptionItemVO.ofIdNameBatch(tenantPackageService.adminListSelectOption(),
+                TenantPackageDTO::getId, TenantPackageDTO::getName));
+    }
 }

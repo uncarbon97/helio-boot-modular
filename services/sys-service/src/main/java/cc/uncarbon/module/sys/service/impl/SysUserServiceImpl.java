@@ -277,7 +277,7 @@ public class SysUserServiceImpl implements SysUserService {
     private void checkRepeat(AdminSysUserUpdateRequest request) {
         var entity = sysUserMapper.getByPin(request.getPin());
         if (entity != null) {
-            throw new HasRepeatRecordException("已存在相同的账号");
+            throw new HasRepeatRecordException(SysErrorCodeEnum.A01030);
         }
     }
 

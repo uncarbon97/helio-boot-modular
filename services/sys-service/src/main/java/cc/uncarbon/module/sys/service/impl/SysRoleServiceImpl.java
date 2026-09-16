@@ -307,7 +307,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         );
 
         if (entity != null) {
-            throw new HasRepeatRecordException("已存在相同的角色编码");
+            throw new HasRepeatRecordException(SysErrorCodeEnum.A01031);
         }
     }
 
