@@ -12,9 +12,9 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>tenant-core</artifactId>
+    <artifactId>tenant-impl</artifactId>
     <description>
-        租户核心实现
+        租户实现
     </description>
     <version>${revision}</version>
 

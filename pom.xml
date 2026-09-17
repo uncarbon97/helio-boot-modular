@@ -52,11 +52,11 @@
         <module>endpoints/admin-api</module>
         <module>endpoints/app-api</module>
         <module>modules/file-contract</module>
-        <module>modules/file-core</module>
+        <module>modules/file-impl</module>
         <module>modules/sys-contract</module>
-        <module>modules/sys-core</module>
+        <module>modules/sys-impl</module>
         <module>modules/tenant-contract</module>
-        <module>modules/tenant-core</module>
+        <module>modules/tenant-impl</module>
     </modules>
 
     <dependencyManagement>

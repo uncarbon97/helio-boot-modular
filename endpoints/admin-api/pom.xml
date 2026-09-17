@@ -22,22 +22,22 @@
         <!-- 引用其他第三方依赖 -->
 
 
-        <!-- 引用下游模块 -->
+        <!-- 引用下游实现 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
-            <artifactId>sys-core</artifactId>
+            <artifactId>sys-impl</artifactId>
             <version>${sys.version}</version>
         </dependency>
 
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
-            <artifactId>file-core</artifactId>
+            <artifactId>file-impl</artifactId>
             <version>${file.version}</version>
         </dependency>
 
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
-            <artifactId>tenant-core</artifactId>
+            <artifactId>tenant-impl</artifactId>
             <version>${tenant.version}</version>
         </dependency>
 

@@ -88,7 +88,7 @@ public class SysOperateLogRecorder implements ILogRecordDataService {
         if (visitorContext != null) {
             request.setRequestMethod(visitorContext.getHttpRequestMethod())
                     .setRequestPath(visitorContext.getHttpRequestPath())
-                    .setVisitorIp(visitorContext.getIp())
+                    .setVisitorIp(visitorContext.getClientIp())
                     .setVisitorUserAgent(visitorContext.getUserAgent());
         }
 

@@ -30,7 +30,7 @@
             <version>${admin-api.version}</version>
         </dependency>
 
-        <!-- C端 API 端点 -->
+        <!-- APP API 端点 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>app-api</artifactId>

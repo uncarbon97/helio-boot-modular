@@ -19,11 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class AppAuthController {
 
-    /*
-    /app/** 开头的C端接口默认为都需要登录，放行接口请在配置文件的 helium.security.exclude-routes 中设置
-    相关拦截器代码请见 CustomInterceptorConfiguration.java
-     */
-
     @Operation(summary = "登录")
     @PostMapping("/login")
     public ApiResult<Void> login() {

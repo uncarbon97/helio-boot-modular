@@ -76,15 +76,15 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
             ua = CharSequenceUtil.subPre(ua, USER_AGENT_MAX_LENGTH);
         }
 
-        String ipLocation = null;
-        if (Objects.nonNull(visitorContext.getIp())) {
+        String ipLocation = null, clientIp = visitorContext.getClientIp();
+        if (Objects.nonNull(clientIp)) {
             for (IPLocationResolver locationResolver : ipLocationResolvers) {
-                ipLocation = locationResolver.resolve(visitorContext.getIp());
+                ipLocation = locationResolver.resolve(clientIp);
                 if (ipLocation != null) break;
             }
         }
 
-        entity.setVisitorIp(visitorContext.getIp())
+        entity.setVisitorIp(clientIp)
                 .setVisitorUserAgent(ua)
                 .setVisitorIpLocation(ipLocation);
 

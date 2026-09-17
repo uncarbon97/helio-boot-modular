@@ -72,7 +72,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
     public void bindTenantUserRoleRelation(TenantUserBindRoleRequest request) {
         TenantContextHolder.runWithContext(
                 new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), null),
-                () -> sysUserRoleRelationService.cleanAndBind(request.getUserId(), request.getRoleIds()));
+                () -> sysUserRoleRelationService.cleanAndBindByUser(request.getUserId(), request.getRoleIds()));
     }
 
     @Override

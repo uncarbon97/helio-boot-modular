@@ -12,11 +12,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * app-api 专用拦截器
+ * /app/** 开头的 API 端点，默认都需要登录，单独放行则需要在配置文件的 "app-api.no-auth-paths" 中设置
  *
  * @author Uncarbon
  */
-@Configuration
 @RequiredArgsConstructor
+@Configuration
 public class AppApiInterceptorConfiguration implements WebMvcConfigurer {
 
     private final AppApiProperties appApiProperties;
@@ -24,10 +25,6 @@ public class AppApiInterceptorConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        /*
-        /app/** 下的几乎所有接口都需要登录
-        放行接口，在配置文件的 app-api.no-auth-paths 中设置
-         */
         registry
                 .addInterceptor(new SaInterceptor(_ -> StpKit.APP.checkLogin()))
                 .addPathPatterns(ApiPathPrefix.APP_PATTERN)

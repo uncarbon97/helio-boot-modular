@@ -12,9 +12,9 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>file-core</artifactId>
+    <artifactId>file-impl</artifactId>
     <description>
-        文件管理核心实现
+        文件管理实现
     </description>
     <version>${revision}</version>
 

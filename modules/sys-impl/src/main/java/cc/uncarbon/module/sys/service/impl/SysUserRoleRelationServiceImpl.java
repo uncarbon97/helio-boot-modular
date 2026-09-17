@@ -31,7 +31,7 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void cleanAndBind(Long userId, @Nullable Collection<Long> roleIds) {
+    public void cleanAndBindByUser(Long userId, @Nullable Collection<Long> roleIds) {
         var roleIdsQuery = new LambdaQueryWrapper<SysUserRoleRelationEntity>()
                 .select(SysUserRoleRelationEntity::getRoleId)
                 .eq(SysUserRoleRelationEntity::getUserId, userId);
@@ -66,5 +66,11 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
     @Override
     public List<Long> listRoleIdsByUser(Long userId) {
         return sysUserRoleRelationMapper.listRoleIdsByUser(userId);
+    }
+
+    @Override
+    public Set<Long> listUserIdsByRole(Long roleId) {
+        return sysUserRoleRelationMapper.listUserIdsByRoles(
+                roleId == null ? null : Set.of(roleId));
     }
 }

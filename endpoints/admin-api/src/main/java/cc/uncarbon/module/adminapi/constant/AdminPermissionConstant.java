@@ -13,4 +13,9 @@ public class AdminPermissionConstant {
      */
     public final String BIND_DEPT = "sys:user:bind-dept";
 
+    /**
+     * 系统用户-分配角色
+     */
+    public final String BIND_ROLE = "sys:user:bind-role";
+
 }

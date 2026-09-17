@@ -15,10 +15,14 @@ import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.model.response.IdResponse;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
+import cc.uncarbon.module.sys.model.query.AdminSysRoleListRelatedUserQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysRoleService;
+import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
+import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
@@ -48,6 +52,8 @@ public class AdminSysRoleController {
     static final String BIZ_TYPE = "系统角色管理";
 
     private final SysRoleService sysRoleService;
+    private final SysUserRoleRelationService sysUserRoleRelationService;
+    private final SysUserService sysUserService;
     private final ApplicationEventPublisher eventPublisher;
 
 
@@ -130,6 +136,21 @@ public class AdminSysRoleController {
         return ApiResult.success();
     }
 
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @Operation(summary = "分页查询角色关联用户")
+    @PostMapping(value = "/list-related-user")
+    public ApiResult<PageResult<SysUserDTO>> listRelatedUser(
+            @RequestBody @Valid AdminSysRoleListRelatedUserQuery query) {
+        return ApiResult.success(sysUserService.adminListRoleRelatedUsers(query));
+    }
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @Operation(summary = "取指定角色关联用户ID")
+    @PostMapping(value = "/list-related-user-id")
+    public ApiResult<Set<Long>> listRelatedUserId(@RequestBody @Valid IdRequest<Long> request) {
+        return ApiResult.success(sysUserRoleRelationService.listUserIdsByRole(request.getId()));
+    }
+
     /*
     ----------------------------------------------------------------
                         私有方法 private methods
@@ -145,4 +166,5 @@ public class AdminSysRoleController {
                         Set.of(roleId), TenantContextHolder.getTenantId())
         ));
     }
+
 }

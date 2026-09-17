@@ -5,8 +5,10 @@ import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
+import cc.uncarbon.module.sys.model.query.AdminSysRoleListRelatedUserQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
+import cc.uncarbon.module.sys.model.response.SysUserBindRoleResult;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 
@@ -20,9 +22,9 @@ public interface SysUserService {
     PageResult<SysUserDTO> adminList(AdminSysUserListQuery query);
 
     /**
-     * 后台管理-分页查询未分配部门的用户
+     * 后台管理-分页查询指定角色关联的用户
      */
-    PageResult<SysUserDTO> adminListNoDeptUsers(AdminSysUserListQuery query);
+    PageResult<SysUserDTO> adminListRoleRelatedUsers(AdminSysRoleListRelatedUserQuery query);
 
     /**
      * 后台管理-新增
@@ -75,7 +77,7 @@ public interface SysUserService {
     /**
      * 后台管理-绑定用户角色
      */
-    void adminBindRole(AdminSysUserBindRoleRequest request);
+    SysUserBindRoleResult adminBindRole(AdminSysUserBindRoleRequest request);
 
     /**
      * 后台管理-调整用户部门

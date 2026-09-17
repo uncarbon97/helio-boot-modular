@@ -17,8 +17,10 @@ import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
+import cc.uncarbon.module.sys.model.query.AdminSysRoleListRelatedUserQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
+import cc.uncarbon.module.sys.model.response.SysUserBindRoleResult;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
@@ -96,13 +98,28 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public PageResult<SysUserDTO> adminListNoDeptUsers(AdminSysUserListQuery query) {
-        Page<SysUserEntity> entityPage = sysUserMapper.pageNoDeptUser(
+    public PageResult<SysUserDTO> adminListRoleRelatedUsers(AdminSysRoleListRelatedUserQuery query) {
+        Set<Long> relatedUserIds = sysUserRoleRelationService.listUserIdsByRole(query.getRoleId());
+        if (CollUtil.isEmpty(relatedUserIds)) {
+            // 该角色没有关联任何用户，直接返回空列表
+            return new PageResult<>(query.getPageParam());
+        }
+
+        String keyword = CharSequenceUtil.cleanBlank(query.getKeyword());
+        Page<SysUserEntity> entityPage = sysUserMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                CharSequenceUtil.cleanBlank(query.getPhoneNo()),
-                userRoleHelper.listInvisibleUserIds()
+                new LambdaQueryWrapper<SysUserEntity>()
+                        // 关键词(账号/昵称)
+                        .and(CharSequenceUtil.isNotBlank(keyword), w -> w
+                                .like(SysUserEntity::getPin, keyword)
+                                .or()
+                                .like(SysUserEntity::getNickname, keyword))
+                        // 仅角色关联的用户
+                        .in(SysUserEntity::getId, relatedUserIds)
+                        // 排序
+                        .orderByDesc(SysUserEntity::getId)
         );
-        return convertPage(entityPage, false);
+        return convertPage(entityPage, true);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -158,7 +175,7 @@ public class SysUserServiceImpl implements SysUserService {
         // 解除该用户的部门/角色关联，避免孤儿关系行
         ids.forEach(id -> {
             sysUserDeptRelationService.cleanAndBind(id, null);  // null = 解除全部部门绑定
-            sysUserRoleRelationService.cleanAndBind(id, null);  // 空集 = 解除全部角色绑定
+            sysUserRoleRelationService.cleanAndBindByUser(id, null);  // 空集 = 解除全部角色绑定
         });
         sysUserMapper.deleteByIds(ids);
     }
@@ -207,9 +224,14 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public void adminBindRole(AdminSysUserBindRoleRequest request) {
+    public SysUserBindRoleResult adminBindRole(AdminSysUserBindRoleRequest request) {
         checkBeforeBindUserRoleRelation(request);
-        sysUserRoleRelationService.cleanAndBind(request.getUserId(), request.getRoleIds());
+        sysUserRoleRelationService.cleanAndBindByUser(request.getUserId(), request.getRoleIds());
+        // 查询修改后的用户，关联的角色
+        UserRoleScope userRoleScope = userRoleHelper.getSpecifiedEnabledUserRole(request.getUserId());
+        return new SysUserBindRoleResult()
+                .setOld(getNonnullById(request.getUserId()))
+                .setRoleNames(userRoleScope.getRelatedRoles().stream().map(SysRoleEntity::getName).toList());
     }
 
     @Override

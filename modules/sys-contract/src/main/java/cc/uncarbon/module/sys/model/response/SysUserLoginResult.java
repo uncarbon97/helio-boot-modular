@@ -14,13 +14,13 @@ import java.util.Set;
 
 
 /**
- * 后台管理-登录结果
+ * 系统用户-登录结果
  */
 @Accessors(chain = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class AdminLoginResult implements Serializable {
+public class SysUserLoginResult implements Serializable {
 
     @Schema(description = "用户ID")
     private Long id;

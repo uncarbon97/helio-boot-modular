@@ -12,9 +12,9 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>sys-core</artifactId>
+    <artifactId>sys-impl</artifactId>
     <description>
-        系统管理核心实现
+        系统管理实现
     </description>
     <version>${revision}</version>
 

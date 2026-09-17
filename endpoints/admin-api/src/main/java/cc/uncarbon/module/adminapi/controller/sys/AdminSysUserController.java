@@ -22,6 +22,7 @@ import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.text.StrPool;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -120,17 +121,17 @@ public class AdminSysUserController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "分配角色",
-            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
+            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}，分配后角色：{{#roleNames}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bind-role")
     @Operation(summary = "分配角色")
     @PostMapping(value = "/bind-role")
     public ApiResult<Void> bindRole(@RequestBody @Valid AdminSysUserBindRoleRequest request) {
-        sysUserService.adminBindRole(request);
+        var result = sysUserService.adminBindRole(request);
         // 为了快速更新对应权限；可以视业务需要决定是否删除该代码
         kickOutAsync(request.getUserId());
         // 用于操作日志
-        var old = sysUserService.getNonnullById(request.getUserId());
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, result.getOld());
+        LogRecordContext.putVariable("roleNames", String.join(StrPool.COMMA, result.getRoleNames()));
         return ApiResult.success();
     }
 
