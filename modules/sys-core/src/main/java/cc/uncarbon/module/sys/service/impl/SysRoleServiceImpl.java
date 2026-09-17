@@ -175,7 +175,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         // 按需改写字段
         if (request.isTenantAdmin()) {
             entity
-                    .setCode(SysConstant.SUPER_ADMIN_ROLE_CODE)
+                    .setCode(SysConstant.TENANT_ADMIN_ROLE_CODE)
                     .setName("主管理员")
                     .setDescription("具有所有功能权限和全部数据可见范围")
                     .assignFlags(List.of(SysRoleFlagEnum.BUILTIN));

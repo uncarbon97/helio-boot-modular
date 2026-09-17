@@ -22,6 +22,7 @@ import lombok.experimental.Accessors;
 import java.io.Serial;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 /**
@@ -81,7 +82,7 @@ public class SysRoleEntity extends AbstractTenantGenericEntity {
 		if (CollUtil.isEmpty(flags)) {
 			this.flags = StrUtil.EMPTY;
 		} else {
-			this.flags = CollUtil.join(flags, StrPool.COMMA);
+			this.flags = flags.stream().map(SysRoleFlagEnum::getValue).collect(Collectors.joining(StrPool.COMMA));
 		}
 		return this;
 	}
