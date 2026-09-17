@@ -12,6 +12,7 @@ import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.context.ContextBinder;
 import cn.dev33.satoken.context.model.SaTokenContextModelBox;
 import cn.dev33.satoken.stp.StpLogic;
+import cn.hutool.core.collection.CollUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * 上下文绑定过滤器
@@ -68,8 +70,11 @@ public class ContextBindingFilter extends OncePerRequestFilter {
     }
 
     private @NonNull VisitorContext resolveVisitor(HttpServletRequest servletRequest) {
+        List<String> addressList = IPUtil.getClientIPAddressList(servletRequest);
         return new SimpleVisitorContext()
-                .setIp(IPUtil.getClientIPAddress(servletRequest, 0))
+                .setClientIpList(addressList)
+                // 用户的请求可能经过多次反向代理，尽量取最靠近真实用户的那个
+                .setClientIp(CollUtil.get(addressList, 0))
                 // SpringMVC 已经对 UA 做了基本的过滤
                 .setUserAgent(servletRequest.getHeader(HttpHeaders.USER_AGENT))
                 .setHttpRequestMethod(servletRequest.getMethod())
