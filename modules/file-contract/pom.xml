@@ -9,33 +9,41 @@
         <groupId>cc.uncarbon.module</groupId>
         <artifactId>helium-monolith</artifactId>
         <version>${revision}</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>commons</artifactId>
-    <description>跨模块共享契约</description>
+    <artifactId>file-contract</artifactId>
+    <description>
+        文件管理契约
+    </description>
     <version>${revision}</version>
 
-    <properties>
-    </properties>
-
     <dependencies>
+        <!-- 引用其他契约 -->
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>commons</artifactId>
+        </dependency>
+
+
         <!-- 引用框架基础包/启动包 -->
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helium-core-base</artifactId>
+            <artifactId>helium-starter-base</artifactId>
         </dependency>
 
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helium-core-web</artifactId>
+            <artifactId>helium-core-db</artifactId>
         </dependency>
 
 
         <!-- 引用其他第三方依赖 -->
-        <!-- SA-Token 基础包 -->
+        <!-- 为了引用 MultipartFile 类 -->
         <dependency>
-            <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-core</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>provide</scope>
         </dependency>
     </dependencies>
 </project>

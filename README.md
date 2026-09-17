@@ -98,9 +98,9 @@ JDK compatibility: 25
 │                                   ├───config      配置类
 │                                   ├───controller
 │                                   └───props       配置属性类
-├───services  【Maven聚合】业务服务层（门面 + 实现）
+├───services  【Maven聚合】业务模块层（契约 + 实现）
 │   ├───sys  【Maven模块】预置系统管理服务
-│   │   ├───sys-facade  【Maven模块】预置系统管理服务门面
+│   │   ├───sys-contract  【Maven模块】预置系统管理契约
 │   │   │   └───src
 │   │   │       └───main
 │   │   │           └───java
@@ -117,7 +117,7 @@ JDK compatibility: 25
 │   │   │                                   ├───request   用于请求的
 │   │   │                                   ├───response  用于响应的
 │   │   │                                   └───valueobj  值对象
-│   │   └───sys-service  【Maven模块】预置系统管理服务实现
+│   │   └───sys-core  【Maven模块】预置系统管理核心实现
 │   │       └───src
 │   │           └───main
 │   │               └───java
@@ -138,7 +138,7 @@ JDK compatibility: 25
 │   │                                   │   └───impl     服务实现类
 │   │                                   └───util      静态工具类
 │   ├───tenant  【Maven模块】租户服务
-│   │   ├───tenant-facade  【Maven模块】租户服务门面
+│   │   ├───tenant-contract  【Maven模块】租户契约
 │   │   │   └───src
 │   │   │       └───main
 │   │   │           └───java
@@ -152,7 +152,7 @@ JDK compatibility: 25
 │   │   │                                   ├───query     用于查询的
 │   │   │                                   ├───request   用于请求的
 │   │   │                                   └───valueobj  值对象
-│   │   └───tenant-service  【Maven模块】租户服务实现
+│   │   └───tenant-core  【Maven模块】租户核心实现
 │   │       └───src
 │   │           └───main
 │   │               └───java
@@ -167,7 +167,7 @@ JDK compatibility: 25
 │   │                                   ├───service   服务类
 │   │                                   │   └───impl     服务实现类
 │   └───file  【Maven模块】文件存储服务
-│       ├───file-facade  【Maven模块】文件存储服务门面
+│       ├───file-contract  【Maven模块】文件存储契约
 │       │   └───src
 │       │       └───main
 │       │           └───java
@@ -187,7 +187,7 @@ JDK compatibility: 25
 │       │                               │   │   └───storage 存储类型配置
 │       │                               │   └───valueobj  值对象
 │       │                               └───util       静态工具类
-│       └───file-service  【Maven模块】文件存储服务实现
+│       └───file-core  【Maven模块】文件存储核心实现
 │           └───src
 │               └───main
 │                   └───java

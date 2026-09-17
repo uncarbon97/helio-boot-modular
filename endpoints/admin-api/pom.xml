@@ -32,19 +32,19 @@
         <!-- 引用下游服务 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
-            <artifactId>sys-service</artifactId>
+            <artifactId>sys-core</artifactId>
             <version>${sys.version}</version>
         </dependency>
 
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
-            <artifactId>file-service</artifactId>
+            <artifactId>file-core</artifactId>
             <version>${file.version}</version>
         </dependency>
 
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
-            <artifactId>tenant-service</artifactId>
+            <artifactId>tenant-core</artifactId>
             <version>${tenant.version}</version>
         </dependency>
 

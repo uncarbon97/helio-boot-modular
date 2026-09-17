@@ -17,13 +17,17 @@
     <version>${revision}</version>
 
     <properties>
-        <!-- 当前工程内，所有Maven模块统一版本号 -->
-        <revision>4.0.1-SNAPSHOT</revision>
         <!-- 根据实际开发的 JDK 版本确定 -->
         <java.version>25</java.version>
 
-        <!-- 固定跨模块共享契约版本 -->
-        <commons.version>0.0.0-SNAPSHOT</commons.version>
+
+        <!-- 当前工程内，所有Maven模块统一版本号 -->
+        <revision>4.0.1-SNAPSHOT</revision>
+        <commons.version>${revision}</commons.version>
+        <sys.version>${revision}</sys.version>
+        <file.version>${revision}</file.version>
+        <tenant.version>${revision}</tenant.version>
+
 
         <!-- 固定其他第三方依赖版本 -->
         <!-- 文件上传 -->
@@ -40,12 +44,12 @@
         <module>commons</module>
         <module>endpoints/admin-api</module>
         <module>endpoints/app-api</module>
-        <module>services/file-facade</module>
-        <module>services/file-service</module>
-        <module>services/sys-facade</module>
-        <module>services/sys-service</module>
-        <module>services/tenant-facade</module>
-        <module>services/tenant-service</module>
+        <module>modules/file-contract</module>
+        <module>modules/file-core</module>
+        <module>modules/sys-contract</module>
+        <module>modules/sys-core</module>
+        <module>modules/tenant-contract</module>
+        <module>modules/tenant-core</module>
     </modules>
 
     <dependencyManagement>
