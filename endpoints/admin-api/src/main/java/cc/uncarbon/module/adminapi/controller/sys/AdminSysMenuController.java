@@ -3,8 +3,10 @@ package cc.uncarbon.module.adminapi.controller.sys;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
+import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
@@ -13,14 +15,17 @@ import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
 import cc.uncarbon.module.sys.service.SysMenuService;
+import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +47,8 @@ public class AdminSysMenuController {
     static final String BIZ_TYPE = "系统菜单管理";
 
     private final SysMenuService sysMenuService;
+    private final SysRoleMenuRelationService sysRoleMenuRelationService;
+    private final ApplicationEventPublisher eventPublisher;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
@@ -76,6 +83,8 @@ public class AdminSysMenuController {
     public ApiResult<Void> update(@RequestBody @Valid AdminSysMenuUpsertRequest request) {
         var old = sysMenuService.getNonnullById(request.getId());
         sysMenuService.adminUpdate(request);
+        // 菜单的权限串/状态/可见性可能变化，刷新绑定角色的权限缓存
+        refreshRolePermissionCacheAsync(request.getId());
         // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();
@@ -89,6 +98,8 @@ public class AdminSysMenuController {
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
         var old = sysMenuService.getNonnullById(request.getId());
         sysMenuService.adminDelete(Set.of(request.getId()));
+        // 删除的菜单不再参与鉴权，刷新绑定角色的权限缓存
+        refreshRolePermissionCacheAsync(request.getId());
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
@@ -102,6 +113,8 @@ public class AdminSysMenuController {
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = sysMenuService.getNonnullById(request.getId());
         sysMenuService.adminSetStatus(request);
+        // 菜单禁用/启用即时生效，刷新绑定角色的权限缓存
+        refreshRolePermissionCacheAsync(request.getId());
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
@@ -117,6 +130,28 @@ public class AdminSysMenuController {
     @PostMapping("/visible")
     public ApiResult<List<SysMenuDTO>> visible() {
         return ApiResult.success(sysMenuService.adminListVisibleMenus());
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法 private methods
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 异步刷新菜单绑定角色的权限缓存
+     */
+    private void refreshRolePermissionCacheAsync(Long menuId) {
+        var boundRoleIds = sysRoleMenuRelationService.listRoleIdsByMenus(Set.of(menuId));
+        if (CollUtil.isEmpty(boundRoleIds)) {
+            // 没有角色绑定此菜单，无需刷新
+            return;
+        }
+
+        eventPublisher.publishEvent(new RefreshRolePermissionCacheEvent(
+                new RefreshRolePermissionCacheEvent.EventData(
+                        boundRoleIds, TenantContextHolder.getTenantId())
+        ));
     }
 
 }

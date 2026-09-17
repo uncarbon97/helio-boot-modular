@@ -2,7 +2,7 @@ package cc.uncarbon.module.file.model.request;
 
 
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
-import cc.uncarbon.module.file.enums.PlatformTypeEnum;
+import cc.uncarbon.module.file.enums.StoragePlatformTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -39,7 +39,7 @@ public class AdminFileStorageUpsertRequest implements Serializable {
 
     @Schema(description = "存储平台类型", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "存储平台类型必填")
-    private PlatformTypeEnum platformType;
+    private StoragePlatformTypeEnum platformType;
 
     @Schema(description = "配置属性", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "配置属性必填")

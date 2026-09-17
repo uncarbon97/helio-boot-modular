@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
 
+import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -44,11 +45,11 @@ public class SysOperateLogDTO implements Serializable {
     @Schema(description = "额外业务信息")
     private String bizExtra;
 
-    @Schema(description = "用户ID")
-    private Long userId;
+    @Schema(description = "操作人账号")
+    private String userPin;
 
-    @Schema(description = "用户类型编码")
-    private String userTypeCode;
+    @Schema(description = "用户类型")
+    private UserTypeCodeEnum userTypeCode;
 
     @Schema(description = "HTTP请求方法")
     private String requestMethod;

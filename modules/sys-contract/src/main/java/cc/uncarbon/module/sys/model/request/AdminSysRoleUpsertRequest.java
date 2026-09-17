@@ -37,8 +37,4 @@ public class AdminSysRoleUpsertRequest implements Serializable {
     @Size(max = 255, message = "角色描述最长{max}位")
     private String description;
 
-    public boolean inCreating() {
-        return id == null;
-    }
-
 }

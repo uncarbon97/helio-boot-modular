@@ -5,6 +5,8 @@ server:
   port: 7003
   # 优雅停机模式
   shutdown: GRACEFUL
+  # 处理反向代理（Ingress等）注入的 X-Forwarded-* 头，获取真实客户端 IP
+  forward-headers-strategy: FRAMEWORK
   tomcat:
     threads:
       # 虚拟线程模式下可放大 ≈ 期望 RPS × 平均 RT(s)

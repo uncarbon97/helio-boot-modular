@@ -12,20 +12,14 @@
     </parent>
 
     <artifactId>bootstrap</artifactId>
-    <version>${products.version}</version>
+    <version>${revision}</version>
 
     <properties>
         <!-- 制品版本号，建议每次打包发布时都调整以作区分 -->
-        <!-- 全新项目可从 1.0.0 开始计数 -->
-        <products.version>${revision}</products.version>
+        <products.version>1.0.0</products.version>
 
         <!-- 制品文件名 -->
         <products.filename>helium-monolith</products.filename>
-
-        <!-- 后台管理 API 端点 -->
-        <admin-api.version>${revision}</admin-api.version>
-        <!-- C端 API 端点 -->
-        <app-api.version>${revision}</app-api.version>
     </properties>
 
     <dependencies>

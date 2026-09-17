@@ -101,6 +101,7 @@ public class AdminSysRoleController {
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
+
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改角色状态",
             bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}，新状态：{{#request.newStatus.label}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)

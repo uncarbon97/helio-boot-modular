@@ -48,3 +48,9 @@ mybatis-plus:
   configuration:
     # 生产环境下建议去除该配置项，不在控制台打印SQL
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+---
+"sys.ip2region":
+  # 是否启用 ip2region 离线IP归属地查询
+  # 详见 resources/ip2region/README.md
+  enabled: false

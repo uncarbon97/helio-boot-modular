@@ -30,37 +30,6 @@
         </dependency>
 
 
-        <!-- 引用其他契约 -->
-        <dependency>
-            <groupId>cc.uncarbon.module</groupId>
-            <artifactId>commons</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>cc.uncarbon.module</groupId>
-            <artifactId>sys-contract</artifactId>
-            <version>${sys.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>cc.uncarbon.module</groupId>
-            <artifactId>tenant-contract</artifactId>
-            <version>${tenant.version}</version>
-        </dependency>
-
-
-        <!-- 引用框架启动包 -->
-        <dependency>
-            <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helium-starter-db-mybatis-plus</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helium-starter-db-dynamic-datasource</artifactId>
-        </dependency>
-
-
         <!-- 引用其他第三方依赖 -->
         <!-- 为了引用 MultipartFile 类 -->
         <dependency>
@@ -90,6 +59,38 @@
         <dependency>
             <groupId>com.aliyun.oss</groupId>
             <artifactId>aliyun-sdk-oss</artifactId>
+        </dependency>
+
+
+        <!-- 引用其他契约 -->
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>commons</artifactId>
+            <version>${commons.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>sys-contract</artifactId>
+            <version>${sys.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>tenant-contract</artifactId>
+            <version>${tenant.version}</version>
+        </dependency>
+
+
+        <!-- 引用框架启动包 -->
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-db-mybatis-plus</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-db-dynamic-datasource</artifactId>
         </dependency>
     </dependencies>
 </project>

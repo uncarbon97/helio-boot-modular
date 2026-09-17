@@ -21,4 +21,13 @@ public enum UserTypeCodeEnum implements BaseEnum<String> {
     public String getValue() {
         return name();
     }
+
+    public static UserTypeCodeEnum ofName(String name) {
+        for (UserTypeCodeEnum item : UserTypeCodeEnum.values()) {
+            if (item.name().equals(name)) {
+                return item;
+            }
+        }
+        return null;
+    }
 }

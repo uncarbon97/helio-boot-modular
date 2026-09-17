@@ -1,6 +1,7 @@
 package cc.uncarbon.module.file.service.impl;
 
 
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
@@ -125,6 +126,29 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         return entity.getId();
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminUpdate(AdminFileStorageUpsertRequest request) {
+        checkRepeat(request);
+        checkPrimaryFlag(request);
+
+        var entity = new FileStorageEntity();
+        BeanUtil.copyProperties(request, entity);
+        // 按需改写字段
+        serializeSetting(request, entity);
+
+        fileStorageMapper.updateById(entity);
+        publishChangedEvent(FileStorageChangedEvent.ChangeType.UPDATE);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminDelete(Collection<Long> ids) {
+        checkNotPrimary(ids);
+        fileStorageMapper.deleteByIds(ids);
+        publishChangedEvent(FileStorageChangedEvent.ChangeType.DELETE);
+    }
+
     @Override
     public FileStorageDTO getById(Long id) {
         if (id == null) return null;
@@ -145,19 +169,14 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         return convertEntity(entity);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminUpdate(AdminFileStorageUpsertRequest request) {
-        checkRepeat(request);
-        checkPrimaryFlag(request);
-
-        var entity = new FileStorageEntity();
-        BeanUtil.copyProperties(request, entity);
-        // 按需改写字段
-        serializeSetting(request, entity);
-
-        fileStorageMapper.updateById(entity);
-        publishChangedEvent(FileStorageChangedEvent.ChangeType.UPDATE);
+    public FileStorageDTO getPrimary() {
+        var entity = fileStorageMapper.selectOne(new LambdaQueryWrapper<FileStorageEntity>()
+                // 主存储点标识
+                .eq(FileStorageEntity::getPrimaryFlag, YesOrNoEnum.YES)
+                .last(SQLSegment.LIMIT_1)
+        );
+        return convertEntity(entity);
     }
 
     /*
@@ -165,13 +184,6 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
                         私有方法 private methods
     ----------------------------------------------------------------
      */
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void adminDelete(Collection<Long> ids) {
-        fileStorageMapper.deleteByIds(ids);
-        publishChangedEvent(FileStorageChangedEvent.ChangeType.DELETE);
-    }
 
     /**
      * 实体转值对象
@@ -226,14 +238,23 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         }
     }
 
-    @Override
-    public FileStorageDTO getPrimary() {
+    /**
+     * 检查待删除的存储点中是否包含主存储点
+     */
+    private void checkNotPrimary(Collection<Long> ids) {
         var entity = fileStorageMapper.selectOne(new LambdaQueryWrapper<FileStorageEntity>()
-                // 主存储点标识
+                // 仅取主键ID
+                .select(FileStorageEntity::getId)
+                // 待删除的记录
+                .in(FileStorageEntity::getId, ids)
+                // 是主存储点
                 .eq(FileStorageEntity::getPrimaryFlag, YesOrNoEnum.YES)
                 .last(SQLSegment.LIMIT_1)
         );
-        return convertEntity(entity);
+
+        if (entity != null) {
+            throw new BusinessException(FileErrorCodeEnum.A02009);
+        }
     }
 
     /**

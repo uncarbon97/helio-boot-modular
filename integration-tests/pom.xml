@@ -13,10 +13,11 @@
 
     <artifactId>integration-tests</artifactId>
     <version>${revision}</version>
-    <description>集成测试模块；仿 SeaTunnel 顶层 e2e 模块，专放 *IT.java</description>
+    <description>
+        集成测试
+    </description>
 
     <properties>
-        <bootstrap.version>${revision}</bootstrap.version>
         <!-- failsafe 版本与 surefire 对齐 -->
         <maven-failsafe-plugin.version>${maven-surefire-plugin.version}</maven-failsafe-plugin.version>
     </properties>

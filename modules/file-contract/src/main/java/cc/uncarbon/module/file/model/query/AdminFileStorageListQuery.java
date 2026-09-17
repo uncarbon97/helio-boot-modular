@@ -3,7 +3,7 @@ package cc.uncarbon.module.file.model.query;
 
 import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageQuery;
-import cc.uncarbon.module.file.enums.PlatformTypeEnum;
+import cc.uncarbon.module.file.enums.StoragePlatformTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +31,6 @@ public class AdminFileStorageListQuery implements Serializable, PageQuery {
     private String name;
 
     @Schema(description = "存储平台类型")
-    private PlatformTypeEnum platformType;
+    private StoragePlatformTypeEnum platformType;
 
 }

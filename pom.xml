@@ -23,13 +23,20 @@
 
         <!-- 当前工程内，所有Maven模块统一版本号 -->
         <revision>4.0.1-SNAPSHOT</revision>
+        <bootstrap.version>${revision}</bootstrap.version>
         <commons.version>${revision}</commons.version>
+        <admin-api.version>${revision}</admin-api.version>
+        <app-api.version>${revision}</app-api.version>
         <sys.version>${revision}</sys.version>
         <file.version>${revision}</file.version>
         <tenant.version>${revision}</tenant.version>
 
 
         <!-- 固定其他第三方依赖版本 -->
+        <!-- 密码哈希 -->
+        <bouncycastle.version>1.84</bouncycastle.version>
+        <!-- IP 地址归属地查询 -->
+        <ip2region.version>3.3.7</ip2region.version>
         <!-- 文件上传 -->
         <x-file-storage.version>2.3.0</x-file-storage.version>
         <minio.version>8.5.17</minio.version>
@@ -54,14 +61,21 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- 跨模块共享契约 -->
+            <!-- 其他第三方依赖 -->
+            <!-- 密码哈希 -->
             <dependency>
-                <groupId>cc.uncarbon.module</groupId>
-                <artifactId>commons</artifactId>
-                <version>${commons.version}</version>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
             </dependency>
 
-            <!-- 其他第三方依赖 -->
+            <!-- IP 地址归属地查询 -->
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>${ip2region.version}</version>
+            </dependency>
+
             <!-- 文件上传 -->
             <!-- 对象存储工具类 https://gitee.com/dromara/x-file-storage -->
             <dependency>
@@ -96,13 +110,6 @@
                 <groupId>com.aliyun.oss</groupId>
                 <artifactId>aliyun-sdk-oss</artifactId>
                 <version>${aliyun-sdk-oss.version}</version>
-            </dependency>
-
-            <!-- IP 地址归属地查询 -->
-            <dependency>
-                <groupId>org.lionsoul</groupId>
-                <artifactId>ip2region</artifactId>
-                <version>3.3.7</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -1,5 +1,6 @@
 package cc.uncarbon.module.sys.model.request;
 
+import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -38,7 +39,7 @@ public class SysOperateLogCreateRequest implements Serializable {
     private Long userId;
 
     @Schema(description = "用户类型编码")
-    private String userTypeCode;
+    private UserTypeCodeEnum userTypeCode;
 
     @Schema(description = "HTTP请求方法")
     private String requestMethod;

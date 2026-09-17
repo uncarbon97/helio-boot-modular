@@ -21,6 +21,9 @@ import java.time.Instant;
 @Data
 public class SysLoginLogDTO implements Serializable {
 
+    @Schema(description = "主键ID")
+    private Long id;
+
     @Schema(description = "创建时刻")
     private Instant createdAt;
 

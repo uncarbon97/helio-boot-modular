@@ -16,17 +16,20 @@
     <version>${revision}</version>
 
     <properties>
-        <!-- 引用下游服务 -->
     </properties>
 
     <dependencies>
-        <!-- 引用下游服务 -->
+        <!-- 引用其他第三方依赖 -->
+
+
+        <!-- 引用下游模块 -->
 
 
         <!-- 引用其他契约 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>commons</artifactId>
+            <version>${commons.version}</version>
         </dependency>
 
 

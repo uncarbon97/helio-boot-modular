@@ -34,7 +34,7 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
     /**
      * UA可以接受的最大长度
      */
-    public static final int USER_AGENT_MAX_LENGTH = 255;
+    public static final int USER_AGENT_MAX_LENGTH = 250;
 
     private final SysOperateLogMapper sysOperateLogMapper;
     private final List<IPLocationResolver> ipLocationResolvers;
@@ -51,8 +51,8 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
                         .like(CharSequenceUtil.isNotBlank(query.getBehavior()), SysOperateLogEntity::getBehavior, CharSequenceUtil.cleanBlank(query.getBehavior()))
                         // 业务号
                         .like(CharSequenceUtil.isNotBlank(query.getBizNo()), SysOperateLogEntity::getBizNo, CharSequenceUtil.cleanBlank(query.getBizNo()))
-                        // 用户ID
-                        .eq(Objects.nonNull(query.getUserId()), SysOperateLogEntity::getUserId, query.getUserId())
+                        // 操作人
+                        .like(CharSequenceUtil.isNotBlank(query.getUserPin()), SysOperateLogEntity::getCreatedBy, CharSequenceUtil.cleanBlank(query.getUserPin()))
                         // 结果状态
                         .eq(Objects.nonNull(query.getResultStatus()), SysOperateLogEntity::getResultStatus, query.getResultStatus())
                         // 时间区间
@@ -118,6 +118,7 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
         var ret = new SysOperateLogDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
+        ret.setUserPin(entity.getCreatedBy());
         return ret;
     }
 

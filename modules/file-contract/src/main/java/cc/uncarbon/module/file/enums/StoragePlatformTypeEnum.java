@@ -16,7 +16,7 @@ import java.util.Locale;
 @EnumDict(name = "文件存储平台")
 @AllArgsConstructor
 @Getter
-public enum PlatformTypeEnum implements BaseEnum<String> {
+public enum StoragePlatformTypeEnum implements BaseEnum<String> {
 
 //    UNKNOWN("unknown", "未知"),
     LOCAL("LOCAL".toLowerCase(Locale.ROOT), "本地", LocalSetting.class),

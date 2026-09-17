@@ -23,10 +23,14 @@
     </properties>
 
     <dependencies>
+        <!-- 引用其他第三方依赖 -->
+
+
         <!-- 引用其他契约 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>commons</artifactId>
+            <version>${commons.version}</version>
         </dependency>
 
 
@@ -40,8 +44,5 @@
             <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-core-db</artifactId>
         </dependency>
-
-
-        <!-- 引用其他第三方依赖 -->
     </dependencies>
 </project>

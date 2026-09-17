@@ -44,6 +44,17 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
         return ret;
     }
 
+    @Override
+    public Set<Long> listRoleIdsByMenus(Collection<Long> menuIds) {
+        if (CollUtil.isEmpty(menuIds)) {
+            return Set.of();
+        }
+        return sysRoleMenuRelationMapper.selectList(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+                        .select(SysRoleMenuRelationEntity::getRoleId)
+                        .in(SysRoleMenuRelationEntity::getMenuId, menuIds))
+                .stream().map(SysRoleMenuRelationEntity::getRoleId).collect(Collectors.toSet());
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void cleanAndBind(Long roleId, Collection<Long> menuIds) {

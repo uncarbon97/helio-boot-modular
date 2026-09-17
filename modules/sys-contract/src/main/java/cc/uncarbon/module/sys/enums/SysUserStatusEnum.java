@@ -10,7 +10,7 @@ import lombok.Getter;
 /**
  * 系统用户状态枚举
  */
-@EnumDict(name = "用户状态")
+@EnumDict(name = "系统用户状态")
 @AllArgsConstructor
 @Getter
 public enum SysUserStatusEnum implements BaseEnum<Integer> {

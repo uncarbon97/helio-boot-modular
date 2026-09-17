@@ -19,6 +19,9 @@
     <version>${revision}</version>
 
     <dependencies>
+        <!-- 引用其他第三方依赖 -->
+
+
         <!-- 引用其他契约 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
@@ -43,7 +46,9 @@
             <artifactId>helium-core-tenant</artifactId>
         </dependency>
 
-
-        <!-- 引用其他第三方依赖 -->
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-core-web</artifactId>
+        </dependency>
     </dependencies>
 </project>

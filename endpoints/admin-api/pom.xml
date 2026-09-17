@@ -16,20 +16,13 @@
     <version>${revision}</version>
 
     <properties>
-        <!-- 引用下游服务 -->
-        <!-- 系统管理 -->
-        <sys.version>${revision}</sys.version>
-        <!-- 文件管理 -->
-        <file.version>${revision}</file.version>
-        <!-- 租户管理 -->
-        <tenant.version>${revision}</tenant.version>
-
-
-        <!-- 引用其他第三方依赖 -->
     </properties>
 
     <dependencies>
-        <!-- 引用下游服务 -->
+        <!-- 引用其他第三方依赖 -->
+
+
+        <!-- 引用下游模块 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>sys-core</artifactId>
@@ -53,6 +46,7 @@
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>commons</artifactId>
+            <version>${commons.version}</version>
         </dependency>
 
 
@@ -88,6 +82,6 @@
         </dependency>
 
 
-        <!-- 引用其他第三方依赖 -->
+
     </dependencies>
 </project>

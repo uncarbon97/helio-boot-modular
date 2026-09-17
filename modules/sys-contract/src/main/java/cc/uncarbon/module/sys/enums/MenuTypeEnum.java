@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * 预置系统菜单类型枚举
  */
-@EnumDict(name = "菜单类型")
+@EnumDict(name = "系统菜单类型")
 @AllArgsConstructor
 @Getter
 public enum MenuTypeEnum implements BaseEnum<Integer> {
