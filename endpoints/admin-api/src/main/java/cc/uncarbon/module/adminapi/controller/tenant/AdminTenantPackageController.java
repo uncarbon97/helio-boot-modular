@@ -63,8 +63,7 @@ public class AdminTenantPackageController {
         return ApiResult.success(tenantPackageService.getNonnullById(request.getId()));
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增租户套餐",
-            success = "新增租户套餐：{{#request.name}}")
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增租户套餐", success = "新增租户套餐：{{#request.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")

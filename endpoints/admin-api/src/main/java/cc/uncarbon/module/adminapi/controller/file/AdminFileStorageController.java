@@ -68,8 +68,7 @@ public class AdminFileStorageController {
         return ApiResult.success(fileStorageDataService.getNonnullById(request.getId()));
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增文件存储点",
-            success = "新增文件存储点：{{#request.name}}")
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增文件存储点", success = "新增文件存储点：{{#request.code}}|{{#request.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
@@ -79,7 +78,7 @@ public class AdminFileStorageController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改文件存储点",
-            bizNo = "{{#request.id}}", success = "被操作文件存储点：{{#old.name}}")
+            bizNo = "{{#request.id}}", success = "被操作文件存储点：{{#old.code}}|{{#old.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
@@ -92,7 +91,7 @@ public class AdminFileStorageController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除文件存储点",
-            bizNo = "{{#request.id}}", success = "删除文件存储点：{{#old.name}}")
+            bizNo = "{{#request.id}}", success = "删除文件存储点：{{#old.code}}|{{#old.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
@@ -112,8 +111,6 @@ public class AdminFileStorageController {
      * 4. 测试文件打上 category=storage-test 标记，便于后续批量清理；
      * 5. @SysOperateLog 审计。
      */
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "测试文件存储点",
-            bizNo = "{{#request.id}}", success = "被测试文件存储点：{{#old.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "测试上传，验证存储点可用性")
     @PostMapping(value = "/test-upload")

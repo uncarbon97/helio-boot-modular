@@ -31,7 +31,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -65,8 +70,7 @@ public class AdminSysMenuController {
         return ApiResult.success(sysMenuService.getNonnullById(request.getId()));
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增菜单",
-            success = "新增菜单：{{#request.name}}")
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增菜单", success = "新增菜单：{{#request.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
@@ -140,11 +144,14 @@ public class AdminSysMenuController {
 
     /**
      * 异步刷新菜单绑定角色的权限缓存
+     * <p>
+     * 菜单状态/可见性变化会级联影响其子孙菜单（如目录禁用后整棵子树不可见、权限收回），
+     * 刷新范围需覆盖子孙菜单绑定的角色
      */
     private void refreshRolePermissionCacheAsync(Long menuId) {
-        var boundRoleIds = sysRoleMenuRelationService.listRoleIdsByMenus(Set.of(menuId));
+        var boundRoleIds = sysRoleMenuRelationService.listRoleIdsByMenus(collectSelfAndDescendantMenuIds(menuId));
         if (CollUtil.isEmpty(boundRoleIds)) {
-            // 没有角色绑定此菜单，无需刷新
+            // 没有角色绑定这些菜单，无需刷新
             return;
         }
 
@@ -152,6 +159,35 @@ public class AdminSysMenuController {
                 new RefreshRolePermissionCacheEvent.EventData(
                         boundRoleIds, TenantContextHolder.getTenantId())
         ));
+    }
+
+    /**
+     * 收集菜单自身及所有子孙菜单ID（沿 parentId 向下遍历，visited 防环）
+     */
+    private Set<Long> collectSelfAndDescendantMenuIds(Long menuId) {
+        List<SysMenuDTO> allMenus = sysMenuService.adminList();
+        Map<Long, Set<Long>> childrenIdsByParentId = new HashMap<>(allMenus.size() << 1);
+        for (SysMenuDTO menu : allMenus) {
+            if (menu.getParentId() != null) {
+                childrenIdsByParentId.computeIfAbsent(menu.getParentId(), k -> new HashSet<>()).add(menu.getId());
+            }
+        }
+
+        Set<Long> ret = new HashSet<>();
+        Deque<Long> pending = new ArrayDeque<>();
+        pending.add(menuId);
+        while (!pending.isEmpty()) {
+            Long current = pending.poll();
+            if (!ret.add(current)) {
+                // 已收集过，防环
+                continue;
+            }
+            Set<Long> children = childrenIdsByParentId.get(current);
+            if (children != null) {
+                pending.addAll(children);
+            }
+        }
+        return ret;
     }
 
 }

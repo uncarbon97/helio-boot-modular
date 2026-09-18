@@ -69,8 +69,4 @@ public interface SysMenuService {
      */
     Map<Long, Set<String>> getPermissionsByRole(Collection<Long> roleIds);
 
-    /**
-     * 列举菜单对应的权限串集合
-     */
-    Set<String> listPermissionsByMenus(Collection<Long> menuIds);
 }

@@ -71,8 +71,7 @@ public class AdminSysRoleController {
         return ApiResult.success(sysRoleService.getNonnullById(request.getId()));
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增角色",
-            success = "新增角色：{{#request.code}}|{{#request.name}}")
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增角色", success = "新增角色：{{#request.code}}|{{#request.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")

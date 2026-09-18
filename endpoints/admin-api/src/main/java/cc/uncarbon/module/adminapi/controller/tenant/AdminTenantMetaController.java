@@ -65,8 +65,7 @@ public class AdminTenantMetaController {
         return ApiResult.success(tenantService.getNonnullById(request.getId()));
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增租户",
-            success = "新增租户：{{#request.name}}")
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增租户", success = "新增租户：{{#request.code}}|{{#request.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
@@ -76,7 +75,7 @@ public class AdminTenantMetaController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改租户",
-            bizNo = "{{#request.id}}", success = "被操作租户：{{#old.name}}：{_DIFF{#request}}")
+            bizNo = "{{#request.id}}", success = "被操作租户：{{#old.code}}|{{#old.name}}：{_DIFF{#request}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
@@ -114,7 +113,7 @@ public class AdminTenantMetaController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除租户",
-            bizNo = "{{#request.id}}", success = "被操作租户：{{#old.name}}")
+            bizNo = "{{#request.id}}", success = "被操作租户：{{#old.code}}|{{#old.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")

@@ -69,8 +69,7 @@ public class AdminSysUserController {
         return ApiResult.success(sysUserService.getNonnullById(request.getId()));
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增用户",
-            success = "新增用户：{{#request.pin}}")
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增用户", success = "新增用户：{{#request.pin}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")

@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -146,6 +147,11 @@ public class SysMenuServiceImpl implements SysMenuService {
             return Map.of();
         }
         Map<Long, Set<String>> ret = new HashMap<>(roleIds.size(), 1);
+        // 祖先启用性校验用的全量菜单map，懒加载
+        var ref = new Object() {
+            // for lambda final
+            Map<Long, SysMenuEntity> allMenuMap = null;
+        };
         // 一次性过滤出启用状态的角色；已禁用、已删除的角色一律视为无权限
         Set<Long> enabledRoleIds = sysRoleMapper.listEnabledRoleIds(roleIds);
         for (Long roleId : roleIds) {
@@ -170,9 +176,17 @@ public class SysMenuServiceImpl implements SysMenuService {
                 if (CollUtil.isEmpty(menuIds)) {
                     permissions = Set.of();
                 } else {
-                    permissions = sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
+                    // 剔除自身或任一祖先被禁用的菜单（如目录被禁用后，子按钮权限一并收回）
+                    if (ref.allMenuMap == null) {
+                        ref.allMenuMap = getAllMenuMap();
+                    }
+                    Set<Long> enabledChainMenuIds = menuIds.stream()
+                            .filter(menuId -> selfAndAncestorsAllEnabled(ref.allMenuMap, menuId))
+                            .collect(Collectors.toSet());
+                    permissions = enabledChainMenuIds.isEmpty() ? Set.of()
+                            : sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
                                     .select(SysMenuEntity::getPermission)
-                                    .in(SysMenuEntity::getId, menuIds)
+                                    .in(SysMenuEntity::getId, enabledChainMenuIds)
                                     .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
                             )
                             .stream()
@@ -184,18 +198,6 @@ public class SysMenuServiceImpl implements SysMenuService {
             ret.put(roleId, permissions);
         }
         return ret;
-    }
-
-    @Override
-    public Set<String> listPermissionsByMenus(Collection<Long> menuIds) {
-        if (CollUtil.isEmpty(menuIds)) {
-            return Set.of();
-        }
-
-        return sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
-                .select(SysMenuEntity::getPermission)
-                .in(SysMenuEntity::getId, menuIds)
-        ).stream().map(SysMenuEntity::getPermission).filter(CharSequenceUtil::isNotEmpty).collect(Collectors.toSet());
     }
 
     /*
@@ -243,51 +245,6 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     /**
-     * 取当前账号可见菜单Ids
-     *
-     * @return 菜单Ids
-     */
-    private Set<Long> listCurrentUserVisibleMenuIds() {
-        assert UserContextHolder.getContext() != null;
-        // 1. 取当前账号拥有角色Ids
-        var roleIds = UserContextHolder.getContext().getRoleIds();
-        SysErrorCodeEnum.A01005.throwIfEmpty(roleIds);
-
-        // 2. 得到所有可用的 菜单ID-上级菜单ID map，备用
-        Map<Long, Long> parentIdById = sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
-                .select(SysMenuEntity::getId, SysMenuEntity::getParentId)
-                .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
-        ).stream().collect(Collectors.toMap(SysMenuEntity::getId, SysMenuEntity::getParentId, StreamFunction.keepExisting()));
-
-        // 3. 超级管理员直接返回所有菜单
-        if (roleIds.contains(SysConstant.SUPER_ADMIN_ROLE_ID)) {
-            return new HashSet<>(parentIdById.keySet());
-        }
-
-        // 4. 根据现有角色，获取直接关联的菜单ID
-        Set<Long> directlyRelatedMenuIds = sysRoleMenuRelationService.listMenuIdsByRoles(roleIds);
-        SysErrorCodeEnum.A01006.throwIfEmpty(directlyRelatedMenuIds);
-
-        // 5. 因为直接关联的菜单ID，可能不包含父级菜单，使得级联关系缺失，这里得给他补上
-        return traceParentMenuIds(parentIdById, directlyRelatedMenuIds);
-    }
-
-    private List<SysMenuDTO> listByIds(Collection<Long> ids, List<MenuTypeEnum> menuTypes) {
-        if (CollUtil.isEmpty(ids)) {
-            return List.of();
-        }
-
-        List<SysMenuEntity> entityList = sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
-                .in(SysMenuEntity::getId, ids)
-                .in(SysMenuEntity::getMenuType, menuTypes)
-                // 仅显示启用状态菜单
-                .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
-                .orderByAsc(SysMenuEntity::getSort)
-        );
-        return convertList(entityList);
-    }
-
-    /**
      * 检查是否存在
      */
     private void checkExistence(Long id) {
@@ -323,6 +280,91 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     /**
+     * 取当前账号可见菜单Ids
+     *
+     * @return 菜单Ids
+     */
+    private Set<Long> listCurrentUserVisibleMenuIds() {
+        assert UserContextHolder.getContext() != null;
+        // 1. 取当前账号拥有角色Ids
+        var roleIds = UserContextHolder.getContext().getRoleIds();
+        SysErrorCodeEnum.A01005.throwIfEmpty(roleIds);
+
+        // 2. 得到全量 菜单ID-实体 map（含禁用，用于祖先启用性校验），备用
+        Map<Long, SysMenuEntity> allMenuMap = getAllMenuMap();
+
+        // 3. 超级管理员直接返回所有可见菜单（自身及祖先均启用）
+        if (roleIds.contains(SysConstant.SUPER_ADMIN_ROLE_ID)) {
+            return allMenuMap.keySet().stream()
+                    .filter(menuId -> selfAndAncestorsAllEnabled(allMenuMap, menuId))
+                    .collect(Collectors.toSet());
+        }
+
+        // 4. 根据现有角色，获取直接关联的菜单ID
+        Set<Long> directlyRelatedMenuIds = sysRoleMenuRelationService.listMenuIdsByRoles(roleIds);
+        SysErrorCodeEnum.A01006.throwIfEmpty(directlyRelatedMenuIds);
+
+        // 5. 因为直接关联的菜单ID，可能不包含父级菜单，使得级联关系缺失，这里得给他补上
+        Map<Long, Long> parentIdById = allMenuMap.values().stream()
+                .collect(Collectors.toMap(SysMenuEntity::getId, SysMenuEntity::getParentId, StreamFunction.keepExisting()));
+        Set<Long> tracedMenuIds = traceParentMenuIds(parentIdById, directlyRelatedMenuIds);
+
+        // 6. 剔除自身或任一祖先被禁用的菜单（如目录被禁用后，整棵子树不再可见）
+        return tracedMenuIds.stream()
+                .filter(menuId -> selfAndAncestorsAllEnabled(allMenuMap, menuId))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * 查询全量菜单（含禁用），构建 菜单ID-实体 map，用于祖先启用性校验
+     */
+    private Map<Long, SysMenuEntity> getAllMenuMap() {
+        return sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
+                .select(SysMenuEntity::getId, SysMenuEntity::getParentId, SysMenuEntity::getStatus)
+        ).stream().collect(Collectors.toMap(SysMenuEntity::getId, Function.identity(), StreamFunction.keepExisting()));
+    }
+
+    /**
+     * 菜单自身及所有祖先均为启用状态时返回 true；链上任一节点被禁用返回 false
+     * <p>
+     * parentId 悬空（父级已被删除）或到达根节点视为链结束，不剔除；
+     * visited 集合防止 parentId 成环导致死循环
+     */
+    private boolean selfAndAncestorsAllEnabled(Map<Long, SysMenuEntity> allMenuMap, Long menuId) {
+        Set<Long> visited = new HashSet<>();
+        Long cursor = menuId;
+        while (cursor != null && visited.add(cursor)) {
+            SysMenuEntity entity = allMenuMap.get(cursor);
+            if (entity == null) {
+                // 悬空或已到根节点（根parentId不在map中），链结束
+                return true;
+            }
+            if (EnabledStatusEnum.ENABLED != entity.getStatus()) {
+                // 自身或任一祖先被禁用
+                return false;
+            }
+            cursor = entity.getParentId();
+        }
+        // 成环但环上无禁用节点，视为通过
+        return true;
+    }
+
+    private List<SysMenuDTO> listByIds(Collection<Long> ids, List<MenuTypeEnum> menuTypes) {
+        if (CollUtil.isEmpty(ids)) {
+            return List.of();
+        }
+
+        List<SysMenuEntity> entityList = sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
+                .in(SysMenuEntity::getId, ids)
+                .in(SysMenuEntity::getMenuType, menuTypes)
+                // 仅显示启用状态菜单
+                .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
+                .orderByAsc(SysMenuEntity::getSort)
+        );
+        return convertList(entityList);
+    }
+
+    /**
      * 追溯并补充可能缺失的级联上级菜单ID
      *
      * @param allMenuMap             完整的 菜单ID-上级菜单ID map
@@ -353,9 +395,15 @@ public class SysMenuServiceImpl implements SysMenuService {
                 }
             }
 
+            // 防止 parentId 成环导致死循环：无新增节点即结束
+            nextLoop.removeAll(ret);
+            if (nextLoop.isEmpty()) {
+                break;
+            }
+
             ret.addAll(nextLoop);
 
-        } while (!nextLoop.isEmpty());
+        } while (true);
 
         return ret;
     }
