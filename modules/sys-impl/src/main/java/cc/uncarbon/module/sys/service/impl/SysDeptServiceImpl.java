@@ -1,11 +1,13 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDeptMapper;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
@@ -52,15 +54,17 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     public Long adminCreate(AdminSysDeptUpsertRequest request) {
         log.info(LOG_PREFIX + "新增 >> {}", request);
+        defaultParentId(request);
         checkRepeat(request);
-
-        if (ObjectUtil.isNull(request.getParentId())) {
-            request.setParentId(SysConstant.ROOT_PARENT_ID);
-        }
+        checkParentUsable(request.getParentId());
 
         request.setId(null);
         var entity = new SysDeptEntity();
         BeanUtil.copyProperties(request, entity);
+        if (entity.getStatus() == null) {
+            // 新建部门默认启用
+            entity.setStatus(EnabledStatusEnum.ENABLED);
+        }
 
         sysDeptMapper.insert(entity);
         return entity.getId();
@@ -71,11 +75,10 @@ public class SysDeptServiceImpl implements SysDeptService {
     public void adminUpdate(AdminSysDeptUpsertRequest request) {
         log.info(LOG_PREFIX + "编辑 >> {}", request);
         checkExistence(request.getId());
+        defaultParentId(request);
         checkRepeat(request);
-
-        if (ObjectUtil.isNull(request.getParentId())) {
-            request.setParentId(SysConstant.ROOT_PARENT_ID);
-        }
+        checkParentUsable(request.getParentId());
+        checkParentNotSelfOrInferior(request.getId(), request.getParentId());
 
         var entity = new SysDeptEntity();
         BeanUtil.copyProperties(request, entity);
@@ -87,6 +90,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
+        checkBeforeDelete(ids);
         // 解除关联关系
         ids.forEach(sysUserDeptRelationService::cleanAllBindings);
         sysDeptMapper.deleteByIds(ids);
@@ -99,6 +103,11 @@ public class SysDeptServiceImpl implements SysDeptService {
         Long id = request.getId();
         var entity = sysDeptMapper.selectById(id);
         NoRecordException.throwIfNull(entity);
+        if (request.getNewStatus() == entity.getStatus()) {
+            // 状态未变化，幂等返回
+            return;
+        }
+        checkBeforeSetStatus(entity, request.getNewStatus());
 
         SysDeptEntity template = new SysDeptEntity()
                 .setId(id)
@@ -113,11 +122,11 @@ public class SysDeptServiceImpl implements SysDeptService {
             if (me.isNotAnyAdmin()) {
                 // 非管理员才会限制，只能看到本部门及以下
                 UserDeptScope deptContainer = getCurrentUserDept(true);
-                return convertList(deptContainer.getVisibleDepts());
+                return convertEnabledList(deptContainer.getVisibleDepts());
             }
         }
-        // 能看所有
-        return adminList();
+        // 能看所有；下拉框只列启用部门，屏蔽对停用部门的新增引用
+        return convertEnabledList(sysDeptMapper.selectEnabledSortedList());
     }
 
     @Override
@@ -191,13 +200,6 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     /**
-     * 检查是否存在重复
-     */
-    private void checkRepeat(AdminSysDeptUpsertRequest request) {
-        // ignored
-    }
-
-    /**
      * 检查是否存在
      */
     private void checkExistence(Long id) {
@@ -208,6 +210,124 @@ public class SysDeptServiceImpl implements SysDeptService {
                         .last(SQLSegment.LIMIT_1)
         );
         NoRecordException.throwIfFalse(exists);
+    }
+
+    /**
+     * 检查是否存在重复：同一上级部门下不允许同名部门
+     */
+    private void checkRepeat(AdminSysDeptUpsertRequest request) {
+        boolean exists = sysDeptMapper.exists(
+                new LambdaQueryWrapper<SysDeptEntity>()
+                        .eq(SysDeptEntity::getName, request.getName())
+                        .eq(SysDeptEntity::getParentId, request.getParentId())
+                        // 并非原地更新
+                        .ne(request.getId() != null, SysDeptEntity::getId, request.getId())
+                        .last(SQLSegment.LIMIT_1)
+        );
+        if (exists) {
+            throw new BusinessException(SysErrorCodeEnum.A01040);
+        }
+    }
+
+    /**
+     * 删除前检查：有下级部门或关联用户时不能删除，只能停用
+     */
+    private void checkBeforeDelete(Collection<Long> ids) {
+        boolean hasChildren = sysDeptMapper.exists(
+                new LambdaQueryWrapper<SysDeptEntity>()
+                        .in(SysDeptEntity::getParentId, ids)
+        );
+        if (hasChildren || CollUtil.isNotEmpty(sysUserDeptRelationService.listUserIdsByDepts(ids))) {
+            throw new BusinessException(SysErrorCodeEnum.A01038);
+        }
+    }
+
+    /**
+     * 修改状态前检查，保证状态从叶到根一致
+     */
+    private void checkBeforeSetStatus(SysDeptEntity entity, EnabledStatusEnum newStatus) {
+        if (EnabledStatusEnum.DISABLED == newStatus) {
+            // 停用时，存在未停用的下级部门则拒绝
+            boolean hasEnabledChildren = sysDeptMapper.exists(
+                    new LambdaQueryWrapper<SysDeptEntity>()
+                            .eq(SysDeptEntity::getParentId, entity.getId())
+                            .eq(SysDeptEntity::getStatus, EnabledStatusEnum.ENABLED)
+            );
+            if (hasEnabledChildren) {
+                throw new BusinessException(SysErrorCodeEnum.A01036);
+            }
+        } else {
+            // 启用时，上级部门已停用则拒绝
+            Long parentId = entity.getParentId();
+            if (parentId != null && !SysConstant.ROOT_PARENT_ID.equals(parentId)) {
+                SysDeptEntity parent = sysDeptMapper.selectById(parentId);
+                if (parent == null || EnabledStatusEnum.DISABLED == parent.getStatus()) {
+                    throw new BusinessException(SysErrorCodeEnum.A01037);
+                }
+            }
+        }
+    }
+
+    /**
+     * parentId 为空时，归为根部门
+     */
+    private static void defaultParentId(AdminSysDeptUpsertRequest request) {
+        if (ObjectUtil.isNull(request.getParentId())) {
+            request.setParentId(SysConstant.ROOT_PARENT_ID);
+        }
+    }
+
+    /**
+     * 检查新的上级部门不能是自身，也不能是自己的下级部门（避免成环）
+     */
+    private void checkParentNotSelfOrInferior(Long id, Long parentId) {
+        if (id == null || parentId == null || SysConstant.ROOT_PARENT_ID.equals(parentId)) {
+            return;
+        }
+        // 沿新上级的父链向上找，一旦遇到自身即成环
+        Long cursor = parentId;
+        int guard = 0;
+        while (cursor != null && !SysConstant.ROOT_PARENT_ID.equals(cursor)) {
+            if (cursor.equals(id)) {
+                throw new BusinessException(SysErrorCodeEnum.A01039);
+            }
+            SysDeptEntity node = sysDeptMapper.selectById(cursor);
+            if (node == null) {
+                break;
+            }
+            cursor = node.getParentId();
+            if (++guard > 100) {
+                // 防御：历史脏数据成环时避免死循环
+                break;
+            }
+        }
+    }
+
+    /**
+     * 检查上级部门是否可用（存在且启用）
+     */
+    private void checkParentUsable(Long parentId) {
+        if (parentId == null || SysConstant.ROOT_PARENT_ID.equals(parentId)) {
+            return;
+        }
+        SysDeptEntity parent = sysDeptMapper.selectById(parentId);
+        NoRecordException.throwIfNull(parent);
+        if (EnabledStatusEnum.DISABLED == parent.getStatus()) {
+            throw new BusinessException(SysErrorCodeEnum.A01037);
+        }
+    }
+
+    /**
+     * 实体转值对象（仅保留启用状态的部门）
+     */
+    private List<SysDeptDTO> convertEnabledList(List<SysDeptEntity> entityList) {
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+        return entityList.stream()
+                .filter(dept -> EnabledStatusEnum.ENABLED == dept.getStatus())
+                .map(this::convertEntity)
+                .toList();
     }
 
     /**

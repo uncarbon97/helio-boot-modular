@@ -1,6 +1,5 @@
 package cc.uncarbon.module.sys.model.request;
 
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -34,8 +33,5 @@ public class AdminSysDeptUpsertRequest implements Serializable {
 
     @Schema(description = "排序(数值越小越优先)")
     private Integer sort;
-
-    @Schema(description = "状态")
-    private EnabledStatusEnum status;
 
 }

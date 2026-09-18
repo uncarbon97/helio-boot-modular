@@ -3,6 +3,7 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -238,6 +239,8 @@ public class SysUserServiceImpl implements SysUserService {
     public void adminBindDept(AdminSysUserBindDeptRequest request) {
         checkExistence(request.getUserId());
         checkBeforeBindDept(request.getUserId());
+        // 调岗目标部门必须启用；解除绑定（deptId 为空）不受限
+        checkDeptAccess(request.getDeptId(), true);
         sysUserDeptRelationService.cleanAndBind(request.getUserId(), request.getDeptId());
     }
 
@@ -480,6 +483,10 @@ public class SysUserServiceImpl implements SysUserService {
     private void checkDeptAccess(Long deptId, boolean hasBindDeptPerm) {
         if (Objects.isNull(deptId)) {
             return;
+        }
+        // 目标部门必须处于启用状态，屏蔽对停用部门的新增引用
+        if (EnabledStatusEnum.DISABLED == sysDeptService.getNonnullById(deptId).getStatus()) {
+            throw new BusinessException(SysErrorCodeEnum.A01035);
         }
         // 持有跨部门调岗权限者（如高级 HR），可跨部门管理，不受可见部门域限制
         if (hasBindDeptPerm) {

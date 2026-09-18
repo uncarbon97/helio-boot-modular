@@ -11,6 +11,7 @@ import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.model.request.AdminSysDeptUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 import cc.uncarbon.module.sys.service.SysDeptService;
@@ -59,8 +60,7 @@ public class AdminSysDeptController {
         return ApiResult.success(sysDeptService.getNonnullById(request.getId()));
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增部门",
-            success = "新增部门：{{#request.name}}")
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增部门", success = "新增部门：{{#request.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
@@ -78,12 +78,16 @@ public class AdminSysDeptController {
         var old = sysDeptService.getNonnullById(request.getId());
         sysDeptService.adminUpdate(request);
         // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
-        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
+        var oldRequest = BeanUtil.toBean(old, request.getClass());
+        if (oldRequest.getParentId() == null) {
+            // 详情接口不回显根部门 parentId(0)，比对前还原，避免产生假 diff
+            oldRequest.setParentId(SysConstant.ROOT_PARENT_ID);
+        }
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, oldRequest);
         return ApiResult.success();
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "被操作部门",
-            success = "删除部门：{{#old.name}}")
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除部门", success = "被操作部门：{{#old.name}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
