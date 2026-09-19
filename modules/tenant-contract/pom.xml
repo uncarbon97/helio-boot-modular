@@ -13,6 +13,7 @@
     </parent>
 
     <artifactId>tenant-contract</artifactId>
+    <name>Tenant-Contract | 多租户契约</name>
     <description>
         租户契约
     </description>

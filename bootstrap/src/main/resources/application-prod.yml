@@ -11,3 +11,55 @@
   # 减少非必要日志量
   log-business-exception: false
   log-expected-exception: false
+
+---
+spring:
+  datasource:
+    dynamic:
+      primary: mysql
+      datasource:
+        # MySQL 数据源
+        mysql:
+          url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${DB_TIMEZONE}
+          username: ${MYSQL_USERNAME:helium}
+          password: ${MYSQL_PASSWORD:helium}
+          # 设置 false 会在工程启动时就初始化数据源
+          lazy: false
+        # PG 数据源
+        postgres:
+          url: jdbc:postgresql://${PG_HOST:127.0.0.1}:${PG_PORT:5432}/${PG_DB_NAME:helium}?reWriteBatchedInserts=true&TimeZone=${DB_TIMEZONE}
+          username: ${PG_USERNAME:helium}
+          password: ${PG_PASSWORD:helium}
+          lazy: true
+      # HikariCP 全局默认配置
+      hikari:
+        # 虚拟线程环境下，适当提高连接数，但不要无限拉高，数据库端连接是有限的
+        maximum-pool-size: 50
+        minimum-idle: 5
+        # 连接等待超时适当缩短，快速失败而非长时间堵塞
+        connection-timeout: 5000
+        # 泄漏定位阈值
+        leak-detection-threshold: 30000
+        # 长连接空闲被防火墙/云负载均衡切断的常见场景，主动 ping 续命
+        keepalive-time: 300000
+        # 连接最大生命周期，防止数据库侧超时
+        max-lifetime: 1800000
+        # 连接验证超时
+        validation-timeout: 4000
+        connection-test-query: "SELECT 1"
+  data:
+    redis:
+      # Redis 主机
+      host: ${REDIS_HOST:127.0.0.1}
+      # Redis 端口
+      port: ${REDIS_PORT:6379}
+      # 如果没有设置密码，下面这行直接注释掉，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
+      password: ${REDIS_PASSWORD}
+      # Redis 数据库序号
+      database: ${REDIS_DATABASE:0}
+
+---
+"sys.ip2region":
+  # 是否启用 ip2region 离线IP归属地查询
+  # 详见 resources/ip2region/README.md
+  enabled: false

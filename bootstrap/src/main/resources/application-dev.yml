@@ -39,7 +39,7 @@ spring:
       # Redis 端口
       port: ${REDIS_PORT:6379}
       # 如果没有设置密码，下面这行直接注释掉，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
-#      password: ""
+#      password: ${REDIS_PASSWORD}
       # Redis 数据库序号
       database: ${REDIS_DATABASE:0}
 

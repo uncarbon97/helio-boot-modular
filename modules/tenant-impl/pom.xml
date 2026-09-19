@@ -13,6 +13,7 @@
     </parent>
 
     <artifactId>tenant-impl</artifactId>
+    <name>Tenant-Impl | 多租户实现</name>
     <description>
         租户实现
     </description>

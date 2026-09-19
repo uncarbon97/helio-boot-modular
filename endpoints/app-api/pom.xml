@@ -14,6 +14,7 @@
 
     <artifactId>app-api</artifactId>
     <version>${revision}</version>
+    <name>App-API | APP API 端点</name>
 
     <properties>
     </properties>

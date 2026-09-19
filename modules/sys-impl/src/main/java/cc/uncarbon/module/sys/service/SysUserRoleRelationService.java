@@ -26,4 +26,10 @@ public interface SysUserRoleRelationService {
      */
     Set<Long> listUserIdsByRole(Long roleId);
 
+    /**
+     * 根据角色IDs，删除用户-角色关联关系
+     * 用于角色被删除后清理孤儿数据
+     */
+    void deleteByRoleIds(Collection<Long> roleIds);
+
 }

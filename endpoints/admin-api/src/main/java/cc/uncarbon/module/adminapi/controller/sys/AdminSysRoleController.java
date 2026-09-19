@@ -8,6 +8,7 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
+import cc.uncarbon.module.adminapi.event.RefreshSysUserSessionEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
@@ -26,6 +27,7 @@ import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Collection;
 import java.util.Set;
 
 
@@ -88,6 +91,8 @@ public class AdminSysRoleController {
     public ApiResult<Void> update(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
         var old = sysRoleService.getNonnullById(request.getId());
         sysRoleService.adminUpdate(request);
+        // 角色编码可能变更，刷新关联用户会话快照
+        refreshRelatedUserSessionAsync(sysUserRoleRelationService.listUserIdsByRole(request.getId()));
         // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
         return ApiResult.success();
@@ -100,8 +105,11 @@ public class AdminSysRoleController {
     @PostMapping(value = "/delete")
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
         var old = sysRoleService.getNonnullById(request.getId());
+        // 删除前先取关联用户，删除后关联关系会被清理
+        var relatedUserIds = sysUserRoleRelationService.listUserIdsByRole(request.getId());
         sysRoleService.adminDelete(Set.of(request.getId()));
         refreshRolePermissionCacheAsync(request.getId());
+        refreshRelatedUserSessionAsync(relatedUserIds);
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
@@ -116,6 +124,8 @@ public class AdminSysRoleController {
         var old = sysRoleService.getNonnullById(request.getId());
         sysRoleService.adminSetStatus(request);
         refreshRolePermissionCacheAsync(request.getId());
+        // 禁用/启用角色后，原位刷新关联用户会话快照，立即生效
+        refreshRelatedUserSessionAsync(sysUserRoleRelationService.listUserIdsByRole(request.getId()));
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
@@ -163,6 +173,18 @@ public class AdminSysRoleController {
         eventPublisher.publishEvent(new RefreshRolePermissionCacheEvent(
                 new RefreshRolePermissionCacheEvent.EventData(
                         Set.of(roleId), TenantContextHolder.getTenantId())
+        ));
+    }
+
+    /**
+     * 异步原位刷新关联用户会话快照
+     */
+    private void refreshRelatedUserSessionAsync(Collection<Long> userIds) {
+        if (CollUtil.isEmpty(userIds)) {
+            return;
+        }
+        eventPublisher.publishEvent(new RefreshSysUserSessionEvent(
+                new RefreshSysUserSessionEvent.EventData(userIds)
         ));
     }
 

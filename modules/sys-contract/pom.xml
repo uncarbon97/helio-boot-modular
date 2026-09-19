@@ -13,6 +13,7 @@
     </parent>
 
     <artifactId>sys-contract</artifactId>
+    <name>Sys-Contract | 系统管理契约</name>
     <description>
         系统管理契约
     </description>

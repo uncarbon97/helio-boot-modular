@@ -11,6 +11,7 @@ import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
@@ -54,6 +55,7 @@ public class SysUserServiceImpl implements SysUserService {
     private static final String LOG_PREFIX = "[系统管理][用户]";
 
     private final SysUserMapper sysUserMapper;
+    private final SysRoleMapper sysRoleMapper;
     private final SysDeptServiceImpl sysDeptService;
     private final SysUserDeptRelationService sysUserDeptRelationService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
@@ -229,7 +231,7 @@ public class SysUserServiceImpl implements SysUserService {
         checkBeforeBindUserRoleRelation(request);
         sysUserRoleRelationService.cleanAndBindByUser(request.getUserId(), request.getRoleIds());
         // 查询修改后的用户，关联的角色
-        UserRoleScope userRoleScope = userRoleHelper.getSpecifiedEnabledUserRole(request.getUserId());
+        UserRoleScope userRoleScope = userRoleHelper.getSpecifiedUserRole(request.getUserId());
         return new SysUserBindRoleResult()
                 .setOld(getNonnullById(request.getUserId()))
                 .setRoleNames(userRoleScope.getRelatedRoles().stream().map(SysRoleEntity::getName).toList());
@@ -396,6 +398,7 @@ public class SysUserServiceImpl implements SysUserService {
      * 防止越权访问漏洞
      */
     private void checkBeforeBindUserRoleRelation(AdminSysUserBindRoleRequest request) {
+        checkBuiltinRoleImmutable(request);
         UserRoleScope me = userRoleHelper.getCurrentUserRole();
         // 是否想要操作自身
         boolean selfFlag = Objects.equals(request.getUserId(), UserContextHolder.getUserId());
@@ -450,6 +453,37 @@ public class SysUserServiceImpl implements SysUserService {
                     throw new BusinessException(SysErrorCodeEnum.A01022);
                 }
             }
+        }
+    }
+
+    /**
+     * 内置角色（超级管理员、租户管理员等）必须与对应管理员保持关联，不允许手动分配，也不允许解除关联
+     */
+    private void checkBuiltinRoleImmutable(AdminSysUserBindRoleRequest request) {
+        Set<Long> currentRoleIds = new HashSet<>(sysUserRoleRelationService.listRoleIdsByUser(request.getUserId()));
+        Collection<Long> requestedRoleIds = CollUtil.emptyIfNull(request.getRoleIds());
+        // 涉及的角色 = 现有关联 + 想要关联，一并取出解析特殊标记
+        Set<Long> involvedRoleIds = new HashSet<>(currentRoleIds);
+        involvedRoleIds.addAll(requestedRoleIds);
+        if (CollUtil.isEmpty(involvedRoleIds)) {
+            return;
+        }
+
+        Set<Long> builtinRoleIds = sysRoleMapper.selectByIds(involvedRoleIds).stream()
+                .filter(role -> CollUtil.contains(role.resolveFlags(), SysRoleFlagEnum.BUILTIN))
+                .map(SysRoleEntity::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        if (CollUtil.isEmpty(builtinRoleIds)) {
+            return;
+        }
+
+        // 已关联的内置角色不能被解除
+        if (CollUtil.isNotEmpty(CollUtil.subtract(builtinRoleIds, requestedRoleIds))) {
+            throw new BusinessException(SysErrorCodeEnum.A01025);
+        }
+        // 未关联的内置角色不能被手动分配
+        if (CollUtil.isNotEmpty(CollUtil.subtract(builtinRoleIds, currentRoleIds))) {
+            throw new BusinessException(SysErrorCodeEnum.A01024);
         }
     }
 

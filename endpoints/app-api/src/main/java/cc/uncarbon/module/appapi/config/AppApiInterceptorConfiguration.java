@@ -5,6 +5,7 @@ import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  *
  * @author Uncarbon
  */
+@EnableConfigurationProperties(value = AppApiProperties.class)
 @RequiredArgsConstructor
 @Configuration
 public class AppApiInterceptorConfiguration implements WebMvcConfigurer {

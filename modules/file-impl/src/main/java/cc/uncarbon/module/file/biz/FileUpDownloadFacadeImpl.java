@@ -29,7 +29,8 @@ import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoField;
 
 
 /**
@@ -141,8 +142,9 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
      *
      * @param date 任意日期，一般取今日
      */
-    private static String formatDatePath(LocalDateTime date) {
-        return String.format("%d/%02d/%02d/", date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+    private static String formatDatePath(Instant date) {
+        return String.format("%d/%02d/%02d/",
+                date.get(ChronoField.YEAR), date.get(ChronoField.MONTH_OF_YEAR), date.get(ChronoField.DAY_OF_MONTH));
     }
 
     @Override
@@ -169,7 +171,7 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
                 .setSaveFilename(null)
                 .setContentType(options.getContentType())
                 .setPlatform(fullPlatform)
-                .setPath(formatDatePath(LocalDateTime.now()));
+                .setPath(formatDatePath(Instant.now()));
         if (options.isUseOriginalFilenameAsDownloadFileName() && fileStorageService.isSupportMetadata(fullPlatform)) {
             String downFileName = URLEncoder.encode(options.getOriginalFilename(), StandardCharsets.UTF_8);
             uploadPretreatment.putMetadata(Constant.Metadata.CONTENT_DISPOSITION, "attachment;filename=" + downFileName);

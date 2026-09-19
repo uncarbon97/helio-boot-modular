@@ -2,6 +2,8 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.errorcode.StructuredErrorCode;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
+import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
@@ -28,6 +30,7 @@ import cn.hutool.core.bean.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -81,7 +84,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                         }
 
                         // 已禁用的角色不参与登录会话快照
-                        UserRoleScope userRole = userRoleHelper.getSpecifiedEnabledUserRole(ref.userEntity.getId());
+                        UserRoleScope userRole = userRoleHelper.getSpecifiedUserRole(ref.userEntity.getId());
                         Map<Long, Set<String>> permByRole = sysMenuService.getPermissionsByRole(userRole.getRelatedRoleIds());
 
                         SysUserLoginResult ret = new SysUserLoginResult();
@@ -119,5 +122,23 @@ public class AdminLoginServiceImpl implements AdminLoginService {
             }
             sysLoginLogService.create(logRequest);
         }
+    }
+
+    @Override
+    public @Nullable UserContext buildSessionUserContext(Long userId) {
+        SysUserEntity userEntity = sysUserMapper.selectById(userId);
+        if (userEntity == null || SysUserStatusEnum.DISABLED == userEntity.getStatus()) {
+            return null;
+        }
+
+        UserRoleScope userRole = userRoleHelper.getSpecifiedUserRole(userId);
+        return new SimpleUserContext()
+                .setUserId(userEntity.getId())
+                .setUserPin(userEntity.getPin())
+                .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER.getValue())
+                .setRoleIds(userRole.getRelatedRoleIds())
+                .setRoleCodes(userRole.getRelatedRoles().stream().map(SysRoleEntity::getCode).toList())
+                .setUserPhoneNo(userEntity.getPhoneNo())
+                .setUserNickname(userEntity.getNickname());
     }
 }

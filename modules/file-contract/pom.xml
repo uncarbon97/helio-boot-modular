@@ -13,6 +13,7 @@
     </parent>
 
     <artifactId>file-contract</artifactId>
+    <name>File-Contract | 文件管理契约</name>
     <description>
         文件管理契约
     </description>

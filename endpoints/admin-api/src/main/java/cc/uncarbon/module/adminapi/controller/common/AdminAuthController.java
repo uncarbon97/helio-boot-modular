@@ -3,12 +3,14 @@ package cc.uncarbon.module.adminapi.controller.common;
 
 import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
 import cc.uncarbon.framework.helium.base.context.UserContext;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
-import cc.uncarbon.module.adminapi.helper.CaptchaHelper;
-import cc.uncarbon.module.adminapi.model.internal.AdminCaptchaScope;
+import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
+import cc.uncarbon.module.adminapi.helper.LoginChallengeHandler;
 import cc.uncarbon.module.adminapi.model.response.AdminAuthChallengeVO;
+import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.commons.satoken.StpKit;
@@ -19,6 +21,7 @@ import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpLogic;
+import cn.hutool.core.text.CharSequenceUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -29,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 
 @Tag(name = "后台管理--鉴权接口")
 @RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/auth")
@@ -38,14 +43,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminAuthController {
 
     private final AdminLoginService adminLoginService;
-    private final CaptchaHelper captchaHelper;
+    private final LoginChallengeProperties loginChallengeProperties;
+    private final List<LoginChallengeHandler> loginChallengeHandlers;
 
 
     @Operation(summary = "登录")
     @PostMapping(value = "/password-login")
     public ApiResult<SysUserLoginVO> login(@RequestBody @Valid AdminAuthPasswordLoginRequest request) {
-        // 登录验证码核验；前端项目搜索关键词「Helium: 登录验证码」
-        // AdminApiErrorEnum.CAPTCHA_VALIDATE_FAILED.assertTrue(captchaHelper.validate(dto.getCaptchaId(), dto.getCaptchaAnswer()))
+        LoginChallengeHandler handler = resolveChallengeHandler();
+        if (handler != null) {
+            // 登录验证码核验；前端项目搜索关键词「Helium: 登录验证码」
+            if (!handler.validate(request.getCaptchaId(), request.getCaptchaAnswer())) {
+                throw new BusinessException(AdminApiErrorCodeEnum.A04001);
+            }
+        }
 
         SysUserLoginResult loginResult = adminLoginService.passwordLogin(request, VisitorContextHolder.getContext());
 
@@ -82,12 +93,32 @@ public class AdminAuthController {
         return ApiResult.success();
     }
 
-    @Operation(summary = "获取验证码")
+    @Operation(summary = "获取登录挑战")
     @PostMapping(value = "/challenge")
-    public ApiResult<AdminAuthChallengeVO> captcha() {
-        // 核验方法：captchaHelper.validate
-        AdminCaptchaScope captcha = captchaHelper.generate();
-        return ApiResult.success(new AdminAuthChallengeVO(captcha));
+    public ApiResult<AdminAuthChallengeVO> challenge() {
+        LoginChallengeHandler handler = resolveChallengeHandler();
+        if (handler == null) {
+            // 无挑战
+            return ApiResult.success(new AdminAuthChallengeVO());
+        }
+
+        return ApiResult.success(handler.generate());
+    }
+
+
+    /**
+     * 按配置的策略解析挑战处理器；无挑战或未注册的策略返回 null
+     */
+    private LoginChallengeHandler resolveChallengeHandler() {
+        LoginChallengeProperties.Strategy strategy = loginChallengeProperties.getStrategy();
+        if (strategy == null || LoginChallengeProperties.Strategy.NONE == strategy) {
+            return null;
+        }
+
+        return loginChallengeHandlers.stream()
+                .filter(handler -> CharSequenceUtil.equals(handler.type(), strategy.name().toLowerCase()))
+                .findFirst()
+                .orElse(null);
     }
 
 }

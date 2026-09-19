@@ -13,6 +13,7 @@
 
     <artifactId>bootstrap</artifactId>
     <version>${revision}</version>
+    <name>Bootstrap | 项目主入口，负责启动 SpringBoot</name>
 
     <properties>
         <!-- 制品版本号，建议每次打包发布时都调整以作区分 -->

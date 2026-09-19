@@ -13,6 +13,7 @@
     </parent>
 
     <artifactId>sys-impl</artifactId>
+    <name>Sys-Impl | 系统管理实现</name>
     <description>
         系统管理实现
     </description>

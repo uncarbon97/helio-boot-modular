@@ -7,6 +7,7 @@ import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
+import cc.uncarbon.module.adminapi.event.RefreshSysUserSessionEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
@@ -126,8 +127,10 @@ public class AdminSysUserController {
     @PostMapping(value = "/bind-role")
     public ApiResult<Void> bindRole(@RequestBody @Valid AdminSysUserBindRoleRequest request) {
         var result = sysUserService.adminBindRole(request);
-        // 为了快速更新对应权限；可以视业务需要决定是否删除该代码
-        kickOutAsync(request.getUserId());
+        // 原位刷新该用户会话快照，新角色立即生效，无需重新登录
+        eventPublisher.publishEvent(new RefreshSysUserSessionEvent(
+                new RefreshSysUserSessionEvent.EventData(Set.of(request.getUserId()))
+        ));
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, result.getOld());
         LogRecordContext.putVariable("roleNames", String.join(StrPool.COMMA, result.getRoleNames()));

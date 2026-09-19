@@ -88,4 +88,14 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
             sysRoleMenuRelationMapper.insert(entityList);
         }
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void deleteByRoleIds(Collection<Long> roleIds) {
+        if (CollUtil.isEmpty(roleIds)) {
+            return;
+        }
+        sysRoleMenuRelationMapper.delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+                .in(SysRoleMenuRelationEntity::getRoleId, roleIds));
+    }
 }

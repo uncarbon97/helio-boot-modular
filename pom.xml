@@ -13,8 +13,8 @@
 
     <groupId>cc.uncarbon.module</groupId>
     <artifactId>helium-monolith</artifactId>
-    <description>Helium 快速开发平台脚手架</description>
     <version>${revision}</version>
+    <description>Helium 快速开发平台脚手架</description>
 
     <properties>
         <!-- 根据实际开发的 JDK 版本确定 -->
@@ -33,6 +33,7 @@
 
 
         <!-- 固定其他第三方依赖版本 -->
+        <redisson.version>4.7.1-SNAPSHOT</redisson.version>
         <!-- 密码哈希 -->
         <bouncycastle.version>1.84</bouncycastle.version>
         <!-- IP 地址归属地查询 -->

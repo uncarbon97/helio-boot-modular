@@ -13,6 +13,7 @@
     </parent>
 
     <artifactId>file-impl</artifactId>
+    <name>File-Impl | 文件管理实现</name>
     <description>
         文件管理实现
     </description>

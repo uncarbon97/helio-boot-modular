@@ -38,24 +38,11 @@ public class UserRoleHelper {
     }
 
     /**
-     * 取指定用户关联角色信息
+     * 取指定用户关联角色信息（仅包含启用状态的角色）
+     * <p>
+     * 已禁用的角色一律视为用户不再持有，与登录会话快照、菜单鉴权口径保持一致
      */
     public UserRoleScope getSpecifiedUserRole(Long specifiedUserId) {
-        List<Long> userRoleIds = sysUserRoleRelationMapper.listRoleIdsByUser(specifiedUserId);
-        List<SysRoleEntity> userRoles = null;
-        if (CollUtil.isNotEmpty(userRoleIds)) {
-            userRoles = sysRoleMapper.selectByIds(userRoleIds);
-        }
-        if (CollUtil.isEmpty(userRoles)) {
-            userRoles = List.of();
-        }
-        return new UserRoleScope(userRoleIds, userRoles);
-    }
-
-    /**
-     * 取指定用户关联角色信息（仅包含启用状态的角色），用于登录会话快照
-     */
-    public UserRoleScope getSpecifiedEnabledUserRole(Long specifiedUserId) {
         List<Long> userRoleIds = sysUserRoleRelationMapper.listRoleIdsByUser(specifiedUserId);
         if (CollUtil.isEmpty(userRoleIds)) {
             return new UserRoleScope(List.of(), List.of());

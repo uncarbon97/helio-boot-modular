@@ -73,4 +73,14 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
         return sysUserRoleRelationMapper.listUserIdsByRoles(
                 roleId == null ? null : Set.of(roleId));
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void deleteByRoleIds(Collection<Long> roleIds) {
+        if (CollUtil.isEmpty(roleIds)) {
+            return;
+        }
+        sysUserRoleRelationMapper.delete(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+                .in(SysUserRoleRelationEntity::getRoleId, roleIds));
+    }
 }

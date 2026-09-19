@@ -14,6 +14,7 @@
 
     <artifactId>admin-api</artifactId>
     <version>${revision}</version>
+    <name>Admin-API | 后台管理 API 端点</name>
 
     <properties>
     </properties>

@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class HashidsProperties {
 
     /**
-     * 盐值
+     * 盐
      */
     private String salt;
 

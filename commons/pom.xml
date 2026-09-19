@@ -12,8 +12,8 @@
     </parent>
 
     <artifactId>commons</artifactId>
-    <description>跨模块共享契约</description>
     <version>${revision}</version>
+    <name>Commons | 跨模块共享契约</name>
 
     <properties>
     </properties>

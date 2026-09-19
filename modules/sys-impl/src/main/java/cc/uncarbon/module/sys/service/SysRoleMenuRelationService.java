@@ -22,4 +22,10 @@ public interface SysRoleMenuRelationService {
      * 绑定角色菜单，增量更新
      */
     void cleanAndBind(Long roleId, Collection<Long> menuIds);
+
+    /**
+     * 根据角色IDs，删除角色-菜单关联关系
+     * 用于角色被删除后清理孤儿数据
+     */
+    void deleteByRoleIds(Collection<Long> roleIds);
 }

@@ -112,6 +112,9 @@ public class SysRoleServiceImpl implements SysRoleService {
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
         checkBeforeDelete(ids);
+        // 一并清理关联关系，避免孤儿数据
+        sysUserRoleRelationService.deleteByRoleIds(ids);
+        sysRoleMenuRelationService.deleteByRoleIds(ids);
         sysRoleMapper.deleteByIds(ids);
     }
 
@@ -208,7 +211,8 @@ public class SysRoleServiceImpl implements SysRoleService {
     }
 
     /**
-     * 取用户ID拥有角色对应的 角色ID-角色名 map
+     * 取用户ID拥有角色对应的 角色ID-角色编码 map
+     * 仅包含启用状态的角色
      *
      * @param userId 用户ID
      * @return 失败返回空 map
@@ -225,6 +229,8 @@ public class SysRoleServiceImpl implements SysRoleService {
         return sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
                 .select(SysRoleEntity::getId, SysRoleEntity::getCode)
                 .in(SysRoleEntity::getId, roleIds)
+                // 已禁用的角色不参与
+                .eq(SysRoleEntity::getStatus, EnabledStatusEnum.ENABLED)
         ).stream().collect(Collectors.toMap(SysRoleEntity::getId, SysRoleEntity::getCode, StreamFunction.keepExisting()));
     }
 

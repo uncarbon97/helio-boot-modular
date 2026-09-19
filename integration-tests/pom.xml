@@ -12,6 +12,7 @@
     </parent>
 
     <artifactId>integration-tests</artifactId>
+    <name>Integration-Tests | 集成测试</name>
     <version>${revision}</version>
     <description>
         集成测试
