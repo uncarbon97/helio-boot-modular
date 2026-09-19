@@ -1,5 +1,6 @@
 package cc.uncarbon.module.adminapi.props;
 
+import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,30 +18,13 @@ public class LoginChallengeProperties {
     /**
      * 挑战策略
      */
-    private Strategy strategy = Strategy.NONE;
+    private LoginChallengeStrategyTypeEnum strategy = LoginChallengeStrategyTypeEnum.NONE;
 
     /**
      * 图形验证码（OCR）配置
      */
     private Ocr ocr = new Ocr();
 
-
-    /**
-     * 挑战策略
-     */
-    public enum Strategy {
-
-        /**
-         * 无挑战
-         */
-        NONE,
-
-        /**
-         * 图形验证码
-         */
-        OCR,
-        ;
-    }
 
     @AllArgsConstructor
     @NoArgsConstructor

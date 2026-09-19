@@ -1,4 +1,4 @@
-package cc.uncarbon.module.adminapi.adapter;
+package cc.uncarbon.module.adminapi.support.auditlog;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;

@@ -3,7 +3,7 @@ package cc.uncarbon.module.file.biz;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
-import cc.uncarbon.module.file.adapter.DynamicFileStorageRegistrar;
+import cc.uncarbon.module.file.support.DynamicFileStorageRegistrar;
 import cc.uncarbon.module.file.errorcode.FileErrorCodeEnum;
 import cc.uncarbon.module.file.facade.FileUpDownloadFacade;
 import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
@@ -15,6 +15,7 @@ import cc.uncarbon.module.file.service.FileMetaService;
 import cc.uncarbon.module.file.service.FileStorageDataService;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +28,12 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.temporal.ChronoField;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 
 /**
@@ -140,17 +143,30 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
     /**
      * 格式化日期为路径形式，如：2024/01/01/
      *
-     * @param date 任意日期，一般取今日
+     * @param d 任意日期，一般取今日
      */
-    private static String formatDatePath(Instant date) {
-        return String.format("%d/%02d/%02d/",
-                date.get(ChronoField.YEAR), date.get(ChronoField.MONTH_OF_YEAR), date.get(ChronoField.DAY_OF_MONTH));
+    private static String formatDatePath(LocalDate d) {
+        return String.format("%d/%02d/%02d/", d.getYear(), d.getMonthValue(), d.getDayOfMonth());
     }
 
     @Override
-    public FileMetaDTO upload(byte[] fileBytes,
-                              @NonNull FacadeUploadOptions options,
+    public FileMetaDTO upload(byte[] fileBytes, @NonNull FacadeUploadOptions options,
                               @Nullable FileAttrExtraRequest attr) throws BusinessException {
+        return doUpload(fileStorageService.of(fileBytes), options, attr);
+    }
+
+    @Override
+    public FileMetaDTO upload(InputStream inputStream, long fileSize, @NonNull FacadeUploadOptions options,
+                              @Nullable FileAttrExtraRequest attr) throws BusinessException {
+        // 复用 x-file-storage 的 of(Object, name, contentType, size)：
+        // 由 InputStreamFileWrapperAdapter（Spring 装配默认启用）包装，各存储平台经 getInputStreamPlus() 流式消费
+        return doUpload(fileStorageService.of(
+                        inputStream, options.getOriginalFilename(), options.getContentType(), fileSize),
+                options, attr);
+    }
+
+    private FileMetaDTO doUpload(UploadPretreatment uploadPretreatment, FacadeUploadOptions options,
+                                 FileAttrExtraRequest attr) throws BusinessException {
         // 找对应的存储点：优先取指定编码的，未指定则取主存储点
         FileStorageDTO storage;
         if (CharSequenceUtil.isNotBlank(options.getPlatform())) {
@@ -164,14 +180,13 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
                 TenantContextHolder.getTenantId(), storage.getCode());
 
         // 如果需要缩略图: .setSaveThFilename().setThContentType()
-        UploadPretreatment uploadPretreatment = fileStorageService
-                .of(fileBytes)
+        uploadPretreatment
                 .setOriginalFilename(options.getOriginalFilename())
                 // 不手动指定，由框架自动生成存储文件名
                 .setSaveFilename(null)
                 .setContentType(options.getContentType())
                 .setPlatform(fullPlatform)
-                .setPath(formatDatePath(Instant.now()));
+                .setPath(formatDatePath(LocalDate.now()));
         if (options.isUseOriginalFilenameAsDownloadFileName() && fileStorageService.isSupportMetadata(fullPlatform)) {
             String downFileName = URLEncoder.encode(options.getOriginalFilename(), StandardCharsets.UTF_8);
             uploadPretreatment.putMetadata(Constant.Metadata.CONTENT_DISPOSITION, "attachment;filename=" + downFileName);

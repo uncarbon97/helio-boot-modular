@@ -1,7 +1,7 @@
 package cc.uncarbon.module.adminapi.helper;
 
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
-import cc.uncarbon.module.adminapi.model.response.FileUploadResultVO;
+import cc.uncarbon.module.adminapi.model.valueobj.FileUploadResultVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cn.hutool.core.text.CharSequenceUtil;

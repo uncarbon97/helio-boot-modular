@@ -7,7 +7,9 @@ import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.file.dal.entity.FileMetaEntity;
 import cc.uncarbon.module.file.dal.entity.FileStorageEntity;
+import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
 import cc.uncarbon.module.file.dal.mapper.FileStorageMapper;
 import cc.uncarbon.module.file.errorcode.FileErrorCodeEnum;
 import cc.uncarbon.module.file.event.FileStorageChangedEvent;
@@ -18,6 +20,7 @@ import cc.uncarbon.module.file.service.FileStorageDataService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -43,6 +46,7 @@ import java.util.Objects;
 public class FileStorageDataServiceImpl implements FileStorageDataService {
 
     private final FileStorageMapper fileStorageMapper;
+    private final FileMetaMapper fileMetaMapper;
     private static final JsonMapper JSON_MAPPER = new JsonMapper();
     private final ApplicationEventPublisher eventPublisher;
 
@@ -132,6 +136,13 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         checkRepeat(request);
         checkPrimaryFlag(request);
 
+        // 已有文件挂载的存储点不可改编码，否则存量文件的 storageCode 全部悬空
+        var old = fileStorageMapper.selectById(request.getId());
+        NoRecordException.throwIfNull(old);
+        if (!CharSequenceUtil.equals(old.getCode(), request.getCode())) {
+            checkStorageNotInUse(old.getCode());
+        }
+
         var entity = new FileStorageEntity();
         BeanUtil.copyProperties(request, entity);
         // 按需改写字段
@@ -145,6 +156,14 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
     @Override
     public void adminDelete(Collection<Long> ids) {
         checkNotPrimary(ids);
+        // 仍有文件引用的存储点不可删除，否则存量文件无法再下载
+        List<String> codes = fileStorageMapper.selectList(new LambdaQueryWrapper<FileStorageEntity>()
+                        .select(FileStorageEntity::getCode)
+                        .in(FileStorageEntity::getId, ids))
+                .stream().map(FileStorageEntity::getCode).toList();
+        if (CollUtil.isNotEmpty(codes)) {
+            checkStorageNotInUse(codes.toArray(String[]::new));
+        }
         fileStorageMapper.deleteByIds(ids);
         publishChangedEvent(FileStorageChangedEvent.ChangeType.DELETE);
     }
@@ -254,6 +273,23 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
 
         if (entity != null) {
             throw new BusinessException(FileErrorCodeEnum.A02009);
+        }
+    }
+
+    /**
+     * 检查存储点编码是否仍被文件元数据引用
+     */
+    private void checkStorageNotInUse(String... storageCodes) {
+        if (ArrayUtil.isEmpty(storageCodes)) {
+            return;
+        }
+        boolean inUse = fileMetaMapper.exists(new LambdaQueryWrapper<FileMetaEntity>()
+                .select(FileMetaEntity::getId)
+                .in(FileMetaEntity::getStorageCode, storageCodes)
+                .last(SQLSegment.LIMIT_1)
+        );
+        if (inUse) {
+            throw new BusinessException(FileErrorCodeEnum.A02010);
         }
     }
 

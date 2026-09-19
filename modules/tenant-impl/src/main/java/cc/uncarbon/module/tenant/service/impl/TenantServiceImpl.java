@@ -134,6 +134,13 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public void adminDelete(Collection<Long> ids) {
         log.info("[系统管理-删除系统租户] >> 入参={}", ids);
+        // 仍有用户的租户不可删除，避免残留可继续使用的会话与孤儿关联数据
+        for (Long id : ids) {
+            List<Long> tenantUserIds = tenantUserRoleFacade.listUserIdsByTenantId(id, null);
+            if (CollUtil.isNotEmpty(tenantUserIds)) {
+                throw new BusinessException(TenantErrorCodeEnum.A03007);
+            }
+        }
         tenantMetaMapper.deleteByIds(ids);
     }
 

@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,7 +36,7 @@ public class SysDictCategoryDTO implements Serializable {
     private String name;
 
     @Schema(description = "状态")
-    private EnabledStatusEnum status;
+    private DictStatusEnum status;
 
     @Schema(description = "字典描述")
     private String description;

@@ -23,10 +23,12 @@ import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
 import cc.uncarbon.module.sys.service.AdminLoginService;
 import cc.uncarbon.module.sys.service.SysLoginLogService;
 import cc.uncarbon.module.sys.service.SysMenuService;
+import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,6 +50,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
     private final SysLoginLogService sysLoginLogService;
     private final UserRoleHelper userRoleHelper;
     private final TenantFacade tenantFacade;
+    private final SysUserRoleRelationService sysUserRoleRelationService;
 
 
     @Override
@@ -85,6 +88,11 @@ public class AdminLoginServiceImpl implements AdminLoginService {
 
                         // 已禁用的角色不参与登录会话快照
                         UserRoleScope userRole = userRoleHelper.getSpecifiedUserRole(ref.userEntity.getId());
+                        if (CollUtil.isEmpty(userRole.getRelatedRoleIds())
+                                && CollUtil.isNotEmpty(sysUserRoleRelationService.listRoleIdsByUser(ref.userEntity.getId()))) {
+                            // 有关联角色但均被禁用，拒绝登录，避免产生零权限会话
+                            throw new BusinessException(SysErrorCodeEnum.A01005);
+                        }
                         Map<Long, Set<String>> permByRole = sysMenuService.getPermissionsByRole(userRole.getRelatedRoleIds());
 
                         SysUserLoginResult ret = new SysUserLoginResult();

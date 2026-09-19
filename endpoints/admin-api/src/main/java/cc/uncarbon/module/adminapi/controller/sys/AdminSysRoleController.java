@@ -157,6 +157,8 @@ public class AdminSysRoleController {
     @Operation(summary = "取指定角色关联用户ID")
     @PostMapping(value = "/list-related-user-id")
     public ApiResult<Set<Long>> listRelatedUserId(@RequestBody @Valid IdRequest<Long> request) {
+        // 防止跨租户/越权枚举角色关联用户
+        sysUserService.checkRoleQueryAccess(request.getId());
         return ApiResult.success(sysUserRoleRelationService.listUserIdsByRole(request.getId()));
     }
 

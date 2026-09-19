@@ -1,10 +1,9 @@
 package cc.uncarbon.module.sys.service;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.enumdict.EnumDict;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
@@ -53,11 +52,6 @@ public interface SysDictService {
     void adminDeleteCategory(Collection<Long> ids);
 
     /**
-     * 后台管理-修改字典分类状态
-     */
-    void adminSetStatusCategory(AdminSetStatusRequest<Long, EnabledStatusEnum> request);
-
-    /**
      * 根据分类 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
     SysDictCategoryDTO getCategoryNonnullById(Long id) throws NoRecordException;
@@ -83,11 +77,6 @@ public interface SysDictService {
     void adminDeleteItem(Collection<Long> ids);
 
     /**
-     * 后台管理-修改字典项状态
-     */
-    void adminSetStatusItem(AdminSetStatusRequest<Long, EnabledStatusEnum> request);
-
-    /**
      * 根据字典项 ID 取详情，未取到会抛出 {@link NoRecordException}
      */
     SysDictItemDTO getItemNonnullById(Long id) throws NoRecordException;
@@ -95,8 +84,8 @@ public interface SysDictService {
     /**
      * 根据分类编码，查询下属字典项
      *
-     * @param itemStatus 可以指定字典项状态
+     * @param itemStatuses 可以指定字典项状态集合，如 {@code List.of(ENABLED, DEPRECATED)}；为空则不过滤状态
      */
-    List<SysDictItemDTO> listItemsByCategory(@NonNull String categoryCode, @Nullable EnabledStatusEnum itemStatus);
+    List<SysDictItemDTO> listItemsByCategory(@NonNull String categoryCode, @Nullable Collection<DictStatusEnum> itemStatuses);
 
 }

@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.stream.StreamFunction;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
@@ -67,6 +68,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         if (ObjectUtil.isNull(request.getParentId())) {
             request.setParentId(SysConstant.ROOT_PARENT_ID);
         }
+        checkParentUsable(request.getParentId());
 
         request.setId(null);
 
@@ -87,6 +89,8 @@ public class SysMenuServiceImpl implements SysMenuService {
         if (ObjectUtil.isNull(request.getParentId())) {
             request.setParentId(SysConstant.ROOT_PARENT_ID);
         }
+        checkParentUsable(request.getParentId());
+        checkParentNotSelfOrInferior(request.getId(), request.getParentId());
 
         var entity = new SysMenuEntity();
         BeanUtil.copyProperties(request, entity);
@@ -98,6 +102,9 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Override
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
+        checkBeforeDelete(ids);
+        // 清理角色-菜单关联关系，避免孤儿数据
+        sysRoleMenuRelationService.deleteByMenuIds(ids);
         sysMenuMapper.deleteByIds(ids);
     }
 
@@ -255,6 +262,60 @@ public class SysMenuServiceImpl implements SysMenuService {
                         .last(SQLSegment.LIMIT_1)
         );
         NoRecordException.throwIfFalse(exists);
+    }
+
+    /**
+     * 上级菜单须存在且启用
+     */
+    private void checkParentUsable(Long parentId) {
+        if (parentId == null || SysConstant.ROOT_PARENT_ID.equals(parentId)) {
+            return;
+        }
+        SysMenuEntity parent = sysMenuMapper.selectById(parentId);
+        NoRecordException.throwIfNull(parent);
+        if (EnabledStatusEnum.DISABLED == parent.getStatus()) {
+            throw new BusinessException(SysErrorCodeEnum.A01044);
+        }
+    }
+
+    /**
+     * 上级菜单不能是自身或自己的下级菜单，防止菜单树成环
+     */
+    private void checkParentNotSelfOrInferior(Long id, Long parentId) {
+        if (id == null || parentId == null || SysConstant.ROOT_PARENT_ID.equals(parentId)) {
+            return;
+        }
+        Long cursor = parentId;
+        int guard = 0;
+        while (cursor != null && !SysConstant.ROOT_PARENT_ID.equals(cursor)) {
+            if (cursor.equals(id)) {
+                throw new BusinessException(SysErrorCodeEnum.A01041);
+            }
+            SysMenuEntity node = sysMenuMapper.selectById(cursor);
+            if (node == null) {
+                break;
+            }
+            cursor = node.getParentId();
+            if (++guard > 100) {
+                // 历史脏数据疑似成环：宁可拒绝也不放行
+                throw new BusinessException(SysErrorCodeEnum.A01041);
+            }
+        }
+    }
+
+    /**
+     * 删除前检查：仍包含下级菜单时不能删除，需先处理下级
+     */
+    private void checkBeforeDelete(Collection<Long> ids) {
+        boolean hasChildren = sysMenuMapper.exists(
+                new LambdaQueryWrapper<SysMenuEntity>()
+                        .select(SysMenuEntity::getId)
+                        .in(SysMenuEntity::getParentId, ids)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        if (hasChildren) {
+            throw new BusinessException(SysErrorCodeEnum.A01042);
+        }
     }
 
     /**

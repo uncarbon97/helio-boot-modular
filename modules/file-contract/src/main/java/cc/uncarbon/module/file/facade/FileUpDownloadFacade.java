@@ -8,6 +8,8 @@ import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.io.InputStream;
+
 /**
  * 文件上传、下载门面
  */
@@ -27,6 +29,18 @@ public interface FileUpDownloadFacade {
      */
     FileMetaDTO upload(byte[] fileBytes, @NonNull FacadeUploadOptions options, @Nullable FileAttrExtraRequest attr)
             throws BusinessException;
+
+    /**
+     * 服务器代理上传（流式）
+     * 流只会被读取一次，由底层存储平台直接消费，避免大文件在应用堆内驻留整份副本
+     *
+     * @param inputStream 文件输入流
+     * @param fileSize    文件字节数
+     * @param options     上传选项
+     * @param attr        附加属性
+     */
+    FileMetaDTO upload(InputStream inputStream, long fileSize, @NonNull FacadeUploadOptions options,
+                       @Nullable FileAttrExtraRequest attr) throws BusinessException;
 
     /**
      * 根据文件ID下载，支持租户切换

@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.request;
 
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -46,7 +46,7 @@ public class AdminSysDictItemUpsertRequest implements Serializable {
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "状态必填")
-    private EnabledStatusEnum status;
+    private DictStatusEnum status;
 
     @Schema(description = "排序(数值越小越优先)", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "排序必填")

@@ -1,19 +1,20 @@
-package cc.uncarbon.module.adminapi.helper;
+package cc.uncarbon.module.adminapi.support.loginchallenge.strategy;
 
-import cc.uncarbon.module.adminapi.model.response.AdminAuthChallengeVO;
+import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
+import cc.uncarbon.module.adminapi.support.loginchallenge.valueobj.AdminAuthChallengeVO;
 
 /**
- * 登录挑战处理器
+ * 登录挑战策略
  * 新增验证码形式（如滑块）时，实现此接口并注册为 Spring 组件即可
  *
  * @author Uncarbon
  */
-public interface LoginChallengeHandler {
+public interface LoginChallengeStrategy {
 
     /**
-     * 挑战类型标识；对应配置 admin-api.login-challenge.strategy（小写）
+     * 挑战策略类型
      */
-    String type();
+    LoginChallengeStrategyTypeEnum type();
 
     /**
      * 生成登录挑战

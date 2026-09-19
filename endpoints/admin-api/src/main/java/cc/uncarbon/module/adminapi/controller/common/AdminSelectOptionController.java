@@ -3,12 +3,13 @@ package cc.uncarbon.module.adminapi.controller.common;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
-import cc.uncarbon.module.adminapi.model.response.AdminSelectOptionItemVO;
+import cc.uncarbon.module.adminapi.model.valueobj.AdminSelectOptionItemVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
 import cc.uncarbon.module.file.service.FileStorageDataService;
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
@@ -55,7 +56,7 @@ public class AdminSelectOptionController {
     // SpringDoc 可能扫描有问题，不能用 @PathVariable 的 bare 写法，需要手动指定 value
     public ApiResult<List<AdminSelectOptionItemVO>> dict(@PathVariable(value = "categoryCode") String categoryCode) {
         return ApiResult.success(AdminSelectOptionItemVO.ofValueLabelBatch(
-                sysDictService.listItemsByCategory(categoryCode, EnabledStatusEnum.ENABLED),
+                sysDictService.listItemsByCategory(categoryCode, List.of(DictStatusEnum.ENABLED, DictStatusEnum.DEPRECATED)),
                 SysDictItemDTO::getValue, SysDictItemDTO::getLabel,
                 (source, target) -> target.setDictItemCode(source.getCode())));
     }

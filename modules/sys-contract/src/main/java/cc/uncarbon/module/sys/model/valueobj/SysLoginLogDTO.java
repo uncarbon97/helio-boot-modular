@@ -33,9 +33,6 @@ public class SysLoginLogDTO implements Serializable {
     @Schema(description = "用户账号")
     private String userPin;
 
-    @Schema(description = "用户ID")
-    private Long userId;
-
     @Schema(description = "用户类型编码")
     private String userTypeCode;
 

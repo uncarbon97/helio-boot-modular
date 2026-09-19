@@ -3,11 +3,13 @@ package cc.uncarbon.module.adminapi.controller.sys;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
+import cc.uncarbon.module.adminapi.helper.FileUploadResultHelper;
 import cc.uncarbon.module.adminapi.helper.HashidsHelper;
-import cc.uncarbon.module.adminapi.model.response.FileUploadResultVO;
+import cc.uncarbon.module.adminapi.model.valueobj.FileUploadResultVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.file.errorcode.FileErrorCodeEnum;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.service.FileMetaService;
 import cc.uncarbon.module.sys.model.request.AdminUpdateMyPasswordRequest;
@@ -19,6 +21,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ArrayUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +47,7 @@ public class AdminUCenterController {
     private final AdminUCenterService adminUCenterService;
     private final FileMetaService fileMetaService;
     private final HashidsHelper hashidsHelper;
+    private final FileUploadResultHelper fileUploadResultHelper;
 
 
     @Operation(summary = "取当前用户资料")
@@ -71,9 +75,10 @@ public class AdminUCenterController {
 
     @Operation(summary = "修改当前用户头像")
     @PostMapping(value = "/avatar/update")
-    public ApiResult<Void> avatarUpdate(@RequestBody FileUploadResultVO request) {
+    public ApiResult<Void> avatarUpdate(@RequestBody FileUploadResultVO request, HttpServletRequest servletRequest) {
         // 不直接信任前端传来的，需先校验
         Long fileId = hashidsHelper.decode(request.getOutFileId());
+        FileErrorCodeEnum.A02006.throwIfNull(fileId);
         FileMetaDTO fileMeta = fileMetaService.getNonnullById(fileId);
         if (!ArrayUtil.contains(ALLOWED_AVATAR_EXT_NAMES, fileMeta.getExtendName())) {
             throw new BusinessException(AdminApiErrorCodeEnum.A04002);
@@ -83,6 +88,12 @@ public class AdminUCenterController {
         if (!CharSequenceUtil.equals(fileMeta.getStorageFilenameFull(), request.getFilename())
                 || !CharSequenceUtil.equals(fileMeta.getOriginalFilenameFull(), request.getOriginalFilename())
         ) {
+            throw new BusinessException(AdminApiErrorCodeEnum.A04003);
+        }
+
+        // URL 也必须与按元数据重新推导的一致，防止把任意外链存为头像
+        FileUploadResultVO expected = fileUploadResultHelper.toUploadResult(fileMeta, servletRequest);
+        if (!CharSequenceUtil.equals(expected.getUrl(), request.getUrl())) {
             throw new BusinessException(AdminApiErrorCodeEnum.A04003);
         }
 

@@ -297,8 +297,8 @@ public class SysDeptServiceImpl implements SysDeptService {
             }
             cursor = node.getParentId();
             if (++guard > 100) {
-                // 防御：历史脏数据成环时避免死循环
-                break;
+                // 历史脏数据疑似成环：宁可拒绝也不放行
+                throw new BusinessException(SysErrorCodeEnum.A01039);
             }
         }
     }
@@ -347,14 +347,21 @@ public class SysDeptServiceImpl implements SysDeptService {
         // 起点
         ret.add(start);
         deque.add(start);
+        // 已遍历部门ID，防止脏数据 parentId 成环导致死循环
+        Set<Long> visitedIds = new HashSet<>();
+        visitedIds.add(start.getId());
 
         // 循环填充下级部门实例
         while (CollUtil.isNotEmpty(deque)) {
             SysDeptEntity parent = deque.pop();
             List<SysDeptEntity> children = groupByParentId.get(parent.getId());
             if (CollUtil.isNotEmpty(children)) {
-                ret.addAll(children);
-                deque.addAll(children);
+                for (SysDeptEntity child : children) {
+                    if (visitedIds.add(child.getId())) {
+                        ret.add(child);
+                        deque.add(child);
+                    }
+                }
             }
         }
         return ret;

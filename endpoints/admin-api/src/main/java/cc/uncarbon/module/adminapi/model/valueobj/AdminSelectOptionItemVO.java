@@ -1,4 +1,4 @@
-package cc.uncarbon.module.adminapi.model.response;
+package cc.uncarbon.module.adminapi.model.valueobj;
 
 import cc.uncarbon.framework.helium.base.enums.BaseEnum;
 import cn.hutool.core.collection.CollUtil;

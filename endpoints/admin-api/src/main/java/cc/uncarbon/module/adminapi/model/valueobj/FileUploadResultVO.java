@@ -1,4 +1,4 @@
-package cc.uncarbon.module.adminapi.model.response;
+package cc.uncarbon.module.adminapi.model.valueobj;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

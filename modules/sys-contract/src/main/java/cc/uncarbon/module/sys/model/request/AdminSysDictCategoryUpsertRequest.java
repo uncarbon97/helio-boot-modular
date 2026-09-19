@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.model.request;
 
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -37,7 +37,7 @@ public class AdminSysDictCategoryUpsertRequest implements Serializable {
 
     @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "状态必填")
-    private EnabledStatusEnum status;
+    private DictStatusEnum status;
 
     @Schema(description = "字典描述")
     @Size(max = 255, message = "字典描述最长{max}位")

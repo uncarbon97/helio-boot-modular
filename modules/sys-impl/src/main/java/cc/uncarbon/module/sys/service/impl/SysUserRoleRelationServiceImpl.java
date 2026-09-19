@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,6 +33,10 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void cleanAndBindByUser(Long userId, @Nullable Collection<Long> roleIds) {
+        // 入参去重，避免插入重复关系行
+        if (CollUtil.isNotEmpty(roleIds)) {
+            roleIds = new LinkedHashSet<>(roleIds);
+        }
         var roleIdsQuery = new LambdaQueryWrapper<SysUserRoleRelationEntity>()
                 .select(SysUserRoleRelationEntity::getRoleId)
                 .eq(SysUserRoleRelationEntity::getUserId, userId);

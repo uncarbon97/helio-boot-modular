@@ -3,19 +3,18 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.enums.BaseEnum;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.enumdict.EnumDict;
 import cc.uncarbon.module.commons.enumdict.EnumDictContributor;
 import cc.uncarbon.module.commons.enumdict.EnumDictSpec;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDictCategoryMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysDictItemMapper;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
 import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
@@ -167,21 +166,16 @@ public class SysDictServiceImpl implements SysDictService {
     @Override
     public void adminDeleteCategory(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除分类 >> {}", ids);
-        sysDictCategoryMapper.deleteByIds(ids);
-    }
-
-    @Override
-    public void adminSetStatusCategory(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
-        log.info(LOG_PREFIX + "修改分类状态 >> {}", request);
-        Long id = request.getId();
-        var entity = sysDictCategoryMapper.selectById(id);
-        NoRecordException.throwIfNull(entity);
-
-        sysDictCategoryMapper.updateById(
-                new SysDictCategoryEntity()
-                        .setId(id)
-                        .setStatus(request.getNewStatus())
+        // 分类下仍有字典项时阻断，避免孤儿项在同编码分类重建后"复活"
+        boolean hasItems = sysDictItemMapper.exists(new LambdaQueryWrapper<SysDictItemEntity>()
+                .select(SysDictItemEntity::getId)
+                .in(SysDictItemEntity::getCategoryId, ids)
+                .last(SQLSegment.LIMIT_1)
         );
+        if (hasItems) {
+            throw new BusinessException(SysErrorCodeEnum.A01043);
+        }
+        sysDictCategoryMapper.deleteByIds(ids);
     }
 
     @Override
@@ -218,6 +212,8 @@ public class SysDictServiceImpl implements SysDictService {
     public Long adminCreateItem(AdminSysDictItemUpsertRequest request) {
         log.info(LOG_PREFIX + "新增字典项 >> {}", request);
         checkRepeat(request);
+        // 所属分类必须存在，避免孤儿字典项
+        getCategoryNonnullById(request.getCategoryId());
 
         request.setId(null);
         var entity = new SysDictItemEntity();
@@ -236,6 +232,8 @@ public class SysDictServiceImpl implements SysDictService {
         log.info(LOG_PREFIX + "修改字典项 >> {}", request);
         checkItemExistence(request.getId());
         checkRepeat(request);
+        // 所属分类必须存在，避免孤儿字典项
+        getCategoryNonnullById(request.getCategoryId());
 
         var entity = new SysDictItemEntity();
         BeanUtil.copyProperties(request, entity);
@@ -256,20 +254,6 @@ public class SysDictServiceImpl implements SysDictService {
     }
 
     @Override
-    public void adminSetStatusItem(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
-        log.info(LOG_PREFIX + "修改字典项状态 >> {}", request);
-        Long id = request.getId();
-        var entity = sysDictItemMapper.selectById(id);
-        NoRecordException.throwIfNull(entity);
-
-        sysDictItemMapper.updateById(
-                new SysDictItemEntity()
-                        .setId(id)
-                        .setStatus(request.getNewStatus())
-        );
-    }
-
-    @Override
     public SysDictItemDTO getItemNonnullById(Long id) throws NoRecordException {
         if (id == null) {
             throw new NoRecordException();
@@ -283,14 +267,14 @@ public class SysDictServiceImpl implements SysDictService {
      * @return 存在则返回字典项列表；不存在或没有符合的字典项，均返回空列表
      */
     @Override
-    public List<SysDictItemDTO> listItemsByCategory(@NonNull String categoryCode, @Nullable EnabledStatusEnum itemStatus) {
+    public List<SysDictItemDTO> listItemsByCategory(@NonNull String categoryCode, @Nullable Collection<DictStatusEnum> itemStatuses) {
         SysDictBuiltinDTO builtinDict = BUILTIN_DICT_CACHE.get(categoryCode);
         if (Objects.nonNull(builtinDict) && CollUtil.isNotEmpty(builtinDict.getItems())) {
             return builtinDict.getItems().stream().toList();
         }
 
         SysDictCategoryEntity category =
-                sysDictCategoryMapper.selectByCodeAndStatus(categoryCode, EnabledStatusEnum.ENABLED);
+                sysDictCategoryMapper.selectByCodeAndStatus(categoryCode, List.of(DictStatusEnum.ENABLED, DictStatusEnum.DEPRECATED));
         if (Objects.isNull(category)) {
             return List.of();
         }
@@ -298,7 +282,7 @@ public class SysDictServiceImpl implements SysDictService {
                         // 分类ID
                         .eq(SysDictItemEntity::getCategoryId, category.getId())
                         // 状态
-                        .eq(Objects.nonNull(itemStatus), SysDictItemEntity::getStatus, itemStatus)
+                        .in(CollUtil.isNotEmpty(itemStatuses), SysDictItemEntity::getStatus, itemStatuses)
                         // 排序
                         .orderByAsc(SysDictItemEntity::getSort)
                 )
@@ -467,7 +451,9 @@ public class SysDictServiceImpl implements SysDictService {
                     // 归一为 String
                     .setValue(String.valueOf(be.getValue()))
                     .setSort(sort++)
-                    .setStatus(EnabledStatusEnum.ENABLED)
+                    // 枚举常量标了 @Deprecated 则视为过时状态
+                    .setStatus(isDeprecatedConstant(cls, (Enum<?>) constant)
+                            ? DictStatusEnum.DEPRECATED : DictStatusEnum.ENABLED)
             );
         }
 
@@ -476,6 +462,17 @@ public class SysDictServiceImpl implements SysDictService {
                 .setName(ann.name())
                 .setDescription(ann.description())
                 .setItems(items);
+    }
+
+    /**
+     * 判断枚举常量是否标了 {@link Deprecated}
+     */
+    private static boolean isDeprecatedConstant(Class<?> cls, Enum<?> constant) {
+        try {
+            return cls.getField(constant.name()).isAnnotationPresent(Deprecated.class);
+        } catch (NoSuchFieldException e) {
+            return false;
+        }
     }
 
     /**
@@ -488,7 +485,7 @@ public class SysDictServiceImpl implements SysDictService {
                         .setLabel(item.label())
                         .setValue(item.value())
                         .setSort(item.sort())
-                        .setStatus(EnabledStatusEnum.ENABLED))
+                        .setStatus(DictStatusEnum.ENABLED))
                 .toList();
 
         return new SysDictBuiltinDTO()

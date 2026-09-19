@@ -1,4 +1,4 @@
-package cc.uncarbon.module.file.adapter;
+package cc.uncarbon.module.file.support;
 
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.file.dal.entity.FileStorageEntity;

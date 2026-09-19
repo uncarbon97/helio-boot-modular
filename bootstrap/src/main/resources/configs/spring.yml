@@ -21,6 +21,17 @@ server:
     keep-alive-timeout: 30s
 
 spring:
+  autoconfigure:
+    exclude:
+      # 改为使用自定义 SA-Token 上下文注册类
+      - "cn.dev33.satoken.spring.SaTokenContextRegister"
+  servlet:
+    multipart:
+      # 文件上传大小限制（两个一起配）
+      # 同时影响 AdminFileUpDownloadController 中的文件上传功能
+      # 如果还用了 Nginx 等反向代理，需要在反向代理的配置中也放宽请求体大小限制
+      max-file-size: 1024MB
+      max-request-size: 1024MB
   #  messages:
   #    # 国际化资源目录，一般不做修改
   #    basename: i18n/messages
@@ -44,18 +55,28 @@ spring:
       shutdown:
         await-termination: true
         await-termination-period: 30s
-  servlet:
-    multipart:
-      # 文件上传大小限制（两个一起配）
-      # 同时影响 AdminFileUpDownloadController 中的文件上传功能
-      # 如果还用了 Nginx 等反向代理，需要在反向代理的配置中也放宽请求体大小限制
-      max-file-size: 1024MB
-      max-request-size: 1024MB
+      pool:
+        # 默认 1 线程，如遇中间件故障期，阻塞任务会饿死其他 @Scheduled 任务
+        size: 4
   web:
     resources:
       # 不为工程中的资源文件建立映射
       add-mappings: false
-  autoconfigure:
-    exclude:
-      # 改为使用自定义 SA-Token 上下文注册类
-      - "cn.dev33.satoken.spring.SaTokenContextRegister"
+  datasource:
+    dynamic:
+      # HikariCP 全局默认配置
+      hikari:
+        # 虚拟线程环境下，适当提高连接数，但不要无限拉高，数据库端连接是有限的
+        maximum-pool-size: 50
+        minimum-idle: 5
+        # 连接等待超时适当缩短，快速失败而非长时间堵塞
+        connection-timeout: 5000
+        # 泄漏定位阈值
+        leak-detection-threshold: 30000
+        # 长连接空闲被防火墙/云负载均衡切断的常见场景，主动 ping 续命
+        keepalive-time: 300000
+        # 连接最大生命周期，防止数据库侧超时
+        max-lifetime: 1800000
+        # 连接验证超时
+        validation-timeout: 4000
+        connection-test-query: "SELECT 1"

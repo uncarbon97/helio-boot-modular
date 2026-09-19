@@ -58,6 +58,10 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void cleanAndBind(Long roleId, Collection<Long> menuIds) {
+        // 入参去重，避免插入重复关系行
+        if (CollUtil.isNotEmpty(menuIds)) {
+            menuIds = new LinkedHashSet<>(menuIds);
+        }
         var menuIdsQuery = new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
                 .select(SysRoleMenuRelationEntity::getMenuId)
                 .eq(SysRoleMenuRelationEntity::getRoleId, roleId);
@@ -97,5 +101,15 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
         }
         sysRoleMenuRelationMapper.delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
                 .in(SysRoleMenuRelationEntity::getRoleId, roleIds));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void deleteByMenuIds(Collection<Long> menuIds) {
+        if (CollUtil.isEmpty(menuIds)) {
+            return;
+        }
+        sysRoleMenuRelationMapper.delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+                .in(SysRoleMenuRelationEntity::getMenuId, menuIds));
     }
 }

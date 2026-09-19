@@ -28,4 +28,10 @@ public interface SysRoleMenuRelationService {
      * 用于角色被删除后清理孤儿数据
      */
     void deleteByRoleIds(Collection<Long> roleIds);
+
+    /**
+     * 根据菜单IDs，删除角色-菜单关联关系
+     * 用于菜单被删除后清理孤儿数据
+     */
+    void deleteByMenuIds(Collection<Long> menuIds);
 }

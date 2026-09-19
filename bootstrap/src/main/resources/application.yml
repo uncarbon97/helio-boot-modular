@@ -17,6 +17,34 @@ spring:
       - classpath:configs/helium-all.yml
       - classpath:configs/dependencies.yml
 
+--- # admin-api
+admin-api:
+  file-hashids:
+    # 输出/解析 HashID 时使用的盐
+    # 仅用于文件ID编解码（上传返回的 outFileId、下载路由 /file/download/v1/{hashIds}/{tenantCode}、UCenter 头像URL）
+    # 变更影响：旧盐生成的 hashId 全部失效——已下发的下载链接、前端缓存的 outFileId 将无法解码，接口按文件不存在处理；
+    #          数据库中文件记录不受影响，重新获取列表/上传结果即可拿到新 hashId
+    # 变更后需保证所有实例配置一致，否则同一文件在不同实例编出不同 hashId
+    # ❗ 安全提示：生产环境必须更换为随机强盐！下载接口为匿名访问，沿用默认盐会导致文件ID可被离线枚举、批量拉取
+    salt: "replace-me-to-a-long-and-stronger-salt-value"
+  login-challenge:
+    # 登录挑战策略
+    strategy: OCR
+    ocr:
+      answer-length: 4
+      valid-seconds: 300
+  login-failure-guard:
+    # 登录失败限制（防撞库）
+    max-failures: 5
+    lock-seconds: 900
+
+--- # app-api
+app-api:
+  # 不进行登录校验的路由
+  no-auth-paths:
+    # 登录
+    - /app/v1/auth/login
+
 --- # 日志
 logging:
   file:
@@ -28,28 +56,3 @@ logging:
     "cc.uncarbon.module": INFO
     "cc.uncarbon.test": INFO
     "org.springframework.web.servlet.PageNotFound": ERROR
-
---- # admin-api
-admin-api:
-  file-hashids:
-    # 输出/解析 HashID 时使用的盐
-    # 仅用于文件ID编解码（上传返回的 outFileId、下载路由 /file/download/v1/{hashIds}/{tenantCode}、UCenter 头像URL）
-    # 变更影响：旧盐生成的 hashId 全部失效——已下发的下载链接、前端缓存的 outFileId 将无法解码，接口按文件不存在处理；
-    #          数据库中文件记录不受影响，重新获取列表/上传结果即可拿到新 hashId
-    # 变更后需保证所有实例配置一致，否则同一文件在不同实例编出不同 hashId
-    salt: "change-me"
-  login-challenge:
-    # 登录挑战策略；对应 LoginChallengeHandler#type: NONE=无挑战 | OCR=图形验证码
-    strategy: NONE
-    ocr:
-      # 验证码答案长度
-      answer-length: 4
-      # 验证码有效秒数
-      valid-seconds: 300
-
---- # app-api
-app-api:
-  # 不进行登录校验的路由
-  no-auth-paths:
-    # 登录
-    - /app/v1/auth/login

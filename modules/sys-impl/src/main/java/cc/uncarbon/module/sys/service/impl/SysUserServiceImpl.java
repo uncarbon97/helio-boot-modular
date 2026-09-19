@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
@@ -71,7 +72,7 @@ public class SysUserServiceImpl implements SysUserService {
             deptUserIds = sysUserDeptRelationService.listUserIdsByDepts(Set.of(query.getSelectedDeptId()));
             if (CollUtil.isEmpty(deptUserIds)) {
                 // 【手动选择的部门】没有任何用户ID，直接返回空列表
-                return new PageResult<>(query.getPageParam());
+                return new PageResult<>(Objects.requireNonNullElseGet(query.getPageParam(), PageParam::new));
             }
         }
 
@@ -79,7 +80,7 @@ public class SysUserServiceImpl implements SysUserService {
         Set<Long> visibleUserIds = determineVisibleDeptUserIds();
         if (Objects.equals(CollUtil.getFirst(visibleUserIds), BigInteger.ZERO.longValue())) {
             // 其实啥也看不到……
-            return new PageResult<>(query.getPageParam());
+            return new PageResult<>(Objects.requireNonNullElseGet(query.getPageParam(), PageParam::new));
         }
 
         Set<Long> invisibleUserIds = userRoleHelper.listInvisibleUserIds();
@@ -102,13 +103,15 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public PageResult<SysUserDTO> adminListRoleRelatedUsers(AdminSysRoleListRelatedUserQuery query) {
+        checkRoleQueryAccess(query.getRoleId());
         Set<Long> relatedUserIds = sysUserRoleRelationService.listUserIdsByRole(query.getRoleId());
         if (CollUtil.isEmpty(relatedUserIds)) {
             // 该角色没有关联任何用户，直接返回空列表
-            return new PageResult<>(query.getPageParam());
+            return new PageResult<>(Objects.requireNonNullElseGet(query.getPageParam(), PageParam::new));
         }
 
         String keyword = CharSequenceUtil.cleanBlank(query.getKeyword());
+        Set<Long> invisibleUserIds = userRoleHelper.listInvisibleUserIds();
         Page<SysUserEntity> entityPage = sysUserMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
                 new LambdaQueryWrapper<SysUserEntity>()
@@ -119,6 +122,8 @@ public class SysUserServiceImpl implements SysUserService {
                                 .like(SysUserEntity::getNickname, keyword))
                         // 仅角色关联的用户
                         .in(SysUserEntity::getId, relatedUserIds)
+                        // 不显示特定用户（与用户分页列表一致）
+                        .notIn(CollUtil.isNotEmpty(invisibleUserIds), SysUserEntity::getId, invisibleUserIds)
                         // 排序
                         .orderByDesc(SysUserEntity::getId)
         );
@@ -241,9 +246,42 @@ public class SysUserServiceImpl implements SysUserService {
     public void adminBindDept(AdminSysUserBindDeptRequest request) {
         checkExistence(request.getUserId());
         checkBeforeBindDept(request.getUserId());
+        checkUserOperationAccess(Set.of(request.getUserId()));
         // 调岗目标部门必须启用；解除绑定（deptId 为空）不受限
         checkDeptAccess(request.getDeptId(), true);
         sysUserDeptRelationService.cleanAndBind(request.getUserId(), request.getDeptId());
+    }
+
+
+    @Override
+    public void checkUserQueryAccess(Long userId) {
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (me.isSuperAdmin()) {
+            return;
+        }
+        checkUserOperationAccess(Set.of(userId));
+    }
+
+    @Override
+    public void checkRoleQueryAccess(Long roleId) {
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (me.isSuperAdmin()) {
+            return;
+        }
+        // 不可见角色（如内置超管角色）不可查询
+        Set<Long> invisibleRoleIds = userRoleHelper.listInvisibleRoleIds();
+        if (CollUtil.contains(invisibleRoleIds, roleId)) {
+            throw new BusinessException(SysErrorCodeEnum.A01021);
+        }
+        // 角色必须存在于当前租户范围内；租户行级过滤下，外租户/已删除角色查不到
+        boolean exists = sysRoleMapper.exists(new LambdaQueryWrapper<SysRoleEntity>()
+                .select(SysRoleEntity::getId)
+                .eq(SysRoleEntity::getId, roleId)
+                .last(SQLSegment.LIMIT_1)
+        );
+        if (!exists) {
+            throw new BusinessException(SysErrorCodeEnum.A01021);
+        }
     }
 
     /*
@@ -302,7 +340,13 @@ public class SysUserServiceImpl implements SysUserService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysUserUpdateRequest request) {
-        var entity = sysUserMapper.getByPin(request.getPin());
+        var entity = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUserEntity>()
+                .select(SysUserEntity::getId)
+                // 并非原地更新
+                .ne(Objects.nonNull(request.getId()), SysUserEntity::getId, request.getId())
+                .eq(SysUserEntity::getPin, request.getPin())
+                .last(SQLSegment.LIMIT_1)
+        );
         if (entity != null) {
             throw new HasRepeatRecordException(SysErrorCodeEnum.A01030);
         }
@@ -452,6 +496,16 @@ public class SysUserServiceImpl implements SysUserService {
                 if (CollUtil.containsAny(invisibleRoleIds, request.getRoleIds())) {
                     throw new BusinessException(SysErrorCodeEnum.A01022);
                 }
+
+                // 想要授予的角色必须存在于本租户范围内；租户行级过滤下，外租户/已删除角色查不到
+                Set<Long> requestedRoleIds = new HashSet<>(CollUtil.emptyIfNull(request.getRoleIds()));
+                Set<Long> existingRoleIds = CollUtil.isEmpty(requestedRoleIds) ? Set.of()
+                        : sysRoleMapper.selectByIds(requestedRoleIds).stream()
+                                .map(SysRoleEntity::getId)
+                                .collect(java.util.stream.Collectors.toSet());
+                if (!existingRoleIds.containsAll(requestedRoleIds)) {
+                    throw new BusinessException(SysErrorCodeEnum.A01022);
+                }
             }
         }
     }
@@ -560,8 +614,15 @@ public class SysUserServiceImpl implements SysUserService {
                 // 「可见部门」中没有任何用户ID，则直接返回[0]
                 return Set.of(BigInteger.ZERO.longValue());
             }
+            return visibleUserIds;
         }
-        return visibleUserIds;
+
+        // 无可见部门：超级管理员、租户管理员不限制；其他用户视为无可管理用户，防止数据权限失效
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (me.isSuperAdmin() || me.isTenantAdmin()) {
+            return Set.of();
+        }
+        return Set.of(BigInteger.ZERO.longValue());
     }
 
 }

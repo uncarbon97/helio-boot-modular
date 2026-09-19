@@ -18,6 +18,7 @@ import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
+import cc.uncarbon.module.sys.service.SysDeptService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
@@ -52,6 +53,7 @@ public class AdminSysUserController {
     static final String BIZ_TYPE = "系统用户管理";
 
     private final SysUserService sysUserService;
+    private final SysDeptService sysDeptService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -138,19 +140,23 @@ public class AdminSysUserController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改部门",
-            bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}，目标部门ID：{{#request.deptId}}")
+            bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}，目标部门：{{#deptName}}（ID：{{#request.deptId}}）")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = AdminPermissionConstant.BIND_DEPT)
     @Operation(summary = "修改部门")
     @PostMapping(value = "/bind-dept")
     public ApiResult<Void> bindDept(@RequestBody @Valid AdminSysUserBindDeptRequest request) {
+        sysUserService.adminBindDept(request);
         // 用于操作日志
         var old = sysUserService.getNonnullById(request.getUserId());
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        if (request.getDeptId() != null) {
+            LogRecordContext.putVariable("deptName", sysDeptService.getNonnullById(request.getDeptId()).getName());
+        }
         return ApiResult.success();
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "重置密码",
-            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
+            bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "reset-password")
     @Operation(summary = "重置密码")
     @PostMapping(value = "/reset-password")
@@ -180,6 +186,8 @@ public class AdminSysUserController {
     @Operation(summary = "取指定用户关联角色ID")
     @PostMapping(value = "/list-related-role")
     public ApiResult<List<Long>> listRelatedRole(@RequestBody @Valid IdRequest<Long> request) {
+        // 防止跨租户/越权枚举用户关联角色
+        sysUserService.checkUserQueryAccess(request.getId());
         return ApiResult.success(sysUserRoleRelationService.listRoleIdsByUser(request.getId()));
     }
 

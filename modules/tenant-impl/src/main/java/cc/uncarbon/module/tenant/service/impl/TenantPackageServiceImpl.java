@@ -96,6 +96,15 @@ public class TenantPackageServiceImpl implements TenantPackageService {
     @Override
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
+        // 删除前检查：是否仍有租户依赖这些套餐，避免悬空 packageId 导致租户无法编辑
+        boolean tenantUsing = tenantMetaMapper.exists(new LambdaQueryWrapper<TenantMetaEntity>()
+                .select(TenantMetaEntity::getId)
+                .in(TenantMetaEntity::getPackageId, ids)
+                .last(SQLSegment.LIMIT_1)
+        );
+        if (tenantUsing) {
+            throw new BusinessException(TenantErrorCodeEnum.A03008);
+        }
         tenantPackageMapper.deleteByIds(ids);
     }
 

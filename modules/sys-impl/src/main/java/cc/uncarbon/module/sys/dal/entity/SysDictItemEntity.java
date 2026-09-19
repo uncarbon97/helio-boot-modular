@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -53,7 +53,7 @@ public class SysDictItemEntity extends AbstractTenantGenericEntity {
 
     @Schema(description = "状态")
     @TableField(value = "status")
-    private EnabledStatusEnum status;
+    private DictStatusEnum status;
 
     @Schema(description = "排序(数值越小越优先)")
     @TableField(value = "sort")

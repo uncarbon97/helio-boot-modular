@@ -22,6 +22,7 @@ public enum AdminApiErrorCodeEnum implements StructuredErrorCode {
     A04001("验证码不正确，请重新输入"),
     A04002("不支持的图片格式"),
     A04003("不能使用该文件作为头像"),
+    A04004("登录失败次数过多，账号已临时锁定，请稍后重试"),
 
     /*
      B 开头错误码，表示本服务内部错误

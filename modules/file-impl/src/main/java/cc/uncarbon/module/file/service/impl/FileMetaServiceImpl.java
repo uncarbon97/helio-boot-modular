@@ -12,6 +12,7 @@ import cc.uncarbon.module.file.model.request.FileAttrExtraRequest;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
 import cc.uncarbon.module.file.service.FileMetaService;
+import cc.uncarbon.module.file.support.DynamicFileStorageRegistrar;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.file.FileNameUtil;
@@ -21,6 +22,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.x.file.storage.core.FileInfo;
+import org.dromara.x.file.storage.core.FileStorageService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +40,7 @@ import java.util.Objects;
 public class FileMetaServiceImpl implements FileMetaService {
 
     private final FileMetaMapper fileMetaMapper;
+    private final FileStorageService fileStorageService;
 
 
     @Override
@@ -62,6 +65,18 @@ public class FileMetaServiceImpl implements FileMetaService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void adminDelete(Collection<Long> ids) {
+        // 尽力删除底层物理文件；失败仅告警，不阻断元数据删除
+        for (Long id : ids) {
+            FileMetaEntity entity = fileMetaMapper.selectById(id);
+            if (entity == null) {
+                continue;
+            }
+            try {
+                fileStorageService.delete(toFileInfo(entity));
+            } catch (Exception e) {
+                log.warn("[文件元数据][删除] 底层物理文件删除失败, id={}, msg={}", id, e.getMessage());
+            }
+        }
         fileMetaMapper.deleteByIds(ids);
     }
 
@@ -112,6 +127,21 @@ public class FileMetaServiceImpl implements FileMetaService {
                         私有方法 private methods
     ----------------------------------------------------------------
      */
+
+    /**
+     * 按元数据重建底层存储 FileInfo，用于物理删除
+     * 平台完整名与上传侧约定一致：tenantId_storageCode
+     */
+    private FileInfo toFileInfo(FileMetaEntity entity) {
+        String filename = entity.getStorageFilename()
+                + (CharSequenceUtil.isBlank(entity.getExtendName()) ? "" : "." + entity.getExtendName());
+        return new FileInfo()
+                .setPlatform(DynamicFileStorageRegistrar.formatFullPlatform(entity.getTenantId(), entity.getStorageCode()))
+                .setBasePath(entity.getStorageBasePath())
+                .setPath(entity.getSubDirPath())
+                .setFilename(filename)
+                .setUrl(entity.getDirectUrl());
+    }
 
     /**
      * 实体转值对象

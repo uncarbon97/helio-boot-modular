@@ -8,22 +8,25 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
-import cc.uncarbon.module.adminapi.helper.LoginChallengeHandler;
-import cc.uncarbon.module.adminapi.model.response.AdminAuthChallengeVO;
+import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
+import cc.uncarbon.module.adminapi.support.loginchallenge.strategy.LoginChallengeStrategy;
+import cc.uncarbon.module.adminapi.support.loginchallenge.valueobj.AdminAuthChallengeVO;
 import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
+import cc.uncarbon.module.adminapi.support.loginguard.LoginFailureGuard;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpLogic;
-import cn.hutool.core.text.CharSequenceUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,21 +47,42 @@ public class AdminAuthController {
 
     private final AdminLoginService adminLoginService;
     private final LoginChallengeProperties loginChallengeProperties;
-    private final List<LoginChallengeHandler> loginChallengeHandlers;
+    private final List<LoginChallengeStrategy> loginChallengeStrategies;
+    private final LoginFailureGuard loginFailureGuard;
 
+
+    /**
+     * fail-fast：配置了挑战策略但无对应实现时，启动即失败，避免静默降级为无验证码登录
+     */
+    @PostConstruct
+    void validateChallengeStrategyConfig() {
+        var type = loginChallengeProperties.getStrategy();
+        if (type != null && type != LoginChallengeStrategyTypeEnum.NONE && resolveChallengeStrategy() == null) {
+            throw new IllegalStateException("已配置登录挑战策略 " + type + "，但容器中无对应实现，拒绝启动");
+        }
+    }
 
     @Operation(summary = "登录")
     @PostMapping(value = "/password-login")
     public ApiResult<SysUserLoginVO> login(@RequestBody @Valid AdminAuthPasswordLoginRequest request) {
-        LoginChallengeHandler handler = resolveChallengeHandler();
-        if (handler != null) {
-            // 登录验证码核验；前端项目搜索关键词「Helium: 登录验证码」
-            if (!handler.validate(request.getCaptchaId(), request.getCaptchaAnswer())) {
-                throw new BusinessException(AdminApiErrorCodeEnum.A04001);
-            }
+        LoginChallengeStrategy strategy = resolveChallengeStrategy();
+        if (strategy != null && !strategy.validate(request.getCaptchaId(), request.getCaptchaAnswer())) {
+            throw new BusinessException(AdminApiErrorCodeEnum.A04001);
         }
 
-        SysUserLoginResult loginResult = adminLoginService.passwordLogin(request, VisitorContextHolder.getContext());
+        loginFailureGuard.assertNotLocked(request.getTenantCode(), request.getPin());
+
+        SysUserLoginResult loginResult;
+        try {
+            loginResult = adminLoginService.passwordLogin(request, VisitorContextHolder.getContext());
+        } catch (BusinessException be) {
+            if (SysErrorCodeEnum.A01001.equals(be.getErrorCode())) {
+                // 账号不存在与密码错误统一计数，兼顾防撞库与防枚举
+                loginFailureGuard.recordFailure(request.getTenantCode(), request.getPin());
+            }
+            throw be;
+        }
+        loginFailureGuard.clear(request.getTenantCode(), request.getPin());
 
         // 构造用户上下文
         UserContext userContext = new SimpleUserContext()
@@ -96,29 +120,30 @@ public class AdminAuthController {
     @Operation(summary = "获取登录挑战")
     @PostMapping(value = "/challenge")
     public ApiResult<AdminAuthChallengeVO> challenge() {
-        LoginChallengeHandler handler = resolveChallengeHandler();
-        if (handler == null) {
-            // 无挑战
-            return ApiResult.success(new AdminAuthChallengeVO());
+        LoginChallengeStrategy strategy = resolveChallengeStrategy();
+        if (strategy == null) {
+            return ApiResult.success(AdminAuthChallengeVO.noChallenge());
         }
-
-        return ApiResult.success(handler.generate());
+        return ApiResult.success(strategy.generate());
     }
 
+    /*
+    ----------------------------------------------------------------
+                        私有方法 private methods
+    ----------------------------------------------------------------
+     */
 
     /**
      * 按配置的策略解析挑战处理器；无挑战或未注册的策略返回 null
      */
-    private LoginChallengeHandler resolveChallengeHandler() {
-        LoginChallengeProperties.Strategy strategy = loginChallengeProperties.getStrategy();
-        if (strategy == null || LoginChallengeProperties.Strategy.NONE == strategy) {
+    private LoginChallengeStrategy resolveChallengeStrategy() {
+        var type = loginChallengeProperties.getStrategy();
+        if (type == null || type == LoginChallengeStrategyTypeEnum.NONE) {
             return null;
         }
 
-        return loginChallengeHandlers.stream()
-                .filter(handler -> CharSequenceUtil.equals(handler.type(), strategy.name().toLowerCase()))
-                .findFirst()
-                .orElse(null);
+        return loginChallengeStrategies.stream().filter(strategy -> type == strategy.type())
+                .findFirst().orElse(null);
     }
 
 }

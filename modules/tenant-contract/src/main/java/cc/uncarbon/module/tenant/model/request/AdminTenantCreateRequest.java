@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -41,6 +42,7 @@ public class AdminTenantCreateRequest implements Serializable {
     @Schema(description = "租户管理员初始密码", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(min = 8, max = 20, message = "租户管理员初始密码最短{min}位，最长{max}位")
     @NotBlank(message = "租户管理员初始密码必填")
+    @ToString.Exclude
     private String tenantAdminPwd;
 
     @Schema(description = "租户管理员邮箱", requiredMode = Schema.RequiredMode.REQUIRED)
