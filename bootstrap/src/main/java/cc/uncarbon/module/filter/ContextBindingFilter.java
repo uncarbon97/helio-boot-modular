@@ -1,8 +1,14 @@
 package cc.uncarbon.module.filter;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
+import cc.uncarbon.framework.helium.i18n.context.I18nContext;
+import cc.uncarbon.framework.helium.i18n.context.SimpleI18nContext;
+import cc.uncarbon.framework.helium.i18n.resolver.currency.CompositeCurrencyResolver;
+import cc.uncarbon.framework.helium.i18n.resolver.lang.CompositeLangResolver;
+import cc.uncarbon.framework.helium.i18n.resolver.timezone.CompositeTimezoneResolver;
 import cc.uncarbon.framework.helium.satoken.context.SaTokenContextForScopedValue;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.constant.ServletFilterOrder;
 import cc.uncarbon.framework.helium.web.context.SimpleVisitorContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
@@ -10,6 +16,7 @@ import cc.uncarbon.framework.helium.web.util.IPUtil;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.context.ContextBinder;
+import cc.uncarbon.module.sys.constant.SysConstant;
 import cn.dev33.satoken.context.model.SaTokenContextModelBox;
 import cn.dev33.satoken.stp.StpLogic;
 import cn.hutool.core.collection.CollUtil;
@@ -19,6 +26,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -42,6 +50,19 @@ public class ContextBindingFilter extends OncePerRequestFilter {
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
+    private final ObjectProvider<CompositeLangResolver> langResolverProvider;
+    private final ObjectProvider<CompositeTimezoneResolver> timezoneResolverProvider;
+    private final ObjectProvider<CompositeCurrencyResolver> currencyResolverProvider;
+
+
+    public ContextBindingFilter(ObjectProvider<CompositeLangResolver> langResolverProvider,
+                                ObjectProvider<CompositeTimezoneResolver> timezoneResolverProvider,
+                                ObjectProvider<CompositeCurrencyResolver> currencyResolverProvider) {
+        this.langResolverProvider = langResolverProvider;
+        this.timezoneResolverProvider = timezoneResolverProvider;
+        this.currencyResolverProvider = currencyResolverProvider;
+    }
+
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest servletRequest,
@@ -49,17 +70,42 @@ public class ContextBindingFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain chain) throws ServletException, IOException {
 
         VisitorContext v = resolveVisitor(servletRequest);
+        I18nContext i18n = resolveI18n(servletRequest);
         StpLogic stpLogic = resolveStpLogic(servletRequest);
         SaTokenContextModelBox box = SaTokenContextForScopedValue.boxOf(servletRequest, servletResponse);
         try {
             SaTokenContextForScopedValue.where(box).call(() -> {
                 UserContext u = resolveUser(stpLogic);
                 TenantContext t = resolveTenant(stpLogic);
-                // 内层：复用 ContextBinder 绑定三类业务上下文（嵌套 ScopedValue，天然继承外层绑定）
-                ContextBinder.callWithContext(v, u, t, () -> {
-                    chain.doFilter(servletRequest, servletResponse);
-                    return null;
-                });
+
+                /*
+                 * 平台视角判定：超级管理员且未切换租户
+                 * 用户优先模式普通用户的个人空间（无租户上下文且非超管）不在此列，数据视图为空
+                 */
+                boolean platformView = u != null && t == null
+                        && u.getRoleCodes() != null
+                        && u.getRoleCodes().contains(SysConstant.SUPER_ADMIN_ROLE_CODE);
+
+                if (platformView) {
+                    // 平台视角忽略租户隔离，可见全量数据；行级策略=LINE 时生效，NONE 下无消费者、行为不变
+                    // runIgnored 仅接受 Runnable，checked 异常包装后由外层统一转译为 ServletException
+                    TenantContextHolder.runIgnored(() -> {
+                        try {
+                            ContextBinder.callWithContext(v, u, t, i18n, () -> {
+                                chain.doFilter(servletRequest, servletResponse);
+                                return null;
+                            });
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                } else {
+                    // 内层：复用 ContextBinder 绑定四类业务上下文（嵌套 ScopedValue，天然继承外层绑定）
+                    ContextBinder.callWithContext(v, u, t, i18n, () -> {
+                        chain.doFilter(servletRequest, servletResponse);
+                        return null;
+                    });
+                }
                 return null;
             });
         } catch (ServletException | IOException e) {
@@ -79,6 +125,20 @@ public class ContextBindingFilter extends OncePerRequestFilter {
                 .setUserAgent(servletRequest.getHeader(HttpHeaders.USER_AGENT))
                 .setHttpRequestMethod(servletRequest.getMethod())
                 .setHttpRequestPath(servletRequest.getRequestURI());
+    }
+
+    private @Nullable I18nContext resolveI18n(HttpServletRequest servletRequest) {
+        CompositeLangResolver langResolver = langResolverProvider.getIfAvailable();
+        CompositeTimezoneResolver timezoneResolver = timezoneResolverProvider.getIfAvailable();
+        CompositeCurrencyResolver currencyResolver = currencyResolverProvider.getIfAvailable();
+        if (langResolver == null || timezoneResolver == null || currencyResolver == null) {
+            // 国际化未启用
+            return null;
+        }
+        return new SimpleI18nContext()
+                .setLangInfo(langResolver.resolve(servletRequest))
+                .setTimezoneInfo(timezoneResolver.resolve(servletRequest))
+                .setCurrencyInfo(currencyResolver.resolve(servletRequest));
     }
 
     private @Nullable StpLogic resolveStpLogic(HttpServletRequest servletRequest) {

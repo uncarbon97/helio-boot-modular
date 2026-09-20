@@ -58,4 +58,22 @@ public interface TenantUserRoleFacade {
      */
     List<Long> listUserIdsByTenantId(Long tenantId, Collection<EnabledStatusEnum> statusEnums);
 
+    /**
+     * 用户活体角色快照是否为超级管理员
+     * 会话内角色码为登录时快照，高权限操作前以此做活体二次校验
+     */
+    boolean isSuperAdmin(Long userId);
+
+    /**
+     * 用户优先模式（USER_FIRST）下用户归属的启用租户ID列表，默认租户排最前
+     */
+    List<Long> listUserEnabledTenantIds(Long userId);
+
+    /**
+     * 租户优先模式（TENANT_FIRST）下用户归属租户ID（sys_user.tenant_id 单值）
+     *
+     * @return 用户不存在或未归属时返回 null
+     */
+    Long getUserTenantId(Long userId);
+
 }

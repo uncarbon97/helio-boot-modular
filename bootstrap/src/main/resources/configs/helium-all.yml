@@ -24,13 +24,15 @@
 "helium.tenant":
   # 多租户策略（隔离级别）
   strategy: NONE
+  # 登录模式：TENANT_FIRST=登录时提供租户编码（默认，同 pin 可跨租户）；
+  # USER_FIRST=用户优先模式，免填编码，按 sys_user_tenant_relation 关联推导（pin 全局唯一）
+  login-mode: TENANT_FIRST
   # 【行级】多租户忽略的表
   ignored-tables:
     - sys_menu
     # RBAC
     - sys_role_menu_relation
     - sys_user_dept_relation
-    - sys_user_role_relation
     # 多租户
     - tenant_meta
     - tenant_package

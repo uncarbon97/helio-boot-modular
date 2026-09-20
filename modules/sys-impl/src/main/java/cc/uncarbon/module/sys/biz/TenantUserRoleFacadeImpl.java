@@ -6,9 +6,12 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
+import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
@@ -48,6 +51,8 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
     private final SysRoleMapper sysRoleMapper;
     private final SysUserMapper sysUserMapper;
+    private final SysUserTenantRelationMapper sysUserTenantRelationMapper;
+    private final UserRoleHelper userRoleHelper;
 
 
     @SneakyThrows
@@ -134,5 +139,26 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
                         .stream()
                         .map(SysUserEntity::getId)
                         .toList());
+    }
+
+    @SneakyThrows
+    @Override
+    public boolean isSuperAdmin(Long userId) {
+        // 全局角色快照，供租户视角域做活体超管判定
+        return TenantContextHolder.callIgnored(() -> userRoleHelper.getSpecifiedUserRole(userId))
+                .isSuperAdmin();
+    }
+
+    @SneakyThrows
+    @Override
+    public List<Long> listUserEnabledTenantIds(Long userId) {
+        return TenantContextHolder.callIgnored(() -> sysUserTenantRelationMapper.listEnabledByUser(userId))
+                .stream().map(SysUserTenantRelationEntity::getTenantId).toList();
+    }
+
+    @SneakyThrows
+    @Override
+    public Long getUserTenantId(Long userId) {
+        return TenantContextHolder.callIgnored(() -> sysUserMapper.getUserTenantId(userId));
     }
 }
