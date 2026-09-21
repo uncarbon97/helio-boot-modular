@@ -1,6 +1,11 @@
 package cc.uncarbon.module.filter;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
+import cc.uncarbon.framework.helium.i18n.context.I18nContext;
+import cc.uncarbon.framework.helium.i18n.context.SimpleI18nContext;
+import cc.uncarbon.framework.helium.i18n.resolver.currency.CompositeCurrencyResolver;
+import cc.uncarbon.framework.helium.i18n.resolver.lang.CompositeLangResolver;
+import cc.uncarbon.framework.helium.i18n.resolver.timezone.CompositeTimezoneResolver;
 import cc.uncarbon.framework.helium.satoken.context.SaTokenContextForScopedValue;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.constant.ServletFilterOrder;
@@ -17,8 +22,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -37,10 +44,15 @@ import java.util.List;
  * @author Uncarbon
  */
 @Order(ServletFilterOrder.CONTEXT_BINDING_FILTER)
+@RequiredArgsConstructor
 @Component
 public class ContextBindingFilter extends OncePerRequestFilter {
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+
+    private final ObjectProvider<CompositeLangResolver> langResolverProvider;
+    private final ObjectProvider<CompositeTimezoneResolver> timezoneResolverProvider;
+    private final ObjectProvider<CompositeCurrencyResolver> currencyResolverProvider;
 
 
     @Override
@@ -49,14 +61,15 @@ public class ContextBindingFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain chain) throws ServletException, IOException {
 
         VisitorContext v = resolveVisitor(servletRequest);
+        I18nContext i = resolveI18n(servletRequest);
         StpLogic stpLogic = resolveStpLogic(servletRequest);
         SaTokenContextModelBox box = SaTokenContextForScopedValue.boxOf(servletRequest, servletResponse);
         try {
             SaTokenContextForScopedValue.where(box).call(() -> {
                 UserContext u = resolveUser(stpLogic);
                 TenantContext t = resolveTenant(stpLogic);
-                // 内层：复用 ContextBinder 绑定三类业务上下文（嵌套 ScopedValue，天然继承外层绑定）
-                ContextBinder.callWithContext(v, u, t, () -> {
+                // 复用 ContextBinder 绑定上下文
+                ContextBinder.callWithContext(v, u, t, i, () -> {
                     chain.doFilter(servletRequest, servletResponse);
                     return null;
                 });
@@ -81,12 +94,20 @@ public class ContextBindingFilter extends OncePerRequestFilter {
                 .setHttpRequestPath(servletRequest.getRequestURI());
     }
 
+    private @NonNull I18nContext resolveI18n(HttpServletRequest servletRequest) {
+        var context = new SimpleI18nContext();
+        langResolverProvider.ifAvailable(resolver -> context.setLangInfo(resolver.resolve(servletRequest)));
+        timezoneResolverProvider.ifAvailable(resolver -> context.setTimezoneInfo(resolver.resolve(servletRequest)));
+        currencyResolverProvider.ifAvailable(resolver -> context.setCurrencyInfo(resolver.resolve(servletRequest)));
+        return context;
+    }
+
     private @Nullable StpLogic resolveStpLogic(HttpServletRequest servletRequest) {
         // 根据路径前缀，确认对应的 StpLogic
         String path = servletRequest.getRequestURI();
-        if (pathMatcher.match(ApiPathPrefix.ADMIN_PATTERN, path)) {
+        if (PATH_MATCHER.match(ApiPathPrefix.ADMIN_PATTERN, path)) {
             return StpKit.ADMIN;
-        } else if (pathMatcher.match(ApiPathPrefix.APP_PATTERN, path)) {
+        } else if (PATH_MATCHER.match(ApiPathPrefix.APP_PATTERN, path)) {
             return StpKit.APP;
         }
         return null;

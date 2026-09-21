@@ -37,6 +37,12 @@
             <artifactId>app-api</artifactId>
             <version>${app-api.version}</version>
         </dependency>
+
+        <!-- 国际化 -->
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-i18n</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

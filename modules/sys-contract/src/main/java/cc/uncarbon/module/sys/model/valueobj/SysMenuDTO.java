@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.time.Instant;
 
 
 /**
@@ -22,6 +23,9 @@ public class SysMenuDTO implements Serializable {
 
     @Schema(description = "主键ID")
     private Long id;
+
+    @Schema(description = "创建时刻")
+    private Instant createdAt;
 
     @Schema(description = "名称")
     private String name;

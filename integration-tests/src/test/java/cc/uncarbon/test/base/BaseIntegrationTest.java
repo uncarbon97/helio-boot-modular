@@ -1,7 +1,8 @@
-package cc.uncarbon.test;
+package cc.uncarbon.test.base;
 
 import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
 import cc.uncarbon.framework.helium.base.context.UserContext;
+import cc.uncarbon.framework.helium.i18n.context.I18nContext;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
@@ -28,7 +29,7 @@ public abstract class BaseIntegrationTest {
      * 在指定上下文的作用域内执行测试
      */
     protected void withContext(@Nullable UserContext user, @Nullable TenantContext tenant, @NonNull Runnable op) {
-        ContextBinder.runWithContext(null, user, tenant, op);
+        ContextBinder.runWithContext(null, user, tenant, null, op);
     }
 
     /**
@@ -36,7 +37,15 @@ public abstract class BaseIntegrationTest {
      */
     protected void withContext(@Nullable UserContext user, @Nullable TenantContext tenant,
                                @Nullable VisitorContext visitor, @NonNull Runnable body) {
-        ContextBinder.runWithContext(visitor, user, tenant, body);
+        ContextBinder.runWithContext(visitor, user, tenant, null, body);
+    }
+
+    /**
+     * 在指定上下文的作用域内执行测试
+     */
+    protected void withContext(@Nullable UserContext user, @Nullable TenantContext tenant,
+                               @Nullable VisitorContext visitor, @Nullable I18nContext i18n, @NonNull Runnable body) {
+        ContextBinder.runWithContext(visitor, user, tenant, i18n, body);
     }
 
     /**

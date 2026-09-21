@@ -3,6 +3,7 @@ package cc.uncarbon.test;
 import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
 import cc.uncarbon.module.sys.service.SysDictService;
+import cc.uncarbon.test.base.BaseIntegrationTest;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

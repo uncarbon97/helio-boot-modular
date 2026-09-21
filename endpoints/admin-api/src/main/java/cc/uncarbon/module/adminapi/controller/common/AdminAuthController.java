@@ -8,10 +8,10 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
+import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
 import cc.uncarbon.module.adminapi.support.loginchallenge.strategy.LoginChallengeStrategy;
 import cc.uncarbon.module.adminapi.support.loginchallenge.valueobj.AdminAuthChallengeVO;
-import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cc.uncarbon.module.adminapi.support.loginguard.LoginFailureGuard;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
@@ -118,7 +118,7 @@ public class AdminAuthController {
     }
 
     @Operation(summary = "获取登录挑战")
-    @PostMapping(value = "/challenge")
+    @PostMapping(value = "/login-challenge")
     public ApiResult<AdminAuthChallengeVO> challenge() {
         LoginChallengeStrategy strategy = resolveChallengeStrategy();
         if (strategy == null) {
