@@ -8,7 +8,6 @@ import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
-import cc.uncarbon.module.adminapi.helper.TenantSwitchRegistry;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
@@ -33,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -51,7 +49,6 @@ public class AdminTenantMetaController {
 
     private final TenantService tenantService;
     private final ApplicationEventPublisher eventPublisher;
-    private final TenantSwitchRegistry tenantSwitchRegistry;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
@@ -103,12 +100,7 @@ public class AdminTenantMetaController {
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = tenantService.getNonnullById(request.getId());
-        List<Long> kickedUserIds = new ArrayList<>(tenantService.adminSetStatus(request));
-        if (EnabledStatusEnum.DISABLED == request.getNewStatus()) {
-            // 并入当前切入该租户的全部会话（超管切入视角、用户优先模式切入用户），一并强制登出
-            kickedUserIds.addAll(tenantSwitchRegistry.listUserIds(request.getId()));
-        }
-        kickedUserIds = kickedUserIds.stream().distinct().toList();
+        List<Long> kickedUserIds = tenantService.adminSetStatus(request);
         if (!kickedUserIds.isEmpty()) {
             // 租户被禁用，强制登出该租户全部用户
             eventPublisher.publishEvent(new KickOutSysUsersEvent(

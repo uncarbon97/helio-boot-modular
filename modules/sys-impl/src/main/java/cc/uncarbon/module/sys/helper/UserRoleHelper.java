@@ -11,7 +11,6 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -44,18 +43,7 @@ public class UserRoleHelper {
      * 已禁用的角色一律视为用户不再持有，与登录会话快照、菜单鉴权口径保持一致
      */
     public UserRoleScope getSpecifiedUserRole(Long specifiedUserId) {
-        return getSpecifiedUserRole(specifiedUserId, null);
-    }
-
-    /**
-     * 取指定用户在指定租户下的关联角色信息（仅包含启用状态的角色）
-     * <p>
-     * tenantId 为 null 时取全局角色快照；用户优先模式下用户在各租户持有不同角色，需按租户限定
-     */
-    public UserRoleScope getSpecifiedUserRole(Long specifiedUserId, @Nullable Long tenantId) {
-        List<Long> userRoleIds = tenantId == null
-                ? sysUserRoleRelationMapper.listRoleIdsByUser(specifiedUserId)
-                : sysUserRoleRelationMapper.listRoleIdsByUserAndTenant(specifiedUserId, tenantId);
+        List<Long> userRoleIds = sysUserRoleRelationMapper.listRoleIdsByUser(specifiedUserId);
         if (CollUtil.isEmpty(userRoleIds)) {
             return new UserRoleScope(List.of(), List.of());
         }

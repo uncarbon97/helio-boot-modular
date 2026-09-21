@@ -8,19 +8,16 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
-import cc.uncarbon.module.adminapi.helper.TenantSwitchRegistry;
-import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
 import cc.uncarbon.module.adminapi.support.loginchallenge.strategy.LoginChallengeStrategy;
 import cc.uncarbon.module.adminapi.support.loginchallenge.valueobj.AdminAuthChallengeVO;
+import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cc.uncarbon.module.adminapi.support.loginguard.LoginFailureGuard;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
-import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
-import cc.uncarbon.module.sys.model.internal.TenantSwitchInfo;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
@@ -52,7 +49,6 @@ public class AdminAuthController {
     private final LoginChallengeProperties loginChallengeProperties;
     private final List<LoginChallengeStrategy> loginChallengeStrategies;
     private final LoginFailureGuard loginFailureGuard;
-    private final TenantSwitchRegistry tenantSwitchRegistry;
 
 
     /**
@@ -102,27 +98,13 @@ public class AdminAuthController {
         final StpLogic stpUtil = StpKit.ADMIN;
         stpUtil.login(loginResult.getId(), false);
         stpUtil.getSession().set(UserContext.CAMEL_NAME, userContext);
-        if (loginResult.getTenantContext() != null) {
-            stpUtil.getSession().set(TenantContext.CAMEL_NAME, loginResult.getTenantContext());
-            // 登记会话当前处于的租户，供租户禁用时强制登出
-            tenantSwitchRegistry.register(loginResult.getTenantContext().getTenantId(), loginResult.getId());
-        } else {
-            // 平台视角或个人空间：清空租户上下文，防止同一账号会话残留
-            stpUtil.getSession().delete(TenantContext.CAMEL_NAME);
-        }
-        // 清理上一会话的切换标记，新会话恒为默认视角
-        stpUtil.getSession().delete(TenantSwitchInfo.CAMEL_NAME);
+        stpUtil.getSession().set(TenantContext.CAMEL_NAME, loginResult.getTenantContext());
 
         // 返回用户态
         SysUserLoginVO tokenInfo = new SysUserLoginVO()
                 .setToken(stpUtil.getTokenValue())
                 .setRoles(loginResult.getRoleCodes())
-                .setPermissions(loginResult.getPermissions())
-                .setTenantContext(loginResult.getTenantContext())
-                .setPlatformView(loginResult.getTenantContext() == null
-                        && loginResult.getRoleCodes() != null
-                        && loginResult.getRoleCodes().contains(SysConstant.SUPER_ADMIN_ROLE_CODE))
-                .setTenantOptions(loginResult.getTenantOptions());
+                .setPermissions(loginResult.getPermissions());
         return ApiResult.success(tokenInfo);
     }
 
@@ -131,12 +113,6 @@ public class AdminAuthController {
     @PostMapping(value = "/logout")
     public ApiResult<Void> logout() {
         final StpLogic stpUtil = StpKit.ADMIN;
-        // 清理租户在会话登记与切换标记
-        if (stpUtil.getSession().get(TenantContext.CAMEL_NAME) instanceof TenantContext t
-                && t.getTenantId() != null) {
-            tenantSwitchRegistry.unregister(t.getTenantId(), stpUtil.getLoginIdAsLong());
-        }
-        stpUtil.getSession().delete(TenantSwitchInfo.CAMEL_NAME);
         stpUtil.logout();
         return ApiResult.success();
     }

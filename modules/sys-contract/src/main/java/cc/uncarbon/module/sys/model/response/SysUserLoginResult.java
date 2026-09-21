@@ -49,7 +49,4 @@ public class SysUserLoginResult implements Serializable {
     @Schema(description = "租户上下文")
     private TenantContext tenantContext;
 
-    @Schema(description = "可选租户列表；用户优先模式且用户属多个租户时非空")
-    private List<TenantContext> tenantOptions;
-
 }

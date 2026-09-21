@@ -166,14 +166,6 @@ public class TenantServiceImpl implements TenantService {
         return convertEntity(entity, fillDetail);
     }
 
-    @Override
-    public List<TenantMetaDTO> listEnabled() {
-        return convertList(tenantMetaMapper.selectList(new LambdaQueryWrapper<TenantMetaEntity>()
-                .eq(TenantMetaEntity::getStatus, EnabledStatusEnum.ENABLED)
-                .orderByAsc(TenantMetaEntity::getId)
-        ), false);
-    }
-
     /*
     ----------------------------------------------------------------
                         私有方法 private methods

@@ -25,14 +25,4 @@ public interface AdminLoginService {
     @Nullable
     UserContext buildSessionUserContext(Long userId);
 
-    /**
-     * 重建后台管理用户在指定租户下的会话上下文（仅包含启用状态的角色）
-     * 用户优先模式下切换租户时按目标租户重建权限快照
-     *
-     * @param tenantId 租户ID；null 表示取全局角色快照
-     * @return 用户已不存在或被禁用时返回 null
-     */
-    @Nullable
-    UserContext buildSessionUserContext(Long userId, @Nullable Long tenantId);
-
 }

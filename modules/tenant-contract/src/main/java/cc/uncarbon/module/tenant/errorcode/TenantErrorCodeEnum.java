@@ -27,8 +27,6 @@ public enum TenantErrorCodeEnum implements StructuredErrorCode {
     A03006("租户已禁用"),
     A03007("该租户仍有用户，不能删除"),
     A03008("已有租户正在使用此套餐，无法删除"),
-    A03009("无权切换到该租户"),
-    A03010("租户编码与账号归属租户不一致"),
 
     /*
     B 开头错误码，表示本服务内部错误
