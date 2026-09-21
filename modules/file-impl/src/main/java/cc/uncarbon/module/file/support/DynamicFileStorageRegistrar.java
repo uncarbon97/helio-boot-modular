@@ -5,7 +5,6 @@ import cc.uncarbon.module.file.dal.entity.FileStorageEntity;
 import cc.uncarbon.module.file.dal.mapper.FileStorageMapper;
 import cc.uncarbon.module.file.event.FileStorageChangedEvent;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +13,6 @@ import org.dromara.x.file.storage.core.FileStorageProperties;
 import org.dromara.x.file.storage.core.FileStorageService;
 import org.dromara.x.file.storage.core.FileStorageServiceBuilder;
 import org.dromara.x.file.storage.core.platform.FileStorage;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -66,27 +62,6 @@ public class DynamicFileStorageRegistrar {
     }
 
     /**
-     * 存储点配置属性JSON 转换为底层存储平台配置对象，Setting 字段为对应 Config 字段的子集
-     */
-    private static <T extends FileStorageProperties.BaseConfig> T toConfig(
-            FileStorageEntity entity, String fullPlatform, Class<T> configClass) throws Exception {
-        T config = JSON_MAPPER.readValue(entity.getSettingJson(), configClass);
-        config.setPlatform(fullPlatform);
-        return config;
-    }
-
-    /**
-     * 应用启动完成后，全量注册DB存储点
-     */
-    @Async
-    @EventListener(ApplicationReadyEvent.class)
-    public void onApplicationReady() {
-        // 稍等几秒再注册
-        ThreadUtil.safeSleep(3000);
-        reloadAll();
-    }
-
-    /**
      * 存储点记录发生变化，事务提交后再同步底层，避免注册了未落库的数据
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
@@ -119,6 +94,22 @@ public class DynamicFileStorageRegistrar {
             }
         }
         log.info(LOG_PREFIX + " 同步完成 >> 共从 DB 载入并注册 {} 个存储平台: {}", registeredPlatforms.size(), registeredPlatforms);
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法 private methods
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 存储点配置属性JSON 转换为底层存储平台配置对象，Setting 字段为对应 Config 字段的子集
+     */
+    private static <T extends FileStorageProperties.BaseConfig> T toConfig(
+            FileStorageEntity entity, String fullPlatform, Class<T> configClass) throws Exception {
+        T config = JSON_MAPPER.readValue(entity.getSettingJson(), configClass);
+        config.setPlatform(fullPlatform);
+        return config;
     }
 
     /**

@@ -12,9 +12,9 @@
     yaml-basenames:
       - classpath*:i18n/errorcode
     resolver:
-      # 用于 QueryParamLangResolver，从 URL 请求参数中读取语言，如「?lang=en_US」
+      # 用于 QueryParamLangResolver，从 URL 请求参数中读取语言，如「?lang=en-US」
       query-param-name: "lang"
-      # 用于 HeaderLangResolver，从 HTTP 请求头中中读取语言，如「X-i18n-Lang=en_US」
+      # 用于 HeaderLangResolver，从 HTTP 请求头中中读取语言，如「X-i18n-Lang=en-US」
       header-name: "X-i18n-Lang"
   timezone:
     # 这里使用 IANA 标准时区 ID，如：Asia/Shanghai、America/New_York、Europe/London

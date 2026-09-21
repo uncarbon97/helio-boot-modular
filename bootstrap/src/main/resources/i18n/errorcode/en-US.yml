@@ -19,7 +19,7 @@ A01005: The current user has no available role
 A01006: The current role has no available menu
 A01007: The new password cannot be the same as the old one
 A01008: The current account does not belong to any tenant and cannot log in
-A01010: "{}" cannot be used as a role code
+A01010: the {} cannot be used as a role code
 A01011: Special roles cannot be deleted
 A01012: You cannot delete your own role
 A01013: Special roles cannot be modified
