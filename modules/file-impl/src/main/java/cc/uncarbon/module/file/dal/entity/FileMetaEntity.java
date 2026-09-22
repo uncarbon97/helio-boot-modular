@@ -1,7 +1,9 @@
 package cc.uncarbon.module.file.dal.entity;
 
 
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
+import cc.uncarbon.framework.helium.db.constant.EntityField;
+import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
+import cc.uncarbon.framework.helium.db.entity.TenantEntity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -24,7 +26,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "file_meta")
-public class FileMetaEntity extends AbstractTenantGenericEntity {
+public class FileMetaEntity extends AbstractGenericEntity implements TenantEntity {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -33,6 +35,13 @@ public class FileMetaEntity extends AbstractTenantGenericEntity {
     @Schema(description = "主键ID")
     @TableId(type = IdType.AUTO)
     private Long id;
+
+    /**
+     * 兼容多租户特性
+     */
+    @Schema(description = "租户ID")
+    @TableField(value = EntityField.TENANT_ID_COLUMN)
+    private Long tenantId;
 
     @Schema(description = "原始存储点ID")
     @TableField(value = "storage_id")

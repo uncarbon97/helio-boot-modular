@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
@@ -28,7 +28,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_user")
-public class SysUserEntity extends AbstractTenantGenericEntity {
+public class SysUserEntity extends AbstractGenericEntity {
 
     @Serial
     private static final long serialVersionUID = 1L;

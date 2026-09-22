@@ -10,9 +10,10 @@ import cc.uncarbon.module.sys.service.AdminLoginService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.thread.ThreadUtil;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,7 +24,6 @@ import java.util.List;
  * admin-api 模块事件监听器
  */
 @Component
-@RequiredArgsConstructor
 public class AdminApiEventListener {
 
     /**
@@ -38,9 +38,18 @@ public class AdminApiEventListener {
     /**
      * 虚拟线程执行器
      */
-    private final AsyncTaskExecutor taskExecutor;
+    private final TaskExecutor taskExecutor;
     private final RolePermissionCacheHelper rolePermissionCacheHelper;
     private final AdminLoginService adminLoginService;
+
+    public AdminApiEventListener(
+            @Qualifier(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME) TaskExecutor taskExecutor,
+            RolePermissionCacheHelper rolePermissionCacheHelper,
+            AdminLoginService adminLoginService) {
+        this.taskExecutor = taskExecutor;
+        this.rolePermissionCacheHelper = rolePermissionCacheHelper;
+        this.adminLoginService = adminLoginService;
+    }
 
     @EventListener(value = KickOutSysUsersEvent.class)
     public void handle(KickOutSysUsersEvent event) {

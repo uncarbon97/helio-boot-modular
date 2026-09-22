@@ -16,7 +16,7 @@ spring:
       - classpath:configs/spring.yml
       - classpath:configs/helium-all.yml
       - classpath:configs/dependencies.yml
-      - classpath:configs/helium-i18n.yml
+      - classpath:i18n/helium-i18n.yml
 
 --- # admin-api
 admin-api:

@@ -12,7 +12,7 @@ import cc.uncarbon.module.file.model.request.FileAttrExtraRequest;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
 import cc.uncarbon.module.file.service.FileMetaService;
-import cc.uncarbon.module.file.support.DynamicFileStorageRegistrar;
+import cc.uncarbon.module.file.storage.DynamicFileStorageRegistrar;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.file.FileNameUtil;

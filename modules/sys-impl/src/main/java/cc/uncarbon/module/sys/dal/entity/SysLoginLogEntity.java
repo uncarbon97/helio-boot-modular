@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import cc.uncarbon.module.sys.enums.LoginLogTypeEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -27,7 +27,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_login_log")
-public class SysLoginLogEntity extends AbstractTenantGenericEntity {
+public class SysLoginLogEntity extends AbstractGenericEntity {
 
 	@Serial
 	private static final long serialVersionUID = 1L;

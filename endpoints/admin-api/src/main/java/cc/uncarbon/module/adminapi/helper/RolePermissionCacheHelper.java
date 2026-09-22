@@ -4,7 +4,8 @@ import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
@@ -21,7 +22,6 @@ import java.util.concurrent.TimeUnit;
  * @author Uncarbon
  */
 @Component
-@RequiredArgsConstructor
 public class RolePermissionCacheHelper {
 
     /**
@@ -40,14 +40,18 @@ public class RolePermissionCacheHelper {
      */
     private static final long CACHE_TTL = 6 * 60 * 60;
 
-
+    private final TaskExecutor taskExecutor;
     private final RedisTemplate<String, Collection<String>> stringSetRedisTemplate;
     private final SysMenuService sysMenuService;
 
-    /**
-     * 虚拟线程执行器
-     */
-    private final TaskExecutor taskExecutor;
+    public RolePermissionCacheHelper(
+            @Qualifier(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME) TaskExecutor taskExecutor,
+            RedisTemplate<String, Collection<String>> stringSetRedisTemplate,
+            SysMenuService sysMenuService) {
+        this.taskExecutor = taskExecutor;
+        this.stringSetRedisTemplate = stringSetRedisTemplate;
+        this.sysMenuService = sysMenuService;
+    }
 
 
     /**

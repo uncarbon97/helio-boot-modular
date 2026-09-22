@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -25,7 +25,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_dept")
-public class SysDeptEntity extends AbstractTenantGenericEntity {
+public class SysDeptEntity extends AbstractGenericEntity {
 
 	@Serial
 	private static final long serialVersionUID = 1L;

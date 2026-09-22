@@ -2,7 +2,6 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.framework.helium.base.stream.StreamFunction;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
@@ -35,8 +34,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 
 /**
@@ -186,52 +187,6 @@ public class SysRoleServiceImpl implements SysRoleService {
 
         sysRoleMapper.insert(entity);
         return new TenantRoleCreateResult(entity.getId(), request.isTenantAdmin());
-    }
-
-    /**
-     * 后台管理-删除指定租户的特定角色
-     *
-     * @param tenantIds 租户IDs，非主键ID，必填
-     * @param roleCodes 角色值集合，可以为空
-     */
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public void adminDeleteTenantRoles(Collection<Long> tenantIds, Collection<String> roleCodes) {
-        if (CollUtil.isEmpty(tenantIds)) {
-            return;
-        }
-
-        sysRoleMapper.delete(
-                new LambdaQueryWrapper<SysRoleEntity>()
-                        // 租户ID
-                        .in(SysRoleEntity::getTenantId, tenantIds)
-                        // 值相符
-                        .in(CollUtil.isNotEmpty(roleCodes), SysRoleEntity::getCode, roleCodes)
-        );
-    }
-
-    /**
-     * 取用户ID拥有角色对应的 角色ID-角色编码 map
-     * 仅包含启用状态的角色
-     *
-     * @param userId 用户ID
-     * @return 失败返回空 map
-     */
-    @Override
-    public Map<Long, String> getRoleMapByUserId(Long userId) {
-        List<Long> roleIds = sysUserRoleRelationService.listRoleIdsByUser(userId);
-
-        if (CollUtil.isEmpty(roleIds)) {
-            return Map.of();
-        }
-
-        // 根据角色Ids取 map
-        return sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
-                .select(SysRoleEntity::getId, SysRoleEntity::getCode)
-                .in(SysRoleEntity::getId, roleIds)
-                // 已禁用的角色不参与
-                .eq(SysRoleEntity::getStatus, EnabledStatusEnum.ENABLED)
-        ).stream().collect(Collectors.toMap(SysRoleEntity::getId, SysRoleEntity::getCode, StreamFunction.keepExisting()));
     }
 
 

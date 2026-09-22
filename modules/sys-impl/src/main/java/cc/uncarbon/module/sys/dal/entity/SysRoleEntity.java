@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_role")
-public class SysRoleEntity extends AbstractTenantGenericEntity {
+public class SysRoleEntity extends AbstractGenericEntity {
 
 	@Serial
 	private static final long serialVersionUID = 1L;

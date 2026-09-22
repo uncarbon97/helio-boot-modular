@@ -13,7 +13,6 @@ import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -72,15 +71,5 @@ public interface SysRoleService {
      * 新增租户角色
      */
     TenantRoleCreateResult createTenantRole(TenantRoleCreateRequest request);
-
-    /**
-     * 后台管理-删除指定租户的特定角色
-     */
-    void adminDeleteTenantRoles(Collection<Long> tenantIds, Collection<String> roleValues);
-
-    /**
-     * 取用户ID拥有角色对应的 角色ID-角色名 map
-     */
-    Map<Long, String> getRoleMapByUserId(Long userId);
 
 }

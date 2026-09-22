@@ -93,5 +93,11 @@
             <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-starter-db-dynamic-datasource</artifactId>
         </dependency>
+
+        <!-- 存储点变更集群广播（Redisson RTopic） -->
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-redis</artifactId>
+        </dependency>
     </dependencies>
 </project>

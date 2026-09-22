@@ -1,6 +1,6 @@
-package cc.uncarbon.module.file.event;
+package cc.uncarbon.module.file.storage.event;
 
-import cc.uncarbon.module.file.support.DynamicFileStorageRegistrar;
+import cc.uncarbon.module.file.storage.DynamicFileStorageRegistrar;
 import lombok.Getter;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationEvent;

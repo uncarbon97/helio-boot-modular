@@ -1,9 +1,9 @@
 package cc.uncarbon.module.sys.service.impl;
 
-import cc.uncarbon.framework.helium.base.errorcode.StructuredErrorCode;
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
 import cc.uncarbon.framework.helium.base.context.UserContext;
+import cc.uncarbon.framework.helium.base.errorcode.StructuredErrorCode;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
@@ -31,8 +31,8 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.jspecify.annotations.Nullable;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -113,6 +113,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
             throw be;
         } catch (Exception e) {
             loginFailedErrorCode = SysErrorCodeEnum.B01001;
+            log.error("[{}] 内部异常，{} >>", LoginLogTypeEnum.PASSWORD_LOGIN, e.getMessage(), e);
             throw new BusinessException(loginFailedErrorCode);
         } finally {
             // 无论登录成功还是失败，都保存登录记录

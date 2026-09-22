@@ -16,12 +16,12 @@ public final class SysConstant {
     /**
      * 固定超级管理员角色ID
      */
-    public static final Long SUPER_ADMIN_ROLE_ID = 1L;
+    public static final Long SUPER_ADMIN_ROLE_ID = 0L;
 
     /**
      * 固定超级管理员用户ID
      */
-    public static final Long SUPER_ADMIN_USER_ID = 1L;
+    public static final Long SUPER_ADMIN_USER_ID = 0L;
 
     /**
      * 固定超级管理员角色编码
@@ -32,6 +32,6 @@ public final class SysConstant {
      * 固定租户管理员角色编码
      * 为了外显美观，没有在前面增加 Tenant 字样
      */
-    public static final String TENANT_ADMIN_ROLE_CODE = "Admin";
+    public static final String TENANT_ADMIN_ROLE_CODE = "OrgAdmin";
 
 }

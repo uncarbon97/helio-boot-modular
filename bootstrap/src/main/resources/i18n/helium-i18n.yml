@@ -1,9 +1,11 @@
+
+---
 "helium.i18n":
   enabled: true
   # 多语言
   lang:
     default-language-tag: zh-CN
-    # 兜底语言标签，请求语言/语言前缀都未命中翻译时回退到此语言；留空则回退到 ROOT
+    # 兜底语言标签，当请求语言、语言前缀都未命中翻译时，回退到此语言
     fallback-language-tag: zh-CN
     supported-language-tags:
       # 只加载这里显式标注支持的语言
@@ -33,7 +35,7 @@
   currency:
     # 默认币种
     default-currency: CNY
-    # 币种定义；keys() 同时即支持的币种集，无需再单独维护 supported-currencies
+    # 币种定义
     definitions:
       CNY:
         scale: 2

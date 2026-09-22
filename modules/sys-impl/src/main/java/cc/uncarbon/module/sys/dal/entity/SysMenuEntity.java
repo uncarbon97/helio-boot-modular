@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -26,7 +26,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_menu")
-public class SysMenuEntity extends AbstractTenantGenericEntity {
+public class SysMenuEntity extends AbstractGenericEntity {
 
 	@Serial
 	private static final long serialVersionUID = 1L;
