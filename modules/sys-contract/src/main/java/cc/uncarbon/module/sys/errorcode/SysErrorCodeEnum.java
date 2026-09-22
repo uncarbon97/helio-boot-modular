@@ -34,6 +34,7 @@ public enum SysErrorCodeEnum implements StructuredErrorCode {
     A01013("不能变动特殊角色"),
     A01014("不能变动自身角色"),
     A01015("不得超越自身菜单权限"),
+    A01016("仅超级管理员可见的菜单不能绑定给角色"),
 
     // 以下枚举用于用户的越权检查
     A01020("不能对自身进行此操作"),

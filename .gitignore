@@ -71,3 +71,5 @@ Desktop.ini
 # 环境变量文件（可能包含密钥、Token 等敏感信息）
 .env
 .env.*
+
+application-local.y*ml

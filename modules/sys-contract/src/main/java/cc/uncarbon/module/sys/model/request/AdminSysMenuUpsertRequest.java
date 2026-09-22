@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.model.request;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuVisibleScopeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -53,6 +54,9 @@ public class AdminSysMenuUpsertRequest implements Serializable {
     @Schema(description = "状态")
     @NotNull(message = "状态必填")
     private EnabledStatusEnum status;
+
+    @Schema(description = "可见范围，缺省为通用")
+    private MenuVisibleScopeEnum visibleScope;
 
     @Schema(description = "图标")
     @Size(max = 255, message = "图标最长{max}位")

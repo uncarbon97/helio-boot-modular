@@ -3,6 +3,7 @@ package cc.uncarbon.module.sys.dal.entity;
 import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuVisibleScopeEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -60,6 +61,10 @@ public class SysMenuEntity extends AbstractGenericEntity {
 	@TableField(value = "status")
 	private EnabledStatusEnum status;
 
+	@Schema(description = "可见范围")
+	@TableField(value = "visible_scope")
+	private MenuVisibleScopeEnum visibleScope;
+
 	@Schema(description = "图标")
 	@TableField(value = "icon")
 	private String icon;
@@ -75,5 +80,9 @@ public class SysMenuEntity extends AbstractGenericEntity {
 	@Schema(description = "外链地址")
 	@TableField(value = "external_link")
 	private String externalLink;
+
+	public boolean doesSuperAdminOnly() {
+		return MenuVisibleScopeEnum.SUPER_ADMIN_ONLY == getVisibleScope();
+	}
 
 }

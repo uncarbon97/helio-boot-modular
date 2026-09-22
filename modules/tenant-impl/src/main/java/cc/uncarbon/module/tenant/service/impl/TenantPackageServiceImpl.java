@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.sys.facade.SysMenuFacade;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
@@ -20,6 +21,7 @@ import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
 import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -45,6 +47,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
     private final TenantPackageMenuRelationService tenantPackageMenuRelationService;
     private final TenantMetaMapper tenantMetaMapper;
     private final TenantUserRoleFacade tenantUserRoleFacade;
+    private final SysMenuFacade sysMenuFacade;
 
 
     @Override
@@ -135,6 +138,12 @@ public class TenantPackageServiceImpl implements TenantPackageService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public TenantPackageBindMenuResult adminBindMenu(AdminTenantPackageBindMenuRequest request) {
+        // 「仅超管可见」菜单及其子孙不允许进入租户套餐，需先在菜单管理中调整为通用可见
+        if (CollUtil.isNotEmpty(request.getMenuIds())
+                && CollUtil.containsAny(request.getMenuIds(), sysMenuFacade.listSuperAdminOnlySubtreeMenuIds())) {
+            throw new BusinessException(TenantErrorCodeEnum.A03009);
+        }
+
         tenantPackageMenuRelationService.cleanAndBind(request.getId(), request.getMenuIds());
 
         // 查询受影响的租户ID

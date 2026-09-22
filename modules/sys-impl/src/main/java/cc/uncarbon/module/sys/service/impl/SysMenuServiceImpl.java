@@ -13,7 +13,9 @@ import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuVisibleScopeEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
 import cc.uncarbon.module.sys.service.SysMenuService;
@@ -48,6 +50,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     private final SysMenuMapper sysMenuMapper;
     private final SysRoleMapper sysRoleMapper;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
+    private final UserRoleHelper userRoleHelper;
 
 
     @Override
@@ -56,6 +59,17 @@ public class SysMenuServiceImpl implements SysMenuService {
                 // 排序
                 .orderByAsc(SysMenuEntity::getSort)
         );
+
+        // 非超级管理员剔除「仅超管可见」菜单及其子孙
+        if (doesMeNotSuperAdmin()) {
+            Map<Long, SysMenuEntity> allMenuMap = getAllMenuMap();
+            Set<Long> superAdminOnlySubtreeMenuIds = listSuperAdminOnlySubtreeMenuIds(allMenuMap);
+            if (CollUtil.isNotEmpty(superAdminOnlySubtreeMenuIds)) {
+                entityList = entityList.stream()
+                        .filter(entity -> !superAdminOnlySubtreeMenuIds.contains(entity.getId()))
+                        .toList();
+            }
+        }
         return convertList(entityList);
     }
 
@@ -71,6 +85,9 @@ public class SysMenuServiceImpl implements SysMenuService {
         checkParentUsable(request.getParentId());
 
         request.setId(null);
+        if (ObjectUtil.isNull(request.getVisibleScope())) {
+            request.setVisibleScope(MenuVisibleScopeEnum.ALL);
+        }
 
         var entity = new SysMenuEntity();
         BeanUtil.copyProperties(request, entity);
@@ -126,6 +143,12 @@ public class SysMenuServiceImpl implements SysMenuService {
     public SysMenuDTO getById(Long id) {
         if (id == null) return null;
         var entity = sysMenuMapper.selectById(id);
+
+        // 非超级管理员视角下，「仅超管可见」菜单及其子孙等同于不存在
+        if (entity != null && doesMeNotSuperAdmin()
+                && listSuperAdminOnlySubtreeMenuIds().contains(id)) {
+            return null;
+        }
         return convertEntity(entity);
     }
 
@@ -158,6 +181,8 @@ public class SysMenuServiceImpl implements SysMenuService {
         var ref = new Object() {
             // for lambda final
             Map<Long, SysMenuEntity> allMenuMap = null;
+            // 「仅超管可见」菜单及其子孙，懒加载
+            Set<Long> superAdminOnlySubtreeMenuIds = null;
         };
         // 一次性过滤出启用状态的角色；已禁用、已删除的角色一律视为无权限
         Set<Long> enabledRoleIds = sysRoleMapper.listEnabledRoleIds(roleIds);
@@ -190,6 +215,13 @@ public class SysMenuServiceImpl implements SysMenuService {
                     Set<Long> enabledChainMenuIds = menuIds.stream()
                             .filter(menuId -> selfAndAncestorsAllEnabled(ref.allMenuMap, menuId))
                             .collect(Collectors.toSet());
+                    // 再剔除「仅超管可见」菜单及其子孙，防止历史脏绑定漏出权限串
+                    if (!enabledChainMenuIds.isEmpty()) {
+                        if (ref.superAdminOnlySubtreeMenuIds == null) {
+                            ref.superAdminOnlySubtreeMenuIds = listSuperAdminOnlySubtreeMenuIds(ref.allMenuMap);
+                        }
+                        enabledChainMenuIds.removeAll(ref.superAdminOnlySubtreeMenuIds);
+                    }
                     permissions = enabledChainMenuIds.isEmpty() ? Set.of()
                             : sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
                                     .select(SysMenuEntity::getPermission)
@@ -371,9 +403,13 @@ public class SysMenuServiceImpl implements SysMenuService {
         Set<Long> tracedMenuIds = traceParentMenuIds(parentIdById, directlyRelatedMenuIds);
 
         // 6. 剔除自身或任一祖先被禁用的菜单（如目录被禁用后，整棵子树不再可见）
-        return tracedMenuIds.stream()
+        Set<Long> ret = tracedMenuIds.stream()
                 .filter(menuId -> selfAndAncestorsAllEnabled(allMenuMap, menuId))
                 .collect(Collectors.toSet());
+
+        // 7. 剔除「仅超管可见」菜单及其子孙
+        ret.removeAll(listSuperAdminOnlySubtreeMenuIds(allMenuMap));
+        return ret;
     }
 
     /**
@@ -381,8 +417,61 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     private Map<Long, SysMenuEntity> getAllMenuMap() {
         return sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
-                .select(SysMenuEntity::getId, SysMenuEntity::getParentId, SysMenuEntity::getStatus)
+                .select(SysMenuEntity::getId, SysMenuEntity::getParentId, SysMenuEntity::getStatus, SysMenuEntity::getVisibleScope)
         ).stream().collect(Collectors.toMap(SysMenuEntity::getId, Function.identity(), StreamFunction.keepExisting()));
+    }
+
+    @Override
+    public Set<Long> listSuperAdminOnlySubtreeMenuIds() {
+        return listSuperAdminOnlySubtreeMenuIds(getAllMenuMap());
+    }
+
+    /**
+     * 列举「仅超管可见」菜单及全部子孙菜单IDs
+     * <p>
+     * 子孙一并纳入，与「目录禁用后整棵子树不可见」的既有级联口径保持一致，
+     * 也避免子节点脱离受保护父级后在前端渲染成悬空节点
+     */
+    private Set<Long> listSuperAdminOnlySubtreeMenuIds(Map<Long, SysMenuEntity> allMenuMap) {
+        Set<Long> rootIds = allMenuMap.values().stream()
+                .filter(SysMenuEntity::doesSuperAdminOnly)
+                .map(SysMenuEntity::getId)
+                .collect(Collectors.toSet());
+        if (rootIds.isEmpty()) {
+            return Set.of();
+        }
+
+        // 反向建 子菜单ID集合-父菜单ID map，向下广度优先展开
+        Map<Long, Set<Long>> childrenIdsByParentId = new HashMap<>(allMenuMap.size() << 1);
+        for (SysMenuEntity entity : allMenuMap.values()) {
+            childrenIdsByParentId.computeIfAbsent(entity.getParentId(), k -> new HashSet<>()).add(entity.getId());
+        }
+
+        Set<Long> ret = new HashSet<>(rootIds);
+        Deque<Long> pending = new ArrayDeque<>(rootIds);
+        while (!pending.isEmpty()) {
+            Set<Long> children = childrenIdsByParentId.get(pending.poll());
+            if (children != null) {
+                for (Long childId : children) {
+                    if (ret.add(childId)) {
+                        pending.add(childId);
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * 用户态非空，且登录者不是超级管理员时返回 true
+     * <p>
+     * 无用户上下文（系统内部调用、定时任务等）时返回 false，不做剔除
+     */
+    private boolean doesMeNotSuperAdmin() {
+        var context = UserContextHolder.getContext();
+        return context != null
+                && CollUtil.isNotEmpty(context.getRoleIds())
+                && !context.getRoleIds().contains(SysConstant.SUPER_ADMIN_ROLE_ID);
     }
 
     /**

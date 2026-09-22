@@ -91,7 +91,8 @@ public class SysRoleEntity extends AbstractGenericEntity {
 	 * 角色实例可被视为超级管理员
 	 */
 	public boolean isSuperAdmin() {
-		return SysConstant.SUPER_ADMIN_ROLE_CODE.equals(getCode());
+		return SysConstant.SUPER_ADMIN_ROLE_ID.equals(getId())
+				|| SysConstant.SUPER_ADMIN_ROLE_CODE.equals(getCode());
 	}
 
 	/**

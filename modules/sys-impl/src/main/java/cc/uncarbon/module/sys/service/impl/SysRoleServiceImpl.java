@@ -320,12 +320,21 @@ public class SysRoleServiceImpl implements SysRoleService {
             throw new BusinessException(SysErrorCodeEnum.A01014);
         }
 
-        if (CollUtil.isNotEmpty(request.getMenuIds()) && !me.isSuperAdmin()) {
-            // 超级管理员之外的角色，都需要校验自身菜单范围是否满足输入值
-            Set<Long> visibleMenuIds = sysRoleMenuRelationService.listMenuIdsByRoles(me.getRelatedRoleIds());
-            if (!CollUtil.containsAll(visibleMenuIds, request.getMenuIds())) {
-                // 可能存在超自身权限赋权
-                throw new BusinessException(SysErrorCodeEnum.A01015);
+        if (CollUtil.isNotEmpty(request.getMenuIds())) {
+            // 「仅超管可见」菜单及其子孙不允许绑定给任何角色（含超级管理员操作），
+            // 需先在菜单管理中调整为通用可见，再行授权
+            Set<Long> superAdminOnlySubtreeMenuIds = sysMenuService.listSuperAdminOnlySubtreeMenuIds();
+            if (CollUtil.containsAny(request.getMenuIds(), superAdminOnlySubtreeMenuIds)) {
+                throw new BusinessException(SysErrorCodeEnum.A01016);
+            }
+
+            if (!me.isSuperAdmin()) {
+                // 超级管理员之外的角色，都需要校验自身菜单范围是否满足输入值
+                Set<Long> visibleMenuIds = sysRoleMenuRelationService.listMenuIdsByRoles(me.getRelatedRoleIds());
+                if (!CollUtil.containsAll(visibleMenuIds, request.getMenuIds())) {
+                    // 可能存在超自身权限赋权
+                    throw new BusinessException(SysErrorCodeEnum.A01015);
+                }
             }
         }
     }

@@ -69,4 +69,11 @@ public interface SysMenuService {
      */
     Map<Long, Set<String>> getPermissionsByRole(Collection<Long> roleIds);
 
+    /**
+     * 列举「仅超管可见」菜单及全部子孙菜单IDs
+     * <p>
+     * 供角色-菜单、租户套餐-菜单绑定前校验使用，命中任意ID即应拒绝绑定
+     */
+    Set<Long> listSuperAdminOnlySubtreeMenuIds();
+
 }

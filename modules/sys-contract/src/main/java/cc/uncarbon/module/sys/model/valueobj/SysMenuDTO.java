@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.model.valueobj;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuVisibleScopeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -44,6 +45,9 @@ public class SysMenuDTO implements Serializable {
 
     @Schema(description = "状态")
     private EnabledStatusEnum status;
+
+    @Schema(description = "可见范围")
+    private MenuVisibleScopeEnum visibleScope;
 
     @Schema(description = "图标")
     private String icon;
