@@ -2,9 +2,9 @@ package cc.uncarbon.module.adminapi.support.loginchallenge.strategy;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
+import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
 import cc.uncarbon.module.adminapi.support.loginchallenge.valueobj.AdminAuthChallengeVO;
-import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.ShearCaptcha;
 import cn.hutool.core.lang.UUID;
@@ -16,7 +16,6 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -76,12 +75,11 @@ public class OcrCaptchaChallengeStrategy implements LoginChallengeStrategy {
         // 将验证码答案保存至 redis
         Duration duration = Duration.of(validSeconds, ChronoUnit.SECONDS);
         stringRedisTemplate.opsForValue().set(captchaCacheKey, captcha.getCode(), duration);
-        Instant expiredAt = Instant.now().plus(validSeconds, ChronoUnit.SECONDS);
 
         return new AdminAuthChallengeVO(type())
                 .setCaptchaImageEncoded(captcha.getImageBase64Data())
                 .setCaptchaId(uuid.toString(true))
-                .setExpiredAt(expiredAt);
+                .setValidSeconds(validSeconds);
     }
 
     @Override

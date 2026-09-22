@@ -4,12 +4,9 @@ import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeSt
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import java.time.Instant;
 
 /**
  * 后台管理-鉴权挑战
@@ -31,8 +28,8 @@ public class AdminAuthChallengeVO {
     @Schema(description = "验证码唯一标识")
     private String captchaId;
 
-    @Schema(description = "验证码失效时刻")
-    private Instant expiredAt;
+    @Schema(description = "验证码有效秒数")
+    private int validSeconds;
 
     public static AdminAuthChallengeVO noChallenge() {
         return new AdminAuthChallengeVO(LoginChallengeStrategyTypeEnum.NONE);
