@@ -64,4 +64,9 @@ public interface TenantService {
      */
     TenantMetaDTO getByCode(String code, boolean fillDetail);
 
+    /**
+     * 列举全部启用状态的租户（忽略租户态，平台视角）
+     */
+    List<TenantMetaDTO> listEnabled();
+
 }

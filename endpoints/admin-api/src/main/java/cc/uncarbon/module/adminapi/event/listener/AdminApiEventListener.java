@@ -1,6 +1,7 @@
 package cc.uncarbon.module.adminapi.event.listener;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
+import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.adminapi.event.RefreshSysUserSessionEvent;
@@ -103,7 +104,11 @@ public class AdminApiEventListener {
             // 用户不在线，无需刷新
             return;
         }
-        var freshContext = adminLoginService.buildSessionUserContext(userId);
+        // 处于切换租户视角的会话按当前生效租户重建（超管在服务层按归属租户解析）
+        TenantContext tenantContext = session.get(TenantContext.CAMEL_NAME) instanceof TenantContext t ? t : null;
+        var freshContext = tenantContext != null
+                ? adminLoginService.buildSessionUserContext(userId, tenantContext)
+                : adminLoginService.buildSessionUserContext(userId);
         if (freshContext == null) {
             // 用户已不存在或被禁用，兜底强制登出
             StpKit.ADMIN.kickout(userId);

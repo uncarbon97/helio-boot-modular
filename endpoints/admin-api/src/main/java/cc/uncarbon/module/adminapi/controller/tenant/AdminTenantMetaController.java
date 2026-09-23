@@ -8,6 +8,7 @@ import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
+import cc.uncarbon.module.adminapi.helper.TenantSwitchRegistry;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.constant.PermissionPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -49,6 +51,7 @@ public class AdminTenantMetaController {
 
     private final TenantService tenantService;
     private final ApplicationEventPublisher eventPublisher;
+    private final TenantSwitchRegistry tenantSwitchRegistry;
 
 
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
@@ -101,10 +104,13 @@ public class AdminTenantMetaController {
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = tenantService.getNonnullById(request.getId());
         List<Long> kickedUserIds = tenantService.adminSetStatus(request);
-        if (!kickedUserIds.isEmpty()) {
+        // 并入「已切入该租户视角」的会话登记（如超管切换视角后停留），再统一强制登出
+        Set<Long> kickedUserIdSet = new HashSet<>(kickedUserIds);
+        kickedUserIdSet.addAll(tenantSwitchRegistry.listUserIds(request.getId()));
+        if (!kickedUserIdSet.isEmpty()) {
             // 租户被禁用，强制登出该租户全部用户
             eventPublisher.publishEvent(new KickOutSysUsersEvent(
-                    new KickOutSysUsersEvent.EventData(kickedUserIds)
+                    new KickOutSysUsersEvent.EventData(kickedUserIdSet)
             ));
         }
         // 用于操作日志

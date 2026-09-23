@@ -7,6 +7,7 @@ import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
@@ -116,6 +117,11 @@ public class TenantServiceImpl implements TenantService {
     public List<Long> adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         log.info(LOG_PREFIX + "修改状态 >> {}", request);
         NoRecordException.throwIfNull(tenantMetaMapper.selectById(request.getId()));
+        if (EnabledStatusEnum.DISABLED == request.getNewStatus()
+                && Objects.equals(request.getId(), SysConstant.PLATFORM_TENANT_ID)) {
+            // 平台自营域不可禁用（B5 种子约定）
+            throw new BusinessException(TenantErrorCodeEnum.A03013);
+        }
 
         List<Long> tenantUserIds = List.of();
         if (EnabledStatusEnum.DISABLED == request.getNewStatus()) {
@@ -134,6 +140,10 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public void adminDelete(Collection<Long> ids) {
         log.info("[系统管理-删除系统租户] >> 入参={}", ids);
+        if (CollUtil.contains(ids, SysConstant.PLATFORM_TENANT_ID)) {
+            // 平台自营域不可删除（B5 种子约定）
+            throw new BusinessException(TenantErrorCodeEnum.A03013);
+        }
         // 仍有用户的租户不可删除，避免残留可继续使用的会话与孤儿关联数据
         for (Long id : ids) {
             List<Long> tenantUserIds = tenantUserRoleFacade.listUserIdsByTenantId(id, null);
@@ -154,6 +164,14 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public TenantMetaDTO getNonnullById(Long id) throws NoRecordException {
         return NoRecordException.throwIfNull(getById(id));
+    }
+
+    @Override
+    public List<TenantMetaDTO> listEnabled() {
+        return convertList(tenantMetaMapper.selectList(new LambdaQueryWrapper<TenantMetaEntity>()
+                .eq(TenantMetaEntity::getStatus, EnabledStatusEnum.ENABLED)
+                .orderByAsc(TenantMetaEntity::getId)
+        ), false);
     }
 
     @Override

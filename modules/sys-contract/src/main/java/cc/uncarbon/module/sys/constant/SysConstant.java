@@ -24,6 +24,11 @@ public final class SysConstant {
     public static final Long SUPER_ADMIN_USER_ID = 0L;
 
     /**
+     * 固定平台自营域租户ID（tenant_id=0，永不删除、不可禁用）
+     */
+    public static final Long PLATFORM_TENANT_ID = 0L;
+
+    /**
      * 固定超级管理员角色编码
      */
     public static final String SUPER_ADMIN_ROLE_CODE = "SuperAdmin";

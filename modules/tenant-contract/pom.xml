@@ -45,5 +45,10 @@
             <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-core-db</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-core-tenant</artifactId>
+        </dependency>
     </dependencies>
 </project>

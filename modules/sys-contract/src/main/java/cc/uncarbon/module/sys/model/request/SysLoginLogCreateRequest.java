@@ -43,6 +43,12 @@ public class SysLoginLogCreateRequest implements Serializable {
     @Schema(description = "结果状态", requiredMode = Schema.RequiredMode.REQUIRED)
     private LogResultStatusEnum resultStatus;
 
+    /**
+     * 归属租户ID；登录失败无租户上下文时为 0（平台自营域）
+     */
+    private Long tenantId;
+
+
     @Schema(description = "失败原因文本")
     private String failedMsg;
 

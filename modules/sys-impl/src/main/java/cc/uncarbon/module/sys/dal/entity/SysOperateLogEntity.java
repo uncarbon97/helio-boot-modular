@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -16,7 +16,6 @@ import lombok.experimental.Accessors;
 import java.io.Serial;
 import java.time.Instant;
 
-
 /**
  * 系统操作日志
  */
@@ -26,7 +25,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_operate_log")
-public class SysOperateLogEntity extends AbstractGenericEntity {
+public class SysOperateLogEntity extends AbstractTenantGenericEntity {
 
 	@Serial
 	private static final long serialVersionUID = 1L;

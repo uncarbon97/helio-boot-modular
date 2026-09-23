@@ -8,6 +8,7 @@ import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
 import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -57,5 +58,31 @@ public interface TenantUserRoleFacade {
      * @param statusEnums 仅保留符合指定状态的，可以为null
      */
     List<Long> listUserIdsByTenantId(Long tenantId, Collection<EnabledStatusEnum> statusEnums);
+
+    /**
+     * 取指定用户启用状态的关联租户ID列表（真源 sys_user_tenant_relation，忽略租户态读取）
+     *
+     * @return 按 relation 主键 ASC（即加入先后）排序；无关联时为空列表
+     */
+    List<Long> listEnabledTenantIdsByUser(Long userId);
+
+    /**
+     * 记忆用户当前激活租户（仅更新 sys_user.tenant_id 投影列，供 USER_FIRST 下次登录首选）
+     * <p>超级管理员归属平台自营域，视角切换不落投影列</p>
+     */
+    void rememberActiveTenant(Long userId, Long tenantId);
+
+    /**
+     * 指定用户是否为超级管理员（按归属租户解析角色，切换视角后判断不受影响）
+     */
+    boolean isSuperAdmin(Long userId);
+
+    /**
+     * 取指定用户的归属租户ID（sys_user.tenant_id 投影列，忽略租户态读取）
+     *
+     * @return 无归属时返回 null
+     */
+    @Nullable
+    Long getUserHomeTenantId(Long userId);
 
 }

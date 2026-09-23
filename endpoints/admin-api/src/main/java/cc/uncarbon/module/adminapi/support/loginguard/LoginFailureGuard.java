@@ -1,6 +1,8 @@
 package cc.uncarbon.module.adminapi.support.loginguard;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
+import cc.uncarbon.framework.helium.tenant.props.HeliumTenantProperties;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
 import cc.uncarbon.module.adminapi.props.LoginFailureGuardProperties;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -13,7 +15,10 @@ import java.time.Duration;
 
 /**
  * 登录失败次数限制（防撞库）
- * 按 租户编码+账号 维度在 Redis 计数，达到阈值后临时锁定
+ *
+ * <p>锁定 key 维度按登录模式收敛到本类一处（B8）：
+ * TENANT_FIRST 按「租户编码+账号」（continew 教训：不含租户则同名互锁）；
+ * USER_FIRST 按「账号」（pin 全局唯一，天然按人）</p>
  *
  * @author Uncarbon
  */
@@ -26,6 +31,7 @@ public class LoginFailureGuard {
 
     private final RedisTemplate<String, String> stringRedisTemplate;
     private final LoginFailureGuardProperties props;
+    private final HeliumTenantProperties tenantProps;
 
 
     /**
@@ -58,7 +64,13 @@ public class LoginFailureGuard {
     }
 
     private String cacheKey(String tenantCode, String pin) {
+        String normalizedPin = CharSequenceUtil.nullToEmpty(pin);
+        if (TenantLoginModeEnum.USER_FIRST == tenantProps.getLoginMode()) {
+            // 用户优先：pin 全局唯一，按账号计数（切换模式时计数重置，可容忍）
+            return String.format(CACHE_KEY_LOGIN_FAIL_COUNT, "", normalizedPin);
+        }
+        // 租户优先：按「租户编码+账号」计数
         return String.format(CACHE_KEY_LOGIN_FAIL_COUNT,
-                CharSequenceUtil.nullToEmpty(tenantCode), CharSequenceUtil.nullToEmpty(pin));
+                CharSequenceUtil.nullToEmpty(tenantCode), normalizedPin);
     }
 }

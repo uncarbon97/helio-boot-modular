@@ -26,6 +26,7 @@ public enum SysErrorCodeEnum implements StructuredErrorCode {
     A01005("当前用户没有可用角色"),
     A01006("当前角色没有可用菜单"),
     A01007("新密码不能与旧密码相同"),
+    A01008("当前账号未归属任何租户，无法登录"),
 
     // 以下枚举用于角色的越权检查
     A01010("不能使用 {} 作为角色编码"),
@@ -69,6 +70,7 @@ public enum SysErrorCodeEnum implements StructuredErrorCode {
      B 开头错误码，表示本服务内部错误
      */
     B01001("登录组件错误，请联系管理员"),
+    B01002("当前登录模式暂未开放，请联系管理员"),
 
     ;private final String errorMsgFriendly;
 

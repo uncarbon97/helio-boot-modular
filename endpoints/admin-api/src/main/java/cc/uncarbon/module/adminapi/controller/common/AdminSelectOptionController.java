@@ -1,6 +1,5 @@
 package cc.uncarbon.module.adminapi.controller.common;
 
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
 import cc.uncarbon.module.adminapi.model.valueobj.AdminSelectOptionItemVO;
@@ -32,7 +31,7 @@ import java.util.List;
 
 /**
  * 这里统一存放所有用于后台管理的下拉框数据源接口
- * 避免多人协作时，不知道原来是否已经有了，或者写在某个边边角角里，造成重复开发
+ * 避免多人协作时，不知道原来是否已经有了，或者写在某个边边角角里，造成重复开发与泄露风险
  * <p>
  * {@code @SaCheckLogin(type = StpLoginType.ADMIN)} 表示只有登录后才能请求
  */

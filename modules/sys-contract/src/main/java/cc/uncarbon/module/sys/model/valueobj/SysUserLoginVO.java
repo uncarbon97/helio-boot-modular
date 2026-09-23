@@ -1,5 +1,6 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
+import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,5 +29,8 @@ public class SysUserLoginVO implements Serializable {
 
     @Schema(description = "拥有权限")
     private Collection<String> permissions;
+
+    @Schema(description = "可切换租户列表；USER_FIRST 登录时返回，供登录后租户切换器渲染")
+    private Collection<TenantContext> selectableTenants;
 
 }

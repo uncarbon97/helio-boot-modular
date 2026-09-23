@@ -6,9 +6,12 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
+import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
@@ -23,9 +26,11 @@ import cc.uncarbon.module.sys.service.SysUserService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -48,6 +53,8 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
     private final SysRoleMapper sysRoleMapper;
     private final SysUserMapper sysUserMapper;
+    private final SysUserTenantRelationMapper sysUserTenantRelationMapper;
+    private final UserRoleHelper userRoleHelper;
 
 
     @SneakyThrows
@@ -62,10 +69,14 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
     @SneakyThrows
     @Override
     public TenantUserCreateResult createTenantUser(TenantUserCreateRequest request) {
-        return TenantContextHolder.callWithContext(
+        TenantUserCreateResult ret = TenantContextHolder.callWithContext(
                 new SimpleTenantContext(request.getTenantId(), request.getTenantCode(), request.getTenantCode()),
                 () -> sysUserService.createTenantUser(request)
         );
+        // 双写：sys_user_tenant_relation 为唯一真源，sys_user.tenant_id 投影列由 INSERT 填充维护
+        sysUserTenantRelationMapper.insert(SysUserTenantRelationEntity.of(
+                request.getTenantId(), ret.getNewUserId(), EnabledStatusEnum.ENABLED));
+        return ret;
     }
 
     @Override
@@ -134,5 +145,70 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
                         .stream()
                         .map(SysUserEntity::getId)
                         .toList());
+    }
+
+    @SneakyThrows
+    @Override
+    public List<Long> listEnabledTenantIdsByUser(Long userId) {
+        if (userId == null) {
+            return List.of();
+        }
+        return TenantContextHolder.callIgnored(() -> sysUserTenantRelationMapper.selectList(
+                        new LambdaQueryWrapper<SysUserTenantRelationEntity>()
+                                .select(SysUserTenantRelationEntity::getTenantId)
+                                .eq(SysUserTenantRelationEntity::getUserId, userId)
+                                .eq(SysUserTenantRelationEntity::getStatus, EnabledStatusEnum.ENABLED)
+                                .orderByAsc(SysUserTenantRelationEntity::getId))
+                .stream()
+                .map(SysUserTenantRelationEntity::getTenantId)
+                .toList());
+    }
+
+    @SneakyThrows
+    @Override
+    public void rememberActiveTenant(Long userId, Long tenantId) {
+        if (userId == null || tenantId == null || isSuperAdmin(userId)) {
+            return;
+        }
+        TenantContextHolder.callIgnored(() -> {
+            sysUserMapper.update(null, new LambdaUpdateWrapper<SysUserEntity>()
+                    .set(SysUserEntity::getTenantId, tenantId)
+                    .eq(SysUserEntity::getId, userId));
+            return null;
+        });
+    }
+
+    @SneakyThrows
+    @Override
+    public boolean isSuperAdmin(Long userId) {
+        if (userId == null) {
+            return false;
+        }
+        // 按归属租户解析角色，超管切入其他租户视角后判断不受行级过滤影响
+        Long homeTenantId = getUserHomeTenantId(userId);
+        if (homeTenantId == null) {
+            return TenantContextHolder.callIgnored(() ->
+                    userRoleHelper.getSpecifiedUserRole(userId).isSuperAdmin());
+        }
+        return TenantContextHolder.callWithContext(
+                new SimpleTenantContext(homeTenantId, null, null),
+                () -> userRoleHelper.getSpecifiedUserRole(userId).isSuperAdmin());
+    }
+
+    @SneakyThrows
+    @Nullable
+    @Override
+    public Long getUserHomeTenantId(Long userId) {
+        if (userId == null) {
+            return null;
+        }
+        // 忽略租户态，强行读取投影列
+        return TenantContextHolder.callIgnored(() -> {
+            var entity = sysUserMapper.selectById(userId);
+            if (entity != null) {
+                return entity.getTenantId();
+            }
+            return null;
+        });
     }
 }

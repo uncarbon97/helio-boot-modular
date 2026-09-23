@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractRelationEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractTenantRelationEntity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -14,7 +14,6 @@ import lombok.experimental.Accessors;
 
 import java.io.Serial;
 
-
 /**
  * 系统用户-角色关联关系
  */
@@ -24,7 +23,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_user_role_relation")
-public class SysUserRoleRelationEntity extends AbstractRelationEntity {
+public class SysUserRoleRelationEntity extends AbstractTenantRelationEntity {
 
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -41,7 +40,6 @@ public class SysUserRoleRelationEntity extends AbstractRelationEntity {
 	@Schema(description = "角色ID")
 	@TableField(value = "role_id")
 	private Long roleId;
-
 
 	public static SysUserRoleRelationEntity of(Long userId, Long roleId) {
 		SysUserRoleRelationEntity ret = new SysUserRoleRelationEntity();

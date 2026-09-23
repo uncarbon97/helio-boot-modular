@@ -1,11 +1,14 @@
 package cc.uncarbon.module.tenant.model.valueobj;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
+import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import org.jspecify.annotations.NonNull;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -47,4 +50,10 @@ public class TenantMetaDTO implements Serializable {
     @Schema(description = "租户管理员用户资料")
     private TenantUserBasicProfileDTO adminUserProfile;
 
+    /**
+     * 转换成 {@link TenantContext} 实例
+     */
+    public @NonNull TenantContext toTenantContext() {
+        return new SimpleTenantContext(getId(), getName(), getCode());
+    }
 }

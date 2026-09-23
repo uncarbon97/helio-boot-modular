@@ -12,8 +12,10 @@ import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
@@ -62,6 +64,7 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
     private final UserRoleHelper userRoleHelper;
+    private final SysUserTenantRelationMapper sysUserTenantRelationMapper;
 
 
     @Override
@@ -180,10 +183,12 @@ public class SysUserServiceImpl implements SysUserService {
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
         checkBeforeDelete(ids);
-        // 解除该用户的部门/角色关联，避免孤儿关系行
+        // 解除该用户的部门/角色/租户关联，避免孤儿关系行
         ids.forEach(id -> {
             sysUserDeptRelationService.cleanAndBind(id, null);  // null = 解除全部部门绑定
             sysUserRoleRelationService.cleanAndBindByUser(id, null);  // 空集 = 解除全部角色绑定
+            sysUserTenantRelationMapper.delete(new LambdaQueryWrapper<SysUserTenantRelationEntity>()
+                    .eq(SysUserTenantRelationEntity::getUserId, id));
         });
         sysUserMapper.deleteByIds(ids);
     }

@@ -47,6 +47,7 @@ A01042: This menu contains sub-menus and cannot be deleted
 A01043: This dictionary category still has dictionary items and cannot be deleted
 A01044: The parent menu has been disabled
 B01001: Login component error, please contact the administrator
+B01002: The current login mode is not yet available, please contact the administrator
 
 ---  # TenantErrorCodeEnum
 A03001: Tenant does not exist
@@ -57,8 +58,11 @@ A03005: The same tenant code already exists
 A03006: The tenant has been disabled
 A03007: This tenant still has users and cannot be deleted
 A03008: Some tenants are still using this package, it cannot be deleted
-A03009: No permission to switch to this tenant
+A03009: Menus visible only to the super administrator cannot be bound to tenant packages
 A03010: The tenant code does not match the account's tenant
+A03011: Please enter the tenant code
+A03012: No permission to switch to this tenant
+A03013: The built-in platform tenant cannot be disabled or deleted
 B03001: Failed to validate the tenant code
 
 ---  # FileErrorCodeEnum
