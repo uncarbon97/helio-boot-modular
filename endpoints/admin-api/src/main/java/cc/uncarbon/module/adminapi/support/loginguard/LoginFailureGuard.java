@@ -2,9 +2,9 @@ package cc.uncarbon.module.adminapi.support.loginguard;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
-import cc.uncarbon.framework.helium.tenant.props.HeliumTenantProperties;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
 import cc.uncarbon.module.adminapi.props.LoginFailureGuardProperties;
+import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cn.hutool.core.text.CharSequenceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -31,7 +31,7 @@ public class LoginFailureGuard {
 
     private final RedisTemplate<String, String> stringRedisTemplate;
     private final LoginFailureGuardProperties props;
-    private final HeliumTenantProperties tenantProps;
+    private final TenantFacade tenantFacade;
 
 
     /**
@@ -51,7 +51,7 @@ public class LoginFailureGuard {
     public void recordFailure(String tenantCode, String pin) {
         String key = cacheKey(tenantCode, pin);
         Long count = stringRedisTemplate.opsForValue().increment(key);
-        if (count != null && count == 1L) {
+        if (count != null && count <= 1L) {
             stringRedisTemplate.expire(key, Duration.ofSeconds(props.getLockSeconds()));
         }
     }
@@ -63,14 +63,20 @@ public class LoginFailureGuard {
         stringRedisTemplate.delete(cacheKey(tenantCode, pin));
     }
 
+    /**
+     * 构造缓存键
+     */
     private String cacheKey(String tenantCode, String pin) {
         String normalizedPin = CharSequenceUtil.nullToEmpty(pin);
-        if (TenantLoginModeEnum.USER_FIRST == tenantProps.getLoginMode()) {
+        TenantLoginModeEnum loginMode = tenantFacade.getLoginMode();
+        if (loginMode == TenantLoginModeEnum.TENANT_FIRST) {
+            // 租户优先：按「租户编码+账号」计数
+            return String.format(CACHE_KEY_LOGIN_FAIL_COUNT,
+                    CharSequenceUtil.nullToEmpty(tenantCode), normalizedPin);
+        } else if (loginMode == TenantLoginModeEnum.USER_FIRST) {
             // 用户优先：pin 全局唯一，按账号计数（切换模式时计数重置，可容忍）
             return String.format(CACHE_KEY_LOGIN_FAIL_COUNT, "", normalizedPin);
         }
-        // 租户优先：按「租户编码+账号」计数
-        return String.format(CACHE_KEY_LOGIN_FAIL_COUNT,
-                CharSequenceUtil.nullToEmpty(tenantCode), normalizedPin);
+        throw new IllegalStateException("不能根据 loginMode=" + loginMode + " 确定缓存键");
     }
 }
