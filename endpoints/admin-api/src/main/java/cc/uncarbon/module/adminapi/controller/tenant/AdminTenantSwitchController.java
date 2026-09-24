@@ -5,7 +5,7 @@ import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
-import cc.uncarbon.module.adminapi.helper.TenantSwitchRegistry;
+import cc.uncarbon.module.adminapi.helper.TenantSwitchHelper;
 import cc.uncarbon.module.adminapi.model.internal.TenantSwitchInfo;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
@@ -34,9 +34,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 租户视角切换
- *
- * <p>TENANT_FIRST 阶段限超级管理员：切入其他租户视角做跨租户管理，权限保持超管本人，全程审计；
+ * <p>TENANT_FIRST 阶段限超级管理员：切换至其他租户视角做跨租户管理，权限保持超管本人，全程审计；
  * USER_FIRST 切换时放开给普通用户（在本人关联租户间切换，权限快照按目标租户重建）。</p>
  *
  * <p>租户域查询经 {@link TenantFacade}；鉴权在服务层做活体校验（防会话快照陈旧），故此处仅要求登录态。</p>
@@ -53,7 +51,7 @@ public class AdminTenantSwitchController {
 
     private final TenantFacade tenantFacade;
     private final TenantUserRoleFacade tenantUserRoleFacade;
-    private final TenantSwitchRegistry tenantSwitchRegistry;
+    private final TenantSwitchHelper tenantSwitchHelper;
     private final AdminLoginService adminLoginService;
 
 
@@ -79,7 +77,7 @@ public class AdminTenantSwitchController {
         TenantContext current = readTenantContext(session);
         if (current != null && Objects.equals(current.getTenantId(), target.getTenantId())) {
             // 幂等：已处于目标租户视角
-            return ApiResult.success(currentContextVO(session));
+            return ApiResult.success(toContext(session));
         }
 
         // 切换标记：首次切换记录切换前上下文，T1→T2 直切时保持原始视角不变
@@ -97,11 +95,10 @@ public class AdminTenantSwitchController {
 
         // 维护租户在会话登记，供租户禁用时强制登出
         if (current != null) {
-            tenantSwitchRegistry.unregister(current.getTenantId(), loginId);
+            tenantSwitchHelper.unregister(current.getTenantId(), loginId);
         }
-        tenantSwitchRegistry.register(target.getTenantId(), loginId);
-
-        return ApiResult.success(currentContextVO(session));
+        tenantSwitchHelper.register(target.getTenantId(), loginId);
+        return current();
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "退出切换租户", success = "退出切换租户，回到默认视角")
@@ -114,7 +111,7 @@ public class AdminTenantSwitchController {
 
         if (!(session.get(TenantSwitchInfo.CAMEL_NAME) instanceof TenantSwitchInfo)) {
             // 幂等：未处于切换态
-            return ApiResult.success(currentContextVO(session));
+            return ApiResult.success(toContext(session));
         }
 
         TenantContext current = readTenantContext(session);
@@ -139,19 +136,18 @@ public class AdminTenantSwitchController {
         session.delete(TenantSwitchInfo.CAMEL_NAME);
 
         if (current != null) {
-            tenantSwitchRegistry.unregister(current.getTenantId(), loginId);
+            tenantSwitchHelper.unregister(current.getTenantId(), loginId);
         }
         if (restore != null) {
-            tenantSwitchRegistry.register(restore.getTenantId(), loginId);
+            tenantSwitchHelper.register(restore.getTenantId(), loginId);
         }
-
-        return ApiResult.success(currentContextVO(session));
+        return current();
     }
 
     @Operation(summary = "当前会话租户信息")
     @PostMapping(value = "/current")
     public ApiResult<AdminTenantContextVO> current() {
-        return ApiResult.success(currentContextVO(StpKit.ADMIN.getSession()));
+        return ApiResult.success(toContext(StpKit.ADMIN.getSession()));
     }
 
 
@@ -164,7 +160,7 @@ public class AdminTenantSwitchController {
     /**
      * 视角切换后按生效租户原位刷新会话权限快照；刷新失败（用户已不存在/被禁用）保留原快照并告警
      */
-    private void refreshSessionUserContext(SaSession session, long loginId, TenantContext tenantContext) {
+    private void refreshSessionUserContext(SaSession session, Long loginId, TenantContext tenantContext) {
         UserContext refreshed = adminLoginService.buildSessionUserContext(loginId, tenantContext);
         if (refreshed != null) {
             session.set(UserContext.CAMEL_NAME, refreshed);
@@ -173,14 +169,14 @@ public class AdminTenantSwitchController {
         }
     }
 
-    private TenantContext readTenantContext(SaSession session) {
+    private static TenantContext readTenantContext(SaSession session) {
         return session.get(TenantContext.CAMEL_NAME) instanceof TenantContext t ? t : null;
     }
 
     /**
-     * 按当前会话状态构造租户信息视图（横幅数据一次拿全）
+     * 按当前会话状态构造租户信息视图
      */
-    private AdminTenantContextVO currentContextVO(SaSession session) {
+    private static AdminTenantContextVO toContext(SaSession session) {
         TenantContext t = readTenantContext(session);
         TenantSwitchInfo info = session.get(TenantSwitchInfo.CAMEL_NAME) instanceof TenantSwitchInfo i ? i : null;
 

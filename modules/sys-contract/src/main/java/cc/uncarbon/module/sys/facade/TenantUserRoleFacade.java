@@ -6,8 +6,8 @@ import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
-import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
+import cc.uncarbon.module.sys.model.valueobj.TenantUserBasicProfileDTO;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -49,7 +49,7 @@ public interface TenantUserRoleFacade {
     /**
      * 查询租户用户基本资料
      */
-    TenantUserBasicProfile getTenantUserBasicProfile(long tenantId, long userId);
+    TenantUserBasicProfileDTO getTenantUserBasicProfile(long tenantId, long userId);
 
     /**
      * 系统管理 - 取租户用户IDs

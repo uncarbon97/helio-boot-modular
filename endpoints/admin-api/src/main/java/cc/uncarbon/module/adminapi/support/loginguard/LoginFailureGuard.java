@@ -2,6 +2,7 @@ package cc.uncarbon.module.adminapi.support.loginguard;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
+import cc.uncarbon.module.adminapi.constant.AdminCacheKeyConstant;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
 import cc.uncarbon.module.adminapi.props.LoginFailureGuardProperties;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
@@ -26,8 +27,6 @@ import java.time.Duration;
 @RequiredArgsConstructor
 @Component
 public class LoginFailureGuard {
-
-    private static final String CACHE_KEY_LOGIN_FAIL_COUNT = "login-challenge:fail-count:%s:%s";
 
     private final RedisTemplate<String, String> stringRedisTemplate;
     private final LoginFailureGuardProperties props;
@@ -71,11 +70,11 @@ public class LoginFailureGuard {
         TenantLoginModeEnum loginMode = tenantFacade.getLoginMode();
         if (loginMode == TenantLoginModeEnum.TENANT_FIRST) {
             // 租户优先：按「租户编码+账号」计数
-            return String.format(CACHE_KEY_LOGIN_FAIL_COUNT,
+            return String.format(AdminCacheKeyConstant.LOGIN_CHALLENGE_FAIL_COUNT,
                     CharSequenceUtil.nullToEmpty(tenantCode), normalizedPin);
         } else if (loginMode == TenantLoginModeEnum.USER_FIRST) {
             // 用户优先：pin 全局唯一，按账号计数（切换模式时计数重置，可容忍）
-            return String.format(CACHE_KEY_LOGIN_FAIL_COUNT, "", normalizedPin);
+            return String.format(AdminCacheKeyConstant.LOGIN_CHALLENGE_FAIL_COUNT, "global", normalizedPin);
         }
         throw new IllegalStateException("不能根据 loginMode=" + loginMode + " 确定缓存键");
     }

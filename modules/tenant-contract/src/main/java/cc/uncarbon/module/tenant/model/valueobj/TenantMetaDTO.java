@@ -48,7 +48,7 @@ public class TenantMetaDTO implements Serializable {
     private Long packageId;
 
     @Schema(description = "租户管理员用户资料")
-    private TenantUserBasicProfileDTO adminUserProfile;
+    private TenantUserBasicProfileVO adminUserProfile;
 
     /**
      * 转换成 {@link TenantContext} 实例

@@ -137,8 +137,8 @@ public class TenantFacadeImpl implements TenantFacade {
         if (userId != null && tenantUserRoleFacade.isSuperAdmin(userId)) {
             return;
         }
-        // USER_FIRST：普通用户可切入本人启用关联的租户（平台自营域除外）
         if (userId != null && targetTenantId != null
+                // USER_FIRST：普通用户可切入本人启用关联的租户（平台自营域除外）
                 && TenantLoginModeEnum.USER_FIRST == props.getLoginMode()
                 && TenantConstant.FIRST_PARTY_TENANT_ID != targetTenantId
                 && tenantUserRoleFacade.listEnabledTenantIdsByUser(userId).contains(targetTenantId)) {

@@ -1,7 +1,6 @@
-package cc.uncarbon.module.sys.model.response;
+package cc.uncarbon.module.tenant.model.valueobj;
 
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
-import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,16 +17,13 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class TenantUserBasicProfile implements Serializable {
+public class TenantUserBasicProfileVO implements Serializable {
 
     @Schema(description = "账号")
     private String pin;
 
     @Schema(description = "昵称")
     private String nickname;
-
-    @Schema(description = "状态")
-    private SysUserStatusEnum status;
 
     @Schema(description = "性别")
     private GenderEnum gender;

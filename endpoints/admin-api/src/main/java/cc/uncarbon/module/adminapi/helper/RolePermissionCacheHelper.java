@@ -1,6 +1,7 @@
 package cc.uncarbon.module.adminapi.helper;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.module.adminapi.constant.AdminCacheKeyConstant;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
@@ -23,11 +24,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class RolePermissionCacheHelper {
-
-    /**
-     * 角色权限缓存键前缀
-     */
-    private static final String CACHE_KEY_ROLE_PERMISSIONS = "Authorization:role-perm:%s";
 
     /**
      * 延时双删毫秒数
@@ -148,6 +144,6 @@ public class RolePermissionCacheHelper {
      * 确定角色权限缓存键
      */
     private String determineCacheKey(Long roleId) {
-        return String.format(CACHE_KEY_ROLE_PERMISSIONS, roleId);
+        return String.format(AdminCacheKeyConstant.ROLE_PERMISSIONS, roleId);
     }
 }

@@ -22,33 +22,24 @@
 
 ---
 "helium.tenant":
-  # 多租户策略（隔离级别）
-  # 升级指引：NONE -> LINE 前必须先执行 attachments/db/upgrade/4.0.0-tenant-login-mode.sql，
-  # 否则启动期强对账（participate-by-default: true）会因参与表缺 tenant_id 列而失败
-  strategy: LINE
-  # 登录模式：TENANT_FIRST=先定租户再定用户（登录需租户编码）；USER_FIRST=先定用户再选租户（登录免填租户编码，按用户-租户关联推导）
-  login-mode: TENANT_FIRST
-  # 默认租户ID：仅用于「无租户上下文时的兜底写值」（平台自营域），不用于登录回退
-  default-tenant-id: 0
+  # 多租户隔离策略
+  isolation-strategy: NONE
   # 严格模式：子线程漏传租户上下文时直接报错，而非静默拼 NULL 查空
-  strict-tenant-id: true
-  # 口径翻转：未显式忽略的表一律参与租户隔离；参与表必须有 tenant_id 列（启动期强对账）
+  strict: true
+  # 数据表默认参与隔离，表必须有 tenant_id 列
   participate-by-default: true
-  # 【行级】多租户忽略的表（全局共享的平台资产 + 平台级审计日志）
+  # 【行级】多租户忽略的表
   ignored-tables:
-    # 系统菜单：全局共享 + 套餐裁剪
+    # 系统菜单
     - sys_menu
-    # 字典：全局共享
-    - sys_dict_category
-    - sys_dict_item
     # 登录日志：平台级审计，tenant_id 由业务显式写入（登录失败时可能无租户上下文）
     - sys_login_log
-    # 用户-租户关联表：唯一真源，跨租户读写
+    # 多租户
     - sys_user_tenant_relation
-    # 多租户元数据（平台资产）
     - tenant_meta
     - tenant_package
     - tenant_package_menu_relation
+
 
 ---
 "helium.bizlog":

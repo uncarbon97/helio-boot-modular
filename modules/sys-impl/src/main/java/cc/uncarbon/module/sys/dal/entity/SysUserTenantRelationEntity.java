@@ -1,7 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantRelationEntity;
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -14,7 +13,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
-
 
 /**
  * 系统用户-租户关联关系
@@ -35,7 +33,6 @@ public class SysUserTenantRelationEntity extends AbstractTenantRelationEntity {
 	@Serial
 	private static final long serialVersionUID = 1L;
 
-
 	@Schema(description = "主键ID")
 	@TableId(type = IdType.AUTO)
 	private Long id;
@@ -44,15 +41,9 @@ public class SysUserTenantRelationEntity extends AbstractTenantRelationEntity {
 	@TableField(value = "user_id")
 	private Long userId;
 
-	@Schema(description = "成员资格状态；1=启用 0=禁用")
-	@TableField(value = "status")
-	private EnabledStatusEnum status;
-
-
-	public static SysUserTenantRelationEntity of(Long tenantId, Long userId, EnabledStatusEnum status) {
+	public static SysUserTenantRelationEntity of(Long tenantId, Long userId) {
 		var ret = new SysUserTenantRelationEntity()
-				.setUserId(userId)
-				.setStatus(status);
+				.setUserId(userId);
 		ret.setTenantId(tenantId);
 		return ret;
 	}

@@ -17,8 +17,8 @@ import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
 import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
-import cc.uncarbon.module.sys.model.response.TenantUserBasicProfile;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
+import cc.uncarbon.module.sys.model.valueobj.TenantUserBasicProfileDTO;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
@@ -33,10 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -75,7 +72,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
         );
         // 双写：sys_user_tenant_relation 为唯一真源，sys_user.tenant_id 投影列由 INSERT 填充维护
         sysUserTenantRelationMapper.insert(SysUserTenantRelationEntity.of(
-                request.getTenantId(), ret.getNewUserId(), EnabledStatusEnum.ENABLED));
+                request.getTenantId(), ret.getNewUserId()));
         return ret;
     }
 
@@ -120,12 +117,12 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
 
     @SneakyThrows
     @Override
-    public TenantUserBasicProfile getTenantUserBasicProfile(long tenantId, long userId) {
+    public TenantUserBasicProfileDTO getTenantUserBasicProfile(long tenantId, long userId) {
         return TenantContextHolder.callWithContext(
                 new SimpleTenantContext(tenantId, null, null),
                 () -> {
                     var user = sysUserService.getNonnullById(userId);
-                    var ret = new TenantUserBasicProfile();
+                    var ret = new TenantUserBasicProfileDTO();
                     BeanUtil.copyProperties(user, ret);
                     return ret;
                 });
@@ -157,7 +154,6 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
                         new LambdaQueryWrapper<SysUserTenantRelationEntity>()
                                 .select(SysUserTenantRelationEntity::getTenantId)
                                 .eq(SysUserTenantRelationEntity::getUserId, userId)
-                                .eq(SysUserTenantRelationEntity::getStatus, EnabledStatusEnum.ENABLED)
                                 .orderByAsc(SysUserTenantRelationEntity::getId))
                 .stream()
                 .map(SysUserTenantRelationEntity::getTenantId)
@@ -171,7 +167,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
             return;
         }
         TenantContextHolder.callIgnored(() -> {
-            sysUserMapper.update(null, new LambdaUpdateWrapper<SysUserEntity>()
+            sysUserMapper.update(new SysUserEntity(), new LambdaUpdateWrapper<SysUserEntity>()
                     .set(SysUserEntity::getTenantId, tenantId)
                     .eq(SysUserEntity::getId, userId));
             return null;
@@ -183,6 +179,9 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
     public boolean isSuperAdmin(Long userId) {
         if (userId == null) {
             return false;
+        }
+        if (Objects.equals(userId, SysConstant.SUPER_ADMIN_USER_ID)) {
+            return true;
         }
         // 按归属租户解析角色，超管切入其他租户视角后判断不受行级过滤影响
         Long homeTenantId = getUserHomeTenantId(userId);

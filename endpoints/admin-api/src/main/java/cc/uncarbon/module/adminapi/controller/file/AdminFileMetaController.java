@@ -29,7 +29,7 @@ import java.util.Set;
 
 @SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "后台管理-" + AdminFileMetaController.BIZ_TYPE)
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/file/file")
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/file/meta")
 @RequiredArgsConstructor
 @RestController
 @Slf4j

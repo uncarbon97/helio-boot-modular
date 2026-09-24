@@ -5,7 +5,7 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
-import cc.uncarbon.module.sys.model.valueobj.AdminAuthLoginConfigVO;
+import cc.uncarbon.module.sys.model.valueobj.AdminLoginTenantUIConfigVO;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -37,9 +37,8 @@ public interface AdminLoginService {
     UserContext buildSessionUserContext(Long userId, TenantContext tenantContext);
 
     /**
-     * 登录页配置（匿名可达）
-     * 前端租户相关 UI 行为的唯一真源；服务端短缓存
+     * 后台管理-登录页，控制前端租户相关 UI
      */
-    AdminAuthLoginConfigVO getLoginConfig();
+    AdminLoginTenantUIConfigVO getTenantUIConfig();
 
 }

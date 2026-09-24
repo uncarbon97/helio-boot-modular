@@ -23,7 +23,7 @@ import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.request.SysLoginLogCreateRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
-import cc.uncarbon.module.sys.model.valueobj.AdminAuthLoginConfigVO;
+import cc.uncarbon.module.sys.model.valueobj.AdminLoginTenantUIConfigVO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
 import cc.uncarbon.module.sys.service.SysLoginLogService;
 import cc.uncarbon.module.sys.service.SysMenuService;
@@ -60,12 +60,6 @@ public class AdminLoginServiceImpl implements AdminLoginService {
     private final TenantFacade tenantFacade;
     private final TenantUserRoleFacade tenantUserRoleFacade;
     private final SysUserRoleRelationService sysUserRoleRelationService;
-
-    /**
-     * 登录配置缓存（B4：前端租户 UI 行为唯一真源，匿名接口服务端短缓存）
-     */
-    private volatile AdminAuthLoginConfigVO cachedLoginConfig;
-    private volatile long cachedLoginConfigAt;
 
 
     @Override
@@ -185,7 +179,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
             Long rememberedTenantId = ref.userEntity.getTenantId();
             if (rememberedTenantId != null) {
                 candidateTenantIds.remove(rememberedTenantId);
-                candidateTenantIds.add(0, rememberedTenantId);
+                candidateTenantIds.addFirst(rememberedTenantId);
             }
             TenantContext activatedContext = null;
             for (Long tenantId : candidateTenantIds) {
@@ -264,22 +258,6 @@ public class AdminLoginServiceImpl implements AdminLoginService {
     }
 
     @Override
-    public AdminAuthLoginConfigVO getLoginConfig() {
-        AdminAuthLoginConfigVO ret = cachedLoginConfig;
-        if (ret == null || System.currentTimeMillis() - cachedLoginConfigAt > LOGIN_CONFIG_CACHE_MILLIS) {
-            boolean tenantEnabled = tenantFacade.isTenantEnabled();
-            TenantLoginModeEnum loginMode = tenantFacade.getLoginMode();
-            ret = new AdminAuthLoginConfigVO()
-                    .setTenantEnabled(tenantEnabled)
-                    .setLoginMode(loginMode.name())
-                    .setShowTenantInput(tenantEnabled && TenantLoginModeEnum.TENANT_FIRST == loginMode);
-            cachedLoginConfig = ret;
-            cachedLoginConfigAt = System.currentTimeMillis();
-        }
-        return ret;
-    }
-
-    @Override
     public @Nullable UserContext buildSessionUserContext(Long userId) {
         // 任意线程可安全调用（异步刷新会话、切换租户等场景）：
         // 先忽略租户态取用户本体与归属租户，再在归属租户作用域内解析角色
@@ -331,6 +309,15 @@ public class AdminLoginServiceImpl implements AdminLoginService {
             return null;
         }
     }
+
+    @Override
+    public AdminLoginTenantUIConfigVO getTenantUIConfig() {
+        boolean tenantEnabled = tenantFacade.isTenantEnabled();
+        TenantLoginModeEnum loginMode = tenantFacade.getLoginMode();
+        return new AdminLoginTenantUIConfigVO()
+                .setShowTenantCodeInputFlag(tenantEnabled && TenantLoginModeEnum.TENANT_FIRST == loginMode);
+    }
+
 
     /**
      * 在当前（已按归属租户建立的）作用域内组装会话用户上下文

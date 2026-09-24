@@ -1,6 +1,7 @@
 package cc.uncarbon.module.adminapi.support.loginchallenge.strategy;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.module.adminapi.constant.AdminCacheKeyConstant;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
 import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
@@ -30,8 +31,6 @@ import java.util.List;
 @Component
 public class OcrCaptchaChallengeStrategy implements LoginChallengeStrategy {
 
-    private static final String CACHE_KEY_CAPTCHA_ANSWER = "login-challenge:ocr:%s";
-
     /**
      * GETDEL 脚本
      */
@@ -58,7 +57,7 @@ public class OcrCaptchaChallengeStrategy implements LoginChallengeStrategy {
         Boolean successFlag = Boolean.FALSE;
         for (int count = 0; count < 10; count++) {
             uuid = UUID.randomUUID();
-            captchaCacheKey = String.format(CACHE_KEY_CAPTCHA_ANSWER, uuid.toString(true));
+            captchaCacheKey = String.format(AdminCacheKeyConstant.LOGIN_CHALLENGE_OCR, uuid.toString(true));
             successFlag = stringRedisTemplate.opsForValue()
                     .setIfAbsent(captchaCacheKey, CharSequenceUtil.EMPTY, Duration.of(validSeconds, ChronoUnit.SECONDS));
             if (Boolean.TRUE.equals(successFlag)) {
@@ -88,7 +87,7 @@ public class OcrCaptchaChallengeStrategy implements LoginChallengeStrategy {
             return false;
         }
 
-        String cacheKey = String.format(CACHE_KEY_CAPTCHA_ANSWER, uuid);
+        String cacheKey = String.format(AdminCacheKeyConstant.LOGIN_CHALLENGE_OCR, uuid);
         if (CharSequenceUtil.length(captchaAnswer) != props.getOcr().getAnswerLength()) {
             // 长度不同
             return false;

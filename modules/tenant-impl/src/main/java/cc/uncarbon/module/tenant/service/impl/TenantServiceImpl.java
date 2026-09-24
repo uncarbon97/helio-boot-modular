@@ -21,7 +21,7 @@ import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
-import cc.uncarbon.module.tenant.model.valueobj.TenantUserBasicProfileDTO;
+import cc.uncarbon.module.tenant.model.valueobj.TenantUserBasicProfileVO;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cc.uncarbon.module.tenant.service.TenantService;
 import cn.hutool.core.bean.BeanUtil;
@@ -202,10 +202,10 @@ public class TenantServiceImpl implements TenantService {
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
         if (fillTenantAdminUser && entity.getAdminUserId() != null) {
-            var profile0 = tenantUserRoleFacade.getTenantUserBasicProfile(entity.getId(), entity.getAdminUserId());
-            var profile = new TenantUserBasicProfileDTO();
-            BeanUtil.copyProperties(profile0, profile);
-            ret.setAdminUserProfile(profile);
+            var dto = tenantUserRoleFacade.getTenantUserBasicProfile(entity.getId(), entity.getAdminUserId());
+            var vo = new TenantUserBasicProfileVO();
+            BeanUtil.copyProperties(dto, vo);
+            ret.setAdminUserProfile(vo);
         }
 
         return ret;

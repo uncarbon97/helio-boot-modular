@@ -20,7 +20,7 @@ import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
-import cc.uncarbon.module.sys.model.valueobj.AdminAuthLoginConfigVO;
+import cc.uncarbon.module.sys.model.valueobj.AdminLoginTenantUIConfigVO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
@@ -119,16 +119,6 @@ public class AdminAuthController {
         return ApiResult.success();
     }
 
-    /**
-     * 登录页配置（匿名可达：SaInterceptor 为注解模式注册，无 @SaCheckLogin 即匿名）
-     * 前端租户相关 UI 行为（租户编码输入框、租户切换器）的唯一真源（R7）
-     */
-    @Operation(summary = "获取登录页配置")
-    @PostMapping(value = "/login-config")
-    public ApiResult<AdminAuthLoginConfigVO> loginConfig() {
-        return ApiResult.success(adminLoginService.getLoginConfig());
-    }
-
     @Operation(summary = "获取登录挑战")
     @PostMapping(value = "/login-challenge")
     public ApiResult<AdminAuthChallengeVO> challenge() {
@@ -137,6 +127,12 @@ public class AdminAuthController {
             return ApiResult.success(AdminAuthChallengeVO.noChallenge());
         }
         return ApiResult.success(strategy.generate());
+    }
+
+    @Operation(summary = "获取租户相关UI配置")
+    @PostMapping(value = "/tenant-ui-config")
+    public ApiResult<AdminLoginTenantUIConfigVO> tenantUIConfig() {
+        return ApiResult.success(adminLoginService.getTenantUIConfig());
     }
 
     /*
