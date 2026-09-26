@@ -3,13 +3,13 @@ package cc.uncarbon.module.sys.service;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
-import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListRelatedUserQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.response.SysUserBindRoleResult;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
+import cc.uncarbon.module.sys.model.valueobj.SysUserBasicProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 
 import java.util.Collection;
@@ -50,19 +50,19 @@ public interface SysUserService {
     void adminDelete(Collection<Long> ids);
 
     /**
-     * 根据 ID 取详情
+     * 取当前用户可操作的指定用户详情，无权限会抛出业务异常
      */
-    SysUserDTO getById(Long id);
+    SysUserDTO getOperableById(Long id);
 
     /**
-     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
+     * 根据 ID 取当前用户可操作的指定用户详情，未取到会抛出 {@link NoRecordException}
      */
-    SysUserDTO getNonnullById(Long id) throws NoRecordException;
+    SysUserDTO getNonnullOperableById(Long id) throws NoRecordException;
 
     /**
-     * 根据 ID 取实体，未取到会抛出 {@link NoRecordException}
+     * 根据 ID 取用户基本信息，未取到会抛出 {@link NoRecordException}
      */
-    SysUserEntity getNonnullEntityById(Long id) throws NoRecordException;
+    SysUserBasicProfileDTO getNonnullBasicProfileById(Long id) throws NoRecordException;
 
     /**
      * 新增租户用户

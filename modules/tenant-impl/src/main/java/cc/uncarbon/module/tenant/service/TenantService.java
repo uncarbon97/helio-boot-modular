@@ -50,19 +50,24 @@ public interface TenantService {
 
     /**
      * 根据 ID 取详情
+     *
+     * @param fillTenantAdminUser 是否填充租户管理员资料
      */
-    TenantMetaDTO getById(Long id);
+    TenantMetaDTO getById(Long id, boolean fillTenantAdminUser);
 
     /**
      * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
+     *
+     * @param fillTenantAdminUser 是否填充租户管理员资料
      */
-    TenantMetaDTO getNonnullById(Long id) throws NoRecordException;
+    TenantMetaDTO getNonnullById(Long id, boolean fillTenantAdminUser) throws NoRecordException;
 
     /**
      * 根据租户编码取详情
-     * @param fillDetail 是否填充详情
+     *
+     * @param fillTenantAdminUser 是否填充租户管理员资料
      */
-    TenantMetaDTO getByCode(String code, boolean fillDetail);
+    TenantMetaDTO getByCode(String code, boolean fillTenantAdminUser);
 
     /**
      * 列举全部启用状态的租户（忽略租户态，平台视角）

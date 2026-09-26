@@ -24,9 +24,9 @@
         <!-- 当前工程内，所有Maven模块统一版本号 -->
         <revision>4.0.1-SNAPSHOT</revision>
         <bootstrap.version>${revision}</bootstrap.version>
-        <commons.version>${revision}</commons.version>
         <admin-api.version>${revision}</admin-api.version>
         <app-api.version>${revision}</app-api.version>
+        <commons.version>${revision}</commons.version>
         <sys.version>${revision}</sys.version>
         <file.version>${revision}</file.version>
         <tenant.version>${revision}</tenant.version>
@@ -49,15 +49,15 @@
     <modules>
         <module>bootstrap</module>
         <module>integration-tests</module>
-        <module>commons</module>
         <module>endpoints/admin-api</module>
         <module>endpoints/app-api</module>
-        <module>modules/file-contract</module>
-        <module>modules/file-impl</module>
+        <module>modules/commons</module>
         <module>modules/sys-contract</module>
         <module>modules/sys-impl</module>
         <module>modules/tenant-contract</module>
         <module>modules/tenant-impl</module>
+        <module>modules/file-contract</module>
+        <module>modules/file-impl</module>
     </modules>
 
     <dependencyManagement>

@@ -65,7 +65,7 @@ public class AdminTenantMetaController {
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<TenantMetaDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
-        return ApiResult.success(tenantService.getNonnullById(request.getId()));
+        return ApiResult.success(tenantService.getNonnullById(request.getId(), true));
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增租户", success = "新增租户：{{#request.code}}|{{#request.name}}")
@@ -83,7 +83,7 @@ public class AdminTenantMetaController {
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminTenantMetaUpdateRequest request) {
-        var old = tenantService.getNonnullById(request.getId());
+        var old = tenantService.getNonnullById(request.getId(), true);
         var affectedRoleIds = tenantService.adminUpdate(request);
         if (!affectedRoleIds.isEmpty()) {
             // 套餐发生变化，刷新角色权限缓存
@@ -102,7 +102,7 @@ public class AdminTenantMetaController {
     @Operation(summary = "修改状态")
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
-        var old = tenantService.getNonnullById(request.getId());
+        var old = tenantService.getNonnullById(request.getId(), true);
         List<Long> kickedUserIds = tenantService.adminSetStatus(request);
         // 并入「已切换至该租户视角」的会话登记（如超管切换视角后停留），再统一强制登出
         Set<Long> kickedUserIdSet = new HashSet<>(kickedUserIds);
@@ -124,7 +124,7 @@ public class AdminTenantMetaController {
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
-        var old = tenantService.getNonnullById(request.getId());
+        var old = tenantService.getNonnullById(request.getId(), true);
         tenantService.adminDelete(Set.of(request.getId()));
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);

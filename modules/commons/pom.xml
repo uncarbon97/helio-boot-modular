@@ -9,6 +9,7 @@
         <groupId>cc.uncarbon.module</groupId>
         <artifactId>helium-monolith</artifactId>
         <version>${revision}</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>commons</artifactId>

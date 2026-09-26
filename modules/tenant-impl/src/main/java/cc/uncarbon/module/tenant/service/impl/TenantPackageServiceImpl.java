@@ -63,7 +63,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
                         .eq(Objects.nonNull(query.getStatus()), TenantPackageEntity::getStatus, query.getStatus())
                         .orderByDesc(TenantPackageEntity::getId)
         );
-        return convertPage(entityPage, false);
+        return convertPage(entityPage);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -171,14 +171,18 @@ public class TenantPackageServiceImpl implements TenantPackageService {
                 // 排序
                 .orderByAsc(TenantPackageEntity::getId)
         );
-        return convertList(entityList, false);
+        return convertList(entityList);
     }
 
     @Override
     public TenantPackageDTO getById(Long id) {
         if (id == null) return null;
         var entity = tenantPackageMapper.selectById(id);
-        return convertEntity(entity, true);
+        var ret = convertEntity(entity);
+        if (ret != null) {
+            fillMenu(List.of(ret));
+        }
+        return ret;
     }
 
     @Override
@@ -194,45 +198,48 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
     /**
      * 实体转值对象
-     *
-     * @param fillMenu 是否填充菜单
      */
-    private TenantPackageDTO convertEntity(TenantPackageEntity entity, boolean fillMenu) {
+    private TenantPackageDTO convertEntity(TenantPackageEntity entity) {
         if (entity == null) return null;
 
         var ret = new TenantPackageDTO();
         BeanUtil.copyProperties(entity, ret);
-        // 按需改写字段
-        if (fillMenu) {
-            ret.setMenuIds(tenantPackageMenuRelationService.listMenuIdsByPackage(ret.getId()));
-        }
         return ret;
     }
 
     /**
      * 实体转值对象
-     *
-     * @param fillMenu 是否填充菜单
      */
-    private List<TenantPackageDTO> convertList(List<TenantPackageEntity> entityList, boolean fillMenu) {
+    private List<TenantPackageDTO> convertList(List<TenantPackageEntity> entityList) {
         List<TenantPackageDTO> ret = new ArrayList<>(entityList.size());
         for (TenantPackageEntity entity : entityList) {
-            ret.add(convertEntity(entity, fillMenu));
+            ret.add(convertEntity(entity));
         }
         return ret;
     }
 
     /**
      * 实体转值对象
-     *
-     * @param fillMenu 是否填充菜单
      */
-    private PageResult<TenantPackageDTO> convertPage(Page<TenantPackageEntity> entityPage, boolean fillMenu) {
+    private PageResult<TenantPackageDTO> convertPage(Page<TenantPackageEntity> entityPage) {
         return new PageResult<TenantPackageDTO>()
                 .setCurrent(entityPage.getCurrent())
                 .setSize(entityPage.getSize())
                 .setTotal(entityPage.getTotal())
-                .setRecords(convertList(entityPage.getRecords(), fillMenu));
+                .setRecords(convertList(entityPage.getRecords()));
+    }
+
+    /**
+     * 填充关联菜单IDs
+     */
+    private void fillMenu(Collection<TenantPackageDTO> collection) {
+        if (CollUtil.isNotEmpty(collection)) {
+            for (TenantPackageDTO item : collection) {
+                if (item != null) {
+                    item.setMenuIds(tenantPackageMenuRelationService.listMenuIdsByPackage(item.getId()));
+                }
+            }
+        }
     }
 
     /**

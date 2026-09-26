@@ -74,7 +74,9 @@ public class SysRoleServiceImpl implements SysRoleService {
                         // 排序
                         .orderByDesc(SysRoleEntity::getId)
         );
-        return convertPage(entityPage, true);
+        var ret = convertPage(entityPage);
+        fillMenu(ret.getRecords());
+        return ret;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -123,7 +125,11 @@ public class SysRoleServiceImpl implements SysRoleService {
     public SysRoleDTO getById(Long id) {
         if (id == null) return null;
         var entity = sysRoleMapper.selectById(id);
-        return convertEntity(entity, true);
+        var ret = convertEntity(entity);
+        if (ret != null) {
+            fillMenu(List.of(ret));
+        }
+        return ret;
     }
 
     @Override
@@ -168,8 +174,8 @@ public class SysRoleServiceImpl implements SysRoleService {
                 // 排序
                 .orderByAsc(SysRoleEntity::getId)
         );
-        // 无需填充菜单IDs
-        return convertList(entityList, false);
+        // 无需填充关联菜单IDs
+        return convertList(entityList);
     }
 
     @Override
@@ -198,46 +204,49 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     /**
      * 实体转值对象
-     *
-     * @param fillMenu 是否填充菜单
      */
-    private SysRoleDTO convertEntity(SysRoleEntity entity, boolean fillMenu) {
+    private SysRoleDTO convertEntity(SysRoleEntity entity) {
         if (entity == null) return null;
 
         var ret = new SysRoleDTO();
         BeanUtil.copyProperties(entity, ret, "flags");
         // 按需改写字段
         ret.setFlags(entity.resolveFlags());
-        if (fillMenu) {
-            ret.setMenuIds(sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(ret.getId())));
-        }
-
         return ret;
     }
 
     /**
      * 实体转值对象
-     *
-     * @param fillMenu 是否填充菜单
      */
-    private List<SysRoleDTO> convertList(List<SysRoleEntity> entityList, boolean fillMenu) {
+    private List<SysRoleDTO> convertList(List<SysRoleEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(item -> convertEntity(item, fillMenu)).toList();
+        return entityList.stream().map(this::convertEntity).toList();
     }
 
     /**
      * 实体转值对象
-     *
-     * @param fillMenu 是否填充菜单
      */
-    private PageResult<SysRoleDTO> convertPage(Page<SysRoleEntity> entityPage, boolean fillMenu) {
+    private PageResult<SysRoleDTO> convertPage(Page<SysRoleEntity> entityPage) {
         return new PageResult<SysRoleDTO>()
                 .setCurrent(entityPage.getCurrent())
                 .setSize(entityPage.getSize())
                 .setTotal(entityPage.getTotal())
-                .setRecords(convertList(entityPage.getRecords(), fillMenu));
+                .setRecords(convertList(entityPage.getRecords()));
+    }
+
+    /**
+     * 填充关联菜单IDs
+     */
+    private void fillMenu(Collection<SysRoleDTO> collection) {
+        if (CollUtil.isNotEmpty(collection)) {
+            for (SysRoleDTO item : collection) {
+                if (item != null) {
+                    item.setMenuIds(sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(item.getId())));
+                }
+            }
+        }
     }
 
     /**

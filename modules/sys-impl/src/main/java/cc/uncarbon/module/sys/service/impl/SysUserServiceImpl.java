@@ -27,6 +27,7 @@ import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.response.SysUserBindRoleResult;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
+import cc.uncarbon.module.sys.model.valueobj.SysUserBasicProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
@@ -101,7 +102,9 @@ public class SysUserServiceImpl implements SysUserService {
                         // 排序
                         .orderByDesc(SysUserEntity::getId)
         );
-        return convertPage(entityPage, true);
+        var ret = convertPage(entityPage);
+        fillDept(ret.getRecords());
+        return ret;
     }
 
     @Override
@@ -130,7 +133,9 @@ public class SysUserServiceImpl implements SysUserService {
                         // 排序
                         .orderByDesc(SysUserEntity::getId)
         );
-        return convertPage(entityPage, true);
+        var ret = convertPage(entityPage);
+        fillDept(ret.getRecords());
+        return ret;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -194,22 +199,29 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public SysUserDTO getById(Long id) {
+    public SysUserDTO getOperableById(Long id) {
         if (id == null) return null;
         checkUserOperationAccess(Set.of(id));
 
         var entity = sysUserMapper.selectById(id);
-        return convertEntity(entity, true);
+        var ret = convertEntity(entity);
+        if (ret != null) {
+            fillDept(List.of(ret));
+        }
+        return ret;
     }
 
     @Override
-    public SysUserDTO getNonnullById(Long id) throws NoRecordException {
-        return NoRecordException.throwIfNull(getById(id));
+    public SysUserDTO getNonnullOperableById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getOperableById(id));
     }
 
     @Override
-    public SysUserEntity getNonnullEntityById(Long id) throws NoRecordException {
-        return NoRecordException.throwIfNull(sysUserMapper.selectById(id));
+    public SysUserBasicProfileDTO getNonnullBasicProfileById(Long id) throws NoRecordException {
+        var entity = NoRecordException.throwIfNull(sysUserMapper.selectById(id));
+        var ret = new SysUserBasicProfileDTO();
+        BeanUtil.copyProperties(entity, ret);
+        return ret;
     }
 
     @Override
@@ -243,7 +255,7 @@ public class SysUserServiceImpl implements SysUserService {
         // 查询修改后的用户，关联的角色
         UserRoleScope userRoleScope = userRoleHelper.getSpecifiedUserRole(request.getUserId());
         return new SysUserBindRoleResult()
-                .setOld(getNonnullById(request.getUserId()))
+                .setOld(getNonnullOperableById(request.getUserId()))
                 .setRoleNames(userRoleScope.getRelatedRoles().stream().map(SysRoleEntity::getName).toList());
     }
 
@@ -298,47 +310,50 @@ public class SysUserServiceImpl implements SysUserService {
 
     /**
      * 实体转值对象
-     *
-     * @param fillDept 是否填充部门
      */
-    private SysUserDTO convertEntity(SysUserEntity entity, boolean fillDept) {
+    private SysUserDTO convertEntity(SysUserEntity entity) {
         if (entity == null) return null;
 
         var ret = new SysUserDTO();
         BeanUtil.copyProperties(entity, ret);
-        // 按需改写字段
-        if (fillDept) {
-            Optional.ofNullable(sysDeptService.getSpecifiedUserDept(ret.getId(), false))
-                    .map(UserDeptScope::primaryRelatedDept)
-                    .ifPresent(dept -> ret.setDeptId(dept.getId())
-                            .setDeptName(dept.getName()));
-        }
         return ret;
     }
 
     /**
      * 实体转值对象
-     *
-     * @param fillDept 是否填充部门
      */
-    List<SysUserDTO> convertList(List<SysUserEntity> entityList, boolean fillDept) {
+    private List<SysUserDTO> convertList(List<SysUserEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(entity -> convertEntity(entity, fillDept)).toList();
+        return entityList.stream().map(this::convertEntity).toList();
     }
 
     /**
      * 实体转值对象
-     *
-     * @param fillDept 是否填充部门
      */
-    PageResult<SysUserDTO> convertPage(Page<SysUserEntity> entityPage, boolean fillDept) {
+    private PageResult<SysUserDTO> convertPage(Page<SysUserEntity> entityPage) {
         return new PageResult<SysUserDTO>()
                 .setCurrent(entityPage.getCurrent())
                 .setSize(entityPage.getSize())
                 .setTotal(entityPage.getTotal())
-                .setRecords(convertList(entityPage.getRecords(), fillDept));
+                .setRecords(convertList(entityPage.getRecords()));
+    }
+
+    /**
+     * 填充所属部门
+     */
+    private void fillDept(Collection<SysUserDTO> collection) {
+        if (CollUtil.isNotEmpty(collection)) {
+            for (SysUserDTO item : collection) {
+                if (item != null) {
+                    Optional.ofNullable(sysDeptService.getSpecifiedUserDept(item.getId(), false))
+                            .map(UserDeptScope::primaryRelatedDept)
+                            .ifPresent(dept -> item.setDeptId(dept.getId())
+                                    .setDeptName(dept.getName()));
+                }
+            }
+        }
     }
 
     /**

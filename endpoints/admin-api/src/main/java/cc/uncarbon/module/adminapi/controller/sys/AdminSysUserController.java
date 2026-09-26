@@ -69,7 +69,7 @@ public class AdminSysUserController {
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysUserDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
-        return ApiResult.success(sysUserService.getNonnullById(request.getId()));
+        return ApiResult.success(sysUserService.getNonnullOperableById(request.getId()));
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增用户", success = "新增用户：{{#request.pin}}")
@@ -88,7 +88,7 @@ public class AdminSysUserController {
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminSysUserUpdateRequest request) {
-        var old = sysUserService.getNonnullById(request.getId());
+        var old = sysUserService.getNonnullOperableById(request.getId());
         sysUserService.adminUpdate(request);
         // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
@@ -101,7 +101,7 @@ public class AdminSysUserController {
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
-        var old = sysUserService.getNonnullById(request.getId());
+        var old = sysUserService.getNonnullOperableById(request.getId());
         sysUserService.adminDelete(Set.of(request.getId()));
         kickOutAsync(request.getId());
         // 用于操作日志
@@ -147,7 +147,7 @@ public class AdminSysUserController {
     public ApiResult<Void> bindDept(@RequestBody @Valid AdminSysUserBindDeptRequest request) {
         sysUserService.adminBindDept(request);
         // 用于操作日志
-        var old = sysUserService.getNonnullById(request.getUserId());
+        var old = sysUserService.getNonnullOperableById(request.getUserId());
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         if (request.getDeptId() != null) {
             LogRecordContext.putVariable("deptName", sysDeptService.getNonnullById(request.getDeptId()).getName());
@@ -164,7 +164,7 @@ public class AdminSysUserController {
         sysUserService.adminResetPassword(request);
         kickOutAsync(request.getUserId());
         // 用于操作日志
-        var old = sysUserService.getNonnullById(request.getUserId());
+        var old = sysUserService.getNonnullOperableById(request.getUserId());
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }
@@ -177,7 +177,7 @@ public class AdminSysUserController {
     public ApiResult<Void> kickOut(@RequestBody @Valid IdRequest<Long> request) {
         kickOutAsync(request.getId());
         // 用于操作日志
-        var old = sysUserService.getNonnullById(request.getId());
+        var old = sysUserService.getNonnullOperableById(request.getId());
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
     }

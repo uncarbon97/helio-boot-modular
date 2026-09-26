@@ -71,7 +71,9 @@ public class TenantServiceImpl implements TenantService {
                         // 排序
                         .orderByDesc(TenantMetaEntity::getId)
         );
-        return convertPage(entityPage, true);
+        var ret = convertPage(entityPage);
+        fillTenantAdminUser(ret.getRecords());
+        return ret;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -155,15 +157,19 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
-    public TenantMetaDTO getById(Long id) {
+    public TenantMetaDTO getById(Long id, boolean fillTenantAdminUser) {
         if (id == null) return null;
         var entity = tenantMetaMapper.selectById(id);
-        return convertEntity(entity, true);
+        var ret = convertEntity(entity);
+        if (ret != null && fillTenantAdminUser) {
+            fillTenantAdminUser(List.of(ret));
+        }
+        return ret;
     }
 
     @Override
-    public TenantMetaDTO getNonnullById(Long id) throws NoRecordException {
-        return NoRecordException.throwIfNull(getById(id));
+    public TenantMetaDTO getNonnullById(Long id, boolean fillTenantAdminUser) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id, fillTenantAdminUser));
     }
 
     @Override
@@ -171,17 +177,18 @@ public class TenantServiceImpl implements TenantService {
         return convertList(tenantMetaMapper.selectList(new LambdaQueryWrapper<TenantMetaEntity>()
                 .eq(TenantMetaEntity::getStatus, EnabledStatusEnum.ENABLED)
                 .orderByAsc(TenantMetaEntity::getId)
-        ), false);
+        ));
     }
 
     @Override
-    public TenantMetaDTO getByCode(String code, boolean fillDetail) {
+    public TenantMetaDTO getByCode(String code, boolean fillTenantAdminUser) {
         if (CharSequenceUtil.isBlank(code)) return null;
-        var entity = tenantMetaMapper.selectOne(new LambdaQueryWrapper<TenantMetaEntity>()
-                .eq(TenantMetaEntity::getCode, code)
-                .last(SQLSegment.LIMIT_1)
-        );
-        return convertEntity(entity, fillDetail);
+        var entity = tenantMetaMapper.selectByCode(code);
+        var ret = convertEntity(entity);
+        if (ret != null && fillTenantAdminUser) {
+            fillTenantAdminUser(List.of(ret));
+        }
+        return ret;
     }
 
     /*
@@ -192,48 +199,34 @@ public class TenantServiceImpl implements TenantService {
 
     /**
      * 实体转值对象
-     *
-     * @param fillTenantAdminUser 是否填充管理员用户信息
      */
-    private TenantMetaDTO convertEntity(TenantMetaEntity entity, boolean fillTenantAdminUser) {
+    private TenantMetaDTO convertEntity(TenantMetaEntity entity) {
         if (entity == null) return null;
 
         var ret = new TenantMetaDTO();
         BeanUtil.copyProperties(entity, ret);
-        // 按需改写字段
-        if (fillTenantAdminUser && entity.getAdminUserId() != null) {
-            var dto = tenantUserRoleFacade.getTenantUserBasicProfile(entity.getId(), entity.getAdminUserId());
-            var vo = new TenantUserBasicProfileVO();
-            BeanUtil.copyProperties(dto, vo);
-            ret.setAdminUserProfile(vo);
-        }
-
         return ret;
     }
 
     /**
      * 实体转值对象
-     *
-     * @param fillTenantAdminUser 是否填充管理员用户信息
      */
-    private List<TenantMetaDTO> convertList(List<TenantMetaEntity> entityList, boolean fillTenantAdminUser) {
+    private List<TenantMetaDTO> convertList(List<TenantMetaEntity> entityList) {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(item -> convertEntity(item, fillTenantAdminUser)).toList();
+        return entityList.stream().map(this::convertEntity).toList();
     }
 
     /**
      * 实体转值对象
-     *
-     * @param fillTenantAdminUser 是否填充管理员用户信息
      */
-    private PageResult<TenantMetaDTO> convertPage(Page<TenantMetaEntity> entityPage, boolean fillTenantAdminUser) {
+    private PageResult<TenantMetaDTO> convertPage(Page<TenantMetaEntity> entityPage) {
         return new PageResult<TenantMetaDTO>()
                 .setCurrent(entityPage.getCurrent())
                 .setSize(entityPage.getSize())
                 .setTotal(entityPage.getTotal())
-                .setRecords(convertList(entityPage.getRecords(), fillTenantAdminUser));
+                .setRecords(convertList(entityPage.getRecords()));
     }
 
     /**
@@ -249,6 +242,22 @@ public class TenantServiceImpl implements TenantService {
 
         if (entity != null) {
             throw new HasRepeatRecordException(TenantErrorCodeEnum.A03005);
+        }
+    }
+
+    /**
+     * 填充管理员用户信息
+     */
+    private void fillTenantAdminUser(Collection<TenantMetaDTO> collection) {
+        if (CollUtil.isNotEmpty(collection)) {
+            for (TenantMetaDTO item : collection) {
+                if (item != null && item.getAdminUserId() != null) {
+                    var profile = tenantUserRoleFacade.getTenantUserBasicProfile(item.getId(), item.getAdminUserId());
+                    var vo = new TenantUserBasicProfileVO();
+                    BeanUtil.copyProperties(profile, vo);
+                    item.setAdminUserProfile(vo);
+                }
+            }
         }
     }
 

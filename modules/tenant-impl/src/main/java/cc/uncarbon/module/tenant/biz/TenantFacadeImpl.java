@@ -155,8 +155,11 @@ public class TenantFacadeImpl implements TenantFacade {
         }
         try {
             return TenantContextHolder.callIgnored(() -> {
-                TenantMetaDTO meta = tenantService.getById(tenantId);
-                return meta == null || EnabledStatusEnum.DISABLED == meta.getStatus() ? null : meta.toTenantContext();
+                TenantMetaDTO meta = tenantService.getById(tenantId, false);
+                if (meta == null || EnabledStatusEnum.DISABLED == meta.getStatus()) {
+                    return null;
+                }
+                return meta.toTenantContext();
             });
         } catch (Exception e) {
             log.error(LOG_PREFIX + " 解析启用租户失败 >> tenantId={}", tenantId, e);
@@ -176,7 +179,7 @@ public class TenantFacadeImpl implements TenantFacade {
         }
         try {
             return TenantContextHolder.callIgnored(() -> {
-                TenantMetaDTO meta = tenantService.getById(homeTenantId);
+                TenantMetaDTO meta = tenantService.getById(homeTenantId, false);
                 if (meta == null || EnabledStatusEnum.DISABLED == meta.getStatus()) {
                     return null;
                 }

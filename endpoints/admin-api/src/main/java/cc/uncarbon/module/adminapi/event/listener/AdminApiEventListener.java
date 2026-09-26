@@ -31,6 +31,7 @@ public class AdminApiEventListener {
      * 强制登出分批大小
      */
     private static final int KICK_OUT_BATCH_SIZE = 100;
+
     /**
      * 强制登出批次间隔（毫秒）
      */
@@ -42,6 +43,7 @@ public class AdminApiEventListener {
     private final TaskExecutor taskExecutor;
     private final RolePermissionCacheHelper rolePermissionCacheHelper;
     private final AdminLoginService adminLoginService;
+
 
     public AdminApiEventListener(
             @Qualifier(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME) TaskExecutor taskExecutor,
@@ -104,7 +106,7 @@ public class AdminApiEventListener {
             // 用户不在线，无需刷新
             return;
         }
-        // 处于切换租户视角的会话按当前生效租户重建（超管在服务层按归属租户解析）
+        // 处于切换租户视角的会话，按当前生效租户重建（超管在服务层按归属租户解析）
         TenantContext tenantContext = session.get(TenantContext.CAMEL_NAME) instanceof TenantContext t ? t : null;
         var freshContext = tenantContext != null
                 ? adminLoginService.buildSessionUserContext(userId, tenantContext)

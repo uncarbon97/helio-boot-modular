@@ -48,10 +48,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AdminLoginServiceImpl implements AdminLoginService {
 
-    /**
-     * 登录配置服务端短缓存时长（毫秒）
-     */
-    private static final long LOGIN_CONFIG_CACHE_MILLIS = 60_000L;
 
     private final SysUserMapper sysUserMapper;
     private final SysMenuService sysMenuService;
@@ -95,17 +91,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                     () -> {
                         // 不要直接提示「账号不存在」or「密码不正确」，避免撞库攻击
                         ref.userEntity = sysUserMapper.getByPin(request.getPin());
-                        if (ref.userEntity == null) {
-                            throw new BusinessException(SysErrorCodeEnum.A01001);
-                        }
-
-                        if (!PwdUtil.verify(request.getPwd(), ref.userEntity.getPwd())) {
-                            throw new BusinessException(SysErrorCodeEnum.A01001);
-                        }
-
-                        if (SysUserStatusEnum.DISABLED == ref.userEntity.getStatus()) {
-                            throw new BusinessException(SysErrorCodeEnum.A01002);
-                        }
+                        checkUserEntity(request, ref.userEntity);
 
                         // 已禁用的角色不参与登录会话快照
                         UserRoleScope userRole = userRoleHelper.getSpecifiedUserRole(ref.userEntity.getId());
@@ -161,17 +147,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
         try {
             // pin 全局唯一：忽略租户态全局查找账号
             ref.userEntity = TenantContextHolder.callIgnored(() -> sysUserMapper.getByPin(request.getPin()));
-            if (ref.userEntity == null) {
-                throw new BusinessException(SysErrorCodeEnum.A01001);
-            }
-
-            if (!PwdUtil.verify(request.getPwd(), ref.userEntity.getPwd())) {
-                throw new BusinessException(SysErrorCodeEnum.A01001);
-            }
-
-            if (SysUserStatusEnum.DISABLED == ref.userEntity.getStatus()) {
-                throw new BusinessException(SysErrorCodeEnum.A01002);
-            }
+            checkUserEntity(request, ref.userEntity);
 
             // 候选顺序：记忆版租户优先，其余按 relation ID ASC（加入先后）
             List<Long> candidateTenantIds =
@@ -235,28 +211,6 @@ public class AdminLoginServiceImpl implements AdminLoginService {
         }
     }
 
-    /**
-     * 落登录日志（sys_login_log 位于 ignored-tables：tenant_id 由业务显式写入，无租户上下文时归平台自营域）
-     */
-    private void saveLoginLog(AdminAuthPasswordLoginRequest request, VisitorContext visitorContext,
-                              @Nullable SysUserEntity userEntity, boolean loginSuccess,
-                              @Nullable StructuredErrorCode loginFailedErrorCode, @Nullable Long tenantId) {
-        SysLoginLogCreateRequest logRequest = new SysLoginLogCreateRequest()
-                .setLoginLogType(LoginLogTypeEnum.PASSWORD_LOGIN)
-                .setUserPin(request.getPin())
-                .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER.getValue())
-                .setVisitorContext(visitorContext)
-                .setResultStatus(loginSuccess ? LogResultStatusEnum.SUCCESS : LogResultStatusEnum.FAILED)
-                .setTenantId(tenantId != null ? tenantId : 0L);
-        if (userEntity != null) {
-            logRequest.setUserId(userEntity.getId());
-        }
-        if (loginFailedErrorCode != null) {
-            logRequest.setFailedMsg(loginFailedErrorCode.getErrorMsgFriendly());
-        }
-        sysLoginLogService.create(logRequest);
-    }
-
     @Override
     public @Nullable UserContext buildSessionUserContext(Long userId) {
         // 任意线程可安全调用（异步刷新会话、切换租户等场景）：
@@ -318,6 +272,45 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                 .setShowTenantCodeInputFlag(tenantEnabled && TenantLoginModeEnum.TENANT_FIRST == loginMode);
     }
 
+    /*
+    ----------------------------------------------------------------
+                        私有方法 private methods
+    ----------------------------------------------------------------
+     */
+
+    private void checkUserEntity(AdminAuthPasswordLoginRequest request, SysUserEntity userEntity) {
+        if (userEntity == null) {
+            throw new BusinessException(SysErrorCodeEnum.A01001);
+        }
+        if (!PwdUtil.verify(request.getPwd(), userEntity.getPwd())) {
+            throw new BusinessException(SysErrorCodeEnum.A01001);
+        }
+        if (SysUserStatusEnum.DISABLED == userEntity.getStatus()) {
+            throw new BusinessException(SysErrorCodeEnum.A01002);
+        }
+    }
+
+    /**
+     * 落登录日志
+     */
+    private void saveLoginLog(AdminAuthPasswordLoginRequest request, VisitorContext visitorContext,
+                              @Nullable SysUserEntity userEntity, boolean loginSuccess,
+                              @Nullable StructuredErrorCode loginFailedErrorCode, @Nullable Long tenantId) {
+        SysLoginLogCreateRequest logRequest = new SysLoginLogCreateRequest()
+                .setLoginLogType(LoginLogTypeEnum.PASSWORD_LOGIN)
+                .setUserPin(request.getPin())
+                .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER.getValue())
+                .setVisitorContext(visitorContext)
+                .setResultStatus(loginSuccess ? LogResultStatusEnum.SUCCESS : LogResultStatusEnum.FAILED)
+                .setTenantId(tenantId != null ? tenantId : 0L);
+        if (userEntity != null) {
+            logRequest.setUserId(userEntity.getId());
+        }
+        if (loginFailedErrorCode != null) {
+            logRequest.setFailedMsg(loginFailedErrorCode.getErrorMsgFriendly());
+        }
+        sysLoginLogService.create(logRequest);
+    }
 
     /**
      * 在当前（已按归属租户建立的）作用域内组装会话用户上下文

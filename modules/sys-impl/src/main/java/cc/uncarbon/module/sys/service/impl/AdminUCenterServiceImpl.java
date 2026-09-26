@@ -33,7 +33,7 @@ public class AdminUCenterServiceImpl implements AdminUCenterService {
 
     @Override
     public MyProfileDTO getMyProfile() {
-        var me = sysUserService.getNonnullEntityById(UserContextHolder.getUserId());
+        var me = sysUserService.getNonnullBasicProfileById(UserContextHolder.getUserId());
         var ret = new MyProfileDTO();
         BeanUtil.copyProperties(me, ret);
         return ret;

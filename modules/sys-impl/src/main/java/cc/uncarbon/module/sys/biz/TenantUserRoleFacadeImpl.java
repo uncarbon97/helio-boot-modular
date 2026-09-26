@@ -121,7 +121,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
         return TenantContextHolder.callWithContext(
                 new SimpleTenantContext(tenantId, null, null),
                 () -> {
-                    var user = sysUserService.getNonnullById(userId);
+                    var user = sysUserService.getNonnullOperableById(userId);
                     var ret = new TenantUserBasicProfileDTO();
                     BeanUtil.copyProperties(user, ret);
                     return ret;
