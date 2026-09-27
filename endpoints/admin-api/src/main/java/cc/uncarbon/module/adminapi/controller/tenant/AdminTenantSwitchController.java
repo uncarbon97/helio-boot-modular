@@ -154,7 +154,7 @@ public class AdminTenantSwitchController {
         return session.get(TenantContext.CAMEL_NAME) instanceof TenantContext t ? t : null;
     }
 
-    @SysOperateLog(bizType = BIZ_TYPE, behavior = "退出切换租户", bizNo = "{{#loginId}}",
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "退出切换租户",
             success = "退出切换租户（{{#fromTenantId}} → {{#toTenantId}}）")
     @Operation(summary = "退出切换租户")
     @PostMapping(value = "/exit")

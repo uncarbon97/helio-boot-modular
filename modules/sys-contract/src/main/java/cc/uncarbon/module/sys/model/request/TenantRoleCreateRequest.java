@@ -26,6 +26,9 @@ public class TenantRoleCreateRequest implements Serializable {
     @Schema(description = "租户编码", requiredMode = Schema.RequiredMode.REQUIRED)
     private String tenantCode;
 
+    @Schema(description = "租户名称", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String tenantName;
+
     @Schema(description = "角色编码", requiredMode = Schema.RequiredMode.REQUIRED)
     private String code;
 

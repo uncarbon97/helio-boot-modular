@@ -288,6 +288,7 @@ public class TenantServiceImpl implements TenantService {
         var tenantRole = tenantUserRoleFacade.createTenantRole(new TenantRoleCreateRequest()
                 .setTenantId(tenantId)
                 .setTenantCode(tenantCode)
+                .setTenantName(entity.getName())
                 .setStatus(EnabledStatusEnum.ENABLED)
                 .setTenantAdmin(true)
         );

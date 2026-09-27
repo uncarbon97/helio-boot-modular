@@ -139,11 +139,11 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public Set<String> adminBindMenu(AdminSysRoleBindMenuRequest request) {
+    public void adminBindMenu(AdminSysRoleBindMenuRequest request) {
         checkExistence(request.getRoleId());
         checkBeforeBindRoleMenuRelation(request);
         sysRoleMenuRelationService.cleanAndBind(request.getRoleId(), request.getMenuIds());
-        return sysMenuService.getPermissionsByRole(Set.of(request.getRoleId()))
+        sysMenuService.getPermissionsByRole(Set.of(request.getRoleId()))
                 .getOrDefault(request.getRoleId(), Set.of());
     }
 
@@ -186,7 +186,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (request.isTenantAdmin()) {
             entity
                     .setCode(SysConstant.TENANT_ADMIN_ROLE_CODE)
-                    .setName("主管理员")
+                    .setName(request.getTenantName() + "主管理员")
                     .setDescription("具有所有功能权限和全部数据可见范围")
                     .assignFlags(List.of(SysRoleFlagEnum.BUILTIN));
         }

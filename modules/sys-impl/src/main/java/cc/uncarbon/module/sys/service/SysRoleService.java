@@ -13,7 +13,6 @@ import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 系统角色
@@ -52,10 +51,8 @@ public interface SysRoleService {
 
     /**
      * 后台管理-绑定角色菜单
-     *
-     * @return 新菜单ID集合对应的权限名
      */
-    Set<String> adminBindMenu(AdminSysRoleBindMenuRequest dto);
+    void adminBindMenu(AdminSysRoleBindMenuRequest dto);
 
     /**
      * 后台管理-修改角色状态
