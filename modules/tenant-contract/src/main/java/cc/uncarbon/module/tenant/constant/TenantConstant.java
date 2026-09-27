@@ -1,15 +1,13 @@
 package cc.uncarbon.module.tenant.constant;
 
-import cc.uncarbon.framework.helium.tenant.constant.HeliumTenantConstant;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
-public class TenantConstant {
+public final class TenantConstant {
 
     /**
-     * 平台自营域租户ID（第一方）
-     * 沿用脚手架中的常量
+     * 固定平台自营域租户 ID
      */
-    public static final long FIRST_PARTY_TENANT_ID = HeliumTenantConstant.FALLBACK_TENANT_ID;
+    public static final Long PLATFORM_TENANT_ID = 0L;
 
 }

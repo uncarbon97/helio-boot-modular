@@ -13,9 +13,9 @@
         <if test="phoneNo != null and phoneNo != ''">
             AND U.phone_no LIKE CONCAT('%', #{phoneNo}, '%')
         </if>
-        <if test="invisibleUserIds != null and !invisibleUserIds.isEmpty()">
+        <if test="hiddenUserIds != null and !hiddenUserIds.isEmpty()">
             AND U.id NOT IN
-            <foreach collection="invisibleUserIds" item="item" open="(" separator="," close=")">
+            <foreach collection="hiddenUserIds" item="item" open="(" separator="," close=")">
                 #{item}
             </foreach>
         </if>

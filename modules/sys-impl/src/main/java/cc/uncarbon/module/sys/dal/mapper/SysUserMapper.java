@@ -28,7 +28,7 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
     Page<SysUserEntity> pageNoDeptUser(
             Page<SysUserEntity> page,
             @Param("phoneNo") String phoneNo,
-            @Param("invisibleUserIds") Collection<Long> invisibleUserIds
+            @Param("hiddenUserIds") Collection<Long> hiddenUserIds
     );
 
     default SysUserEntity getByPin(String pin) {

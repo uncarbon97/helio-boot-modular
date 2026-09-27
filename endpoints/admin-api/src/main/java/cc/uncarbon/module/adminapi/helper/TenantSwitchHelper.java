@@ -1,7 +1,10 @@
 package cc.uncarbon.module.adminapi.helper;
 
 import cc.uncarbon.module.adminapi.constant.AdminCacheKeyConstant;
+import cc.uncarbon.module.adminapi.model.internal.TenantSwitchInfo;
+import cc.uncarbon.module.commons.satoken.StpKit;
 import cn.dev33.satoken.config.SaTokenConfig;
+import cn.dev33.satoken.session.SaSession;
 import cn.hutool.core.collection.CollUtil;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +71,14 @@ public class TenantSwitchHelper {
             return Set.of();
         }
         return members.stream().map(Long::valueOf).collect(Collectors.toSet());
+    }
+
+    /**
+     * 判断当前已登录用户，是否处于租户切换中
+     */
+    public static boolean isSwitching() {
+        SaSession session = StpKit.ADMIN.getSession();
+        return session.get(TenantSwitchInfo.CAMEL_NAME) instanceof TenantSwitchInfo;
     }
 
 }

@@ -121,7 +121,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
         return TenantContextHolder.callWithContext(
                 new SimpleTenantContext(tenantId, null, null),
                 () -> {
-                    var user = sysUserService.getNonnullOperableById(userId);
+                    var user = sysUserService.getNonnullBasicProfileById(userId);
                     var ret = new TenantUserBasicProfileDTO();
                     BeanUtil.copyProperties(user, ret);
                     return ret;
@@ -130,12 +130,12 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
 
     @SneakyThrows
     @Override
-    public List<Long> listUserIdsByTenantId(Long tenantId, Collection<EnabledStatusEnum> statusEnums) {
+    public List<Long> listUserIdsByTenant(long tenantId, Collection<EnabledStatusEnum> statusEnums) {
         return TenantContextHolder.callWithContext(
                 new SimpleTenantContext(tenantId, null, null),
                 () -> sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
                                 .select(SysUserEntity::getId)
-                                // 不列举出超级管理员
+                                // 不列举出超管
                                 .ne(SysUserEntity::getId, SysConstant.SUPER_ADMIN_USER_ID)
                                 .in(CollUtil.isNotEmpty(statusEnums), SysUserEntity::getStatus, statusEnums)
                         )

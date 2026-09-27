@@ -61,7 +61,7 @@ public class SysRoleServiceImpl implements SysRoleService {
 
     @Override
     public PageResult<SysRoleDTO> adminList(AdminSysRoleListQuery query) {
-        Set<Long> invisibleRoleIds = userRoleHelper.listInvisibleRoleIds();
+        Set<Long> hiddenRoleIds = userRoleHelper.listHiddenRoleIds();
         Page<SysRoleEntity> entityPage = sysRoleMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
                 new LambdaQueryWrapper<SysRoleEntity>()
@@ -70,7 +70,7 @@ public class SysRoleServiceImpl implements SysRoleService {
                         // 角色名称
                         .like(CharSequenceUtil.isNotBlank(query.getName()), SysRoleEntity::getName, CharSequenceUtil.cleanBlank(query.getName()))
                         // 不显示特定角色
-                        .notIn(CollUtil.isNotEmpty(invisibleRoleIds), SysRoleEntity::getId, invisibleRoleIds)
+                        .notIn(CollUtil.isNotEmpty(hiddenRoleIds), SysRoleEntity::getId, hiddenRoleIds)
                         // 排序
                         .orderByDesc(SysRoleEntity::getId)
         );
@@ -165,12 +165,12 @@ public class SysRoleServiceImpl implements SysRoleService {
      */
     @Override
     public List<SysRoleDTO> adminListSelectOption() {
-        Set<Long> invisibleRoleIds = userRoleHelper.listInvisibleRoleIds();
+        Set<Long> hiddenRoleIds = userRoleHelper.listHiddenRoleIds();
         List<SysRoleEntity> entityList = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
                 // 只取特定字段
                 .select(SysRoleEntity::getId, SysRoleEntity::getName)
                 // 不显示特定角色
-                .notIn(CollUtil.isNotEmpty(invisibleRoleIds), SysRoleEntity::getId, invisibleRoleIds)
+                .notIn(CollUtil.isNotEmpty(hiddenRoleIds), SysRoleEntity::getId, hiddenRoleIds)
                 // 排序
                 .orderByAsc(SysRoleEntity::getId)
         );

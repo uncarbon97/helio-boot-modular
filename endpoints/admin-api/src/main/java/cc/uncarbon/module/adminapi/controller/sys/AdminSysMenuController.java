@@ -139,7 +139,7 @@ public class AdminSysMenuController {
     /**
      * 异步刷新菜单绑定角色的权限缓存
      * <p>
-     * 菜单状态/可见性变化会级联影响其子孙菜单（如目录禁用后整棵子树不可见、权限收回），
+     * 菜单状态/可见性变化会级联影响其子孙菜单（如目录禁用后整棵子树隐藏、权限收回），
      * 刷新范围需覆盖子孙菜单绑定的角色
      */
     private void refreshRolePermissionCacheAsync(Long menuId) {

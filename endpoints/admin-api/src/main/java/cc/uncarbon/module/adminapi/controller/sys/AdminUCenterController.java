@@ -1,10 +1,14 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
+import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.adminapi.annotation.DenyIfTenantSwitching;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
 import cc.uncarbon.module.adminapi.helper.FileUploadResultHelper;
 import cc.uncarbon.module.adminapi.helper.HashidsHelper;
+import cc.uncarbon.module.adminapi.helper.TenantSwitchHelper;
 import cc.uncarbon.module.adminapi.model.valueobj.FileUploadResultVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
@@ -50,12 +54,24 @@ public class AdminUCenterController {
     private final FileUploadResultHelper fileUploadResultHelper;
 
 
+    public static MyProfileDTO toProfile(SimpleUserContext userContext) {
+        return new MyProfileDTO()
+                .setPin(userContext.getUserPin())
+                .setNickname(userContext.getUserNickname())
+                .setPhoneNo(userContext.getUserPhoneNo());
+    }
+
     @Operation(summary = "取当前用户资料")
     @PostMapping(value = "/profile/get")
     public ApiResult<MyProfileDTO> profileGet() {
+        if (TenantSwitchHelper.isSwitching() && UserContextHolder.getContext() instanceof SimpleUserContext simpleUserContext) {
+            // 从缓存中查询+返回
+            return ApiResult.success(toProfile(simpleUserContext));
+        }
         return ApiResult.success(adminUCenterService.getMyProfile());
     }
 
+    @DenyIfTenantSwitching
     @Operation(summary = "修改当前用户资料")
     @PostMapping(value = "/profile/update")
     public ApiResult<Void> profileUpdate(@RequestBody @Valid AdminUpdateMyProfileRequest request) {
@@ -63,6 +79,7 @@ public class AdminUCenterController {
         return ApiResult.success();
     }
 
+    @DenyIfTenantSwitching
     @Operation(summary = "修改当前用户密码")
     @PostMapping(value = "/password/update")
     public ApiResult<Void> passwordUpdate(@RequestBody @Valid AdminUpdateMyPasswordRequest request) {
@@ -73,6 +90,13 @@ public class AdminUCenterController {
         return ApiResult.success();
     }
 
+    /*
+    ----------------------------------------------------------------
+                        私有方法 private methods
+    ----------------------------------------------------------------
+     */
+
+    @DenyIfTenantSwitching
     @Operation(summary = "修改当前用户头像")
     @PostMapping(value = "/avatar/update")
     public ApiResult<Void> avatarUpdate(@RequestBody FileUploadResultVO request, HttpServletRequest servletRequest) {
@@ -100,5 +124,4 @@ public class AdminUCenterController {
         adminUCenterService.updateMyAvatar(request.getUrl());
         return ApiResult.success();
     }
-
 }

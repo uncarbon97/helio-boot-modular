@@ -189,19 +189,19 @@ public class SysMenuServiceImpl implements SysMenuService {
         for (Long roleId : roleIds) {
             Set<String> permissions;
 
-            if (!enabledRoleIds.contains(roleId)) {
-                // 已禁用或已不存在的角色不参与鉴权；仍写入空集合，确保空结果被缓存
-                permissions = Set.of();
-                ret.put(roleId, permissions);
-                continue;
-            }
-
             if (SysConstant.SUPER_ADMIN_ROLE_ID.equals(roleId)) {
                 // 超级管理员读取所有权限，不管有没有被禁用
+                // 超管角色固定在平台自营域，超管切入其他租户视角后行级过滤查不到角色0，
+                // 不能依赖启用角色判定，须先于此分支直接放行
                 permissions = sysMenuMapper.selectList(null).stream()
                         .map(SysMenuEntity::getPermission)
                         .filter(CharSequenceUtil::isNotEmpty)
                         .collect(Collectors.toSet());
+            } else if (!enabledRoleIds.contains(roleId)) {
+                // 已禁用或已不存在的角色不参与鉴权；仍写入空集合，确保空结果被缓存
+                permissions = Set.of();
+                ret.put(roleId, permissions);
+                continue;
             } else {
                 // 查询角色关联菜单
                 Set<Long> menuIds = sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(roleId));
@@ -429,7 +429,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     /**
      * 列举「仅超管可见」菜单及全部子孙菜单IDs
      * <p>
-     * 子孙一并纳入，与「目录禁用后整棵子树不可见」的既有级联口径保持一致，
+     * 子孙一并纳入，与「目录禁用后整棵子树隐藏」的既有级联口径保持一致，
      * 也避免子节点脱离受保护父级后在前端渲染成悬空节点
      */
     private Set<Long> listSuperAdminOnlySubtreeMenuIds(Map<Long, SysMenuEntity> allMenuMap) {

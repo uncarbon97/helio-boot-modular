@@ -1,5 +1,6 @@
 package cc.uncarbon.module.sys.model.internal;
 
+import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import lombok.Getter;
 
@@ -43,5 +44,11 @@ public class UserRoleScope {
         this.superAdmin = relatedRoles.stream().anyMatch(SysRoleEntity::isSuperAdmin);
         this.tenantAdmin = relatedRoles.stream().anyMatch(SysRoleEntity::isTenantAdmin);
         this.notAnyAdmin = !this.superAdmin && !this.tenantAdmin;
+    }
+
+    public static UserRoleScope mockSuperAdmin() {
+        SysRoleEntity roleEntity = new SysRoleEntity().setId(SysConstant.SUPER_ADMIN_ROLE_ID)
+                .setCode(SysConstant.SUPER_ADMIN_ROLE_CODE);
+        return new UserRoleScope(List.of(SysConstant.SUPER_ADMIN_ROLE_ID), List.of(roleEntity));
     }
 }

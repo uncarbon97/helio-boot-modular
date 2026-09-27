@@ -23,6 +23,7 @@ public enum AdminApiErrorCodeEnum implements StructuredErrorCode {
     A04002("不支持的图片格式"),
     A04003("不能使用该文件作为头像"),
     A04004("登录失败次数过多，账号已临时锁定，请稍后重试"),
+    A04005("当前处于租户切换状态，请先退出切换后再操作"),
 
     /*
      B 开头错误码，表示本服务内部错误

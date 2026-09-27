@@ -29,10 +29,9 @@ public interface SysUserService {
     /**
      * 后台管理-新增
      *
-     * @param hasBindDeptPerm 当前用户是否有「调整用户部门」权限
      * @return 主键ID
      */
-    Long adminCreate(AdminSysUserCreateRequest request, boolean hasBindDeptPerm);
+    Long adminCreate(AdminSysUserCreateRequest request);
 
     /**
      * 后台管理-修改

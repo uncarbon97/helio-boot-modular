@@ -1,12 +1,13 @@
 package cc.uncarbon.module.sys.constant;
 
 
+import lombok.experimental.UtilityClass;
+
 /**
  * 系统管理常量
  */
+@UtilityClass
 public final class SysConstant {
-    private SysConstant() {
-    }
 
     /**
      * 无上级节点的父级ID
@@ -14,19 +15,14 @@ public final class SysConstant {
     public static final Long ROOT_PARENT_ID = 0L;
 
     /**
-     * 固定超级管理员角色ID
+     * 固定超级管理员角色 ID
      */
     public static final Long SUPER_ADMIN_ROLE_ID = 0L;
 
     /**
-     * 固定超级管理员用户ID
+     * 固定超级管理员用户 ID
      */
     public static final Long SUPER_ADMIN_USER_ID = 0L;
-
-    /**
-     * 固定平台自营域租户ID（tenant_id=0，永不删除、不可禁用）
-     */
-    public static final Long PLATFORM_TENANT_ID = 0L;
 
     /**
      * 固定超级管理员角色编码

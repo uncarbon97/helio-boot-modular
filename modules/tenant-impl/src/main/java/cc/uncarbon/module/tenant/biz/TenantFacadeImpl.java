@@ -86,7 +86,7 @@ public class TenantFacadeImpl implements TenantFacade {
                 if (tenantUserRoleFacade.isSuperAdmin(userId)) {
                     // 超级管理员：除平台自营域外的全部启用租户
                     return tenantService.listEnabled().stream()
-                            .filter(meta -> !Objects.equals(meta.getId(), TenantConstant.FIRST_PARTY_TENANT_ID))
+                            .filter(meta -> !Objects.equals(meta.getId(), TenantConstant.PLATFORM_TENANT_ID))
                             .map(TenantMetaDTO::toTenantContext)
                             .toList();
                 }
@@ -94,7 +94,7 @@ public class TenantFacadeImpl implements TenantFacade {
                     // USER_FIRST：按 relation 真源展开本人启用关联租户（排除平台自营域，保持加入先后顺序）
                     List<TenantContext> related = new ArrayList<>();
                     for (Long tenantId : tenantUserRoleFacade.listEnabledTenantIdsByUser(userId)) {
-                        if (TenantConstant.FIRST_PARTY_TENANT_ID == tenantId) {
+                        if (TenantConstant.PLATFORM_TENANT_ID == tenantId) {
                             continue;
                         }
                         TenantContext context = resolveEnabledTenant(tenantId);
@@ -140,7 +140,7 @@ public class TenantFacadeImpl implements TenantFacade {
         if (userId != null && targetTenantId != null
                 // USER_FIRST：普通用户可切入本人启用关联的租户（平台自营域除外）
                 && TenantLoginModeEnum.USER_FIRST == props.getLoginMode()
-                && TenantConstant.FIRST_PARTY_TENANT_ID != targetTenantId
+                && TenantConstant.PLATFORM_TENANT_ID != targetTenantId
                 && tenantUserRoleFacade.listEnabledTenantIdsByUser(userId).contains(targetTenantId)) {
             return;
         }

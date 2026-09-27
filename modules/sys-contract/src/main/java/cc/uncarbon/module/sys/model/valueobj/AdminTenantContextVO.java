@@ -26,7 +26,7 @@ public class AdminTenantContextVO implements Serializable {
     private String tenantName;
 
     @Schema(description = "是否为平台视角（超级管理员未切换租户）")
-    private Boolean firstPartyView;
+    private Boolean platformView;
 
     @Schema(description = "当前会话是否处于切换后的租户视角")
     private Boolean switched;

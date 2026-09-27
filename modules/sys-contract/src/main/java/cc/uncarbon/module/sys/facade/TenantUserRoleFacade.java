@@ -54,10 +54,10 @@ public interface TenantUserRoleFacade {
     /**
      * 系统管理 - 取租户用户IDs
      *
-     * @param tenantId    租户ID，非主键ID
+     * @param tenantId    租户ID
      * @param statusEnums 仅保留符合指定状态的，可以为null
      */
-    List<Long> listUserIdsByTenantId(Long tenantId, Collection<EnabledStatusEnum> statusEnums);
+    List<Long> listUserIdsByTenant(long tenantId, Collection<EnabledStatusEnum> statusEnums);
 
     /**
      * 取指定用户启用状态的关联租户ID列表（真源 sys_user_tenant_relation，忽略租户态读取）

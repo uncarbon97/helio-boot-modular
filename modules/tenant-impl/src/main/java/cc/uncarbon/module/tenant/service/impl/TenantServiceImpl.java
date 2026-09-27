@@ -7,12 +7,12 @@ import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
-import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
 import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
+import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
@@ -120,7 +120,7 @@ public class TenantServiceImpl implements TenantService {
         log.info(LOG_PREFIX + "修改状态 >> {}", request);
         NoRecordException.throwIfNull(tenantMetaMapper.selectById(request.getId()));
         if (EnabledStatusEnum.DISABLED == request.getNewStatus()
-                && Objects.equals(request.getId(), SysConstant.PLATFORM_TENANT_ID)) {
+                && Objects.equals(request.getId(), TenantConstant.PLATFORM_TENANT_ID)) {
             // 平台自营域不可禁用（B5 种子约定）
             throw new BusinessException(TenantErrorCodeEnum.A03013);
         }
@@ -128,7 +128,7 @@ public class TenantServiceImpl implements TenantService {
         List<Long> tenantUserIds = List.of();
         if (EnabledStatusEnum.DISABLED == request.getNewStatus()) {
             // 禁用时，取该租户全部用户ID，供调用方强制登出
-            tenantUserIds = tenantUserRoleFacade.listUserIdsByTenantId(request.getId(), null);
+            tenantUserIds = tenantUserRoleFacade.listUserIdsByTenant(request.getId(), null);
         }
 
         var entity = new TenantMetaEntity()
@@ -142,13 +142,13 @@ public class TenantServiceImpl implements TenantService {
     @Override
     public void adminDelete(Collection<Long> ids) {
         log.info("[系统管理-删除系统租户] >> 入参={}", ids);
-        if (CollUtil.contains(ids, SysConstant.PLATFORM_TENANT_ID)) {
+        if (CollUtil.contains(ids, TenantConstant.PLATFORM_TENANT_ID)) {
             // 平台自营域不可删除（B5 种子约定）
             throw new BusinessException(TenantErrorCodeEnum.A03013);
         }
         // 仍有用户的租户不可删除，避免残留可继续使用的会话与孤儿关联数据
         for (Long id : ids) {
-            List<Long> tenantUserIds = tenantUserRoleFacade.listUserIdsByTenantId(id, null);
+            List<Long> tenantUserIds = tenantUserRoleFacade.listUserIdsByTenant(id, null);
             if (CollUtil.isNotEmpty(tenantUserIds)) {
                 throw new BusinessException(TenantErrorCodeEnum.A03007);
             }
