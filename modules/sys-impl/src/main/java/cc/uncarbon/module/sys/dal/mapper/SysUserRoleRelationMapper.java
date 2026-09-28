@@ -31,6 +31,17 @@ public interface SysUserRoleRelationMapper extends BaseMapper<SysUserRoleRelatio
     }
 
     /**
+     * 根据角色IDs，删除关联
+     */
+    default int deleteByRoleIds(Collection<Long> roleIds) {
+        if (CollUtil.isEmpty(roleIds)) {
+            return 0;
+        }
+        return delete(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+                .in(SysUserRoleRelationEntity::getRoleId, roleIds));
+    }
+
+    /**
      * 根据角色IDs，查询关联的用户IDs
      */
     default Set<Long> listUserIdsByRoles(Collection<Long> roleIds) {

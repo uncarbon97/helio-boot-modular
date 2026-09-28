@@ -74,16 +74,16 @@ public class SysDeptServiceImpl implements SysDeptService {
     @Override
     public void adminUpdate(AdminSysDeptUpsertRequest request) {
         log.info(LOG_PREFIX + "编辑 >> {}", request);
-        checkExistence(request.getId());
         defaultParentId(request);
-        checkRepeat(request);
-        checkParentUsable(request.getParentId());
+        // 先校验父链成环/可用性，再查重；存在性由更新影响行数兜底
         checkParentNotSelfOrInferior(request.getId(), request.getParentId());
+        checkParentUsable(request.getParentId());
+        checkRepeat(request);
 
         var entity = new SysDeptEntity();
         BeanUtil.copyProperties(request, entity);
 
-        sysDeptMapper.updateById(entity);
+        NoRecordException.throwIfFalse(sysDeptMapper.updateById(entity) > 0);
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -23,6 +23,13 @@ spring:
       database: 2
 
 ---
+# 多租户：四种组合（隔离策略 × 登录模式）用环境变量切换
+# LINE + TENANT_FIRST 为默认；DATASOURCE 需要额外配置租户数据源路由后再切换
+"helium.tenant":
+  isolation-strategy: ${HELIUM_TENANT_ISOLATION_STRATEGY:LINE}
+  login-mode: ${HELIUM_TENANT_LOGIN_MODE:TENANT_FIRST}
+
+---
 mybatis-plus:
   configuration:
     # 测试环境下打印 SQL，便于排查

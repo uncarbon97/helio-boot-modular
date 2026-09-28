@@ -502,7 +502,7 @@ public class SysUserServiceImpl implements SysUserService {
 
             if (me.isTenantAdmin()) {
                 // 超自身权限，但作为租户管理员有额外情况
-                Set<Long> hiddenRoleIds = userRoleHelper.listHiddenRoleIds();
+                Set<Long> hiddenRoleIds = new HashSet<>(userRoleHelper.listHiddenRoleIds());
                 // 除非超越了可见角色IDs 授予 or 想要授予用户租户管理员角色，否则不管
                 hiddenRoleIds.addAll(me.getRelatedRoleIds());
                 if (CollUtil.containsAny(hiddenRoleIds, request.getRoleIds())) {

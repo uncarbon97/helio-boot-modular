@@ -41,7 +41,7 @@ public class UploadFileChecker {
      * @param singleFileSizeMax 最大单文件尺寸，单位=KB
      * @param allFileSizeMax    最大多文件累计尺寸，单位=KB
      * @param allowedSuffixes   允许上传的文件后缀
-     * @return null 表示检查通过
+     * @return {@link FileErrorCodeEnum#OK} 表示检查通过
      */
     public FileErrorCodeEnum check(Collection<MultipartFile> multipartFiles, int fileQtyMax,
                                    long singleFileSizeMax, long allFileSizeMax, String[] allowedSuffixes) {
@@ -67,7 +67,7 @@ public class UploadFileChecker {
                 return single;
             }
         }
-        return null;
+        return FileErrorCodeEnum.OK;
     }
 
     /**
@@ -75,7 +75,7 @@ public class UploadFileChecker {
      *
      * @param singleFileSizeMax 最大单文件尺寸，单位=KB
      * @param allowedSuffixes   允许上传的文件后缀
-     * @return null 表示检查通过
+     * @return {@link FileErrorCodeEnum#OK} 表示检查通过
      */
     public FileErrorCodeEnum check(@Nonnull MultipartFile multipartFile, long singleFileSizeMax, String[] allowedSuffixes) {
         long fileSize = multipartFile.getSize();

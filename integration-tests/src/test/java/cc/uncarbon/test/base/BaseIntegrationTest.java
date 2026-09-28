@@ -12,12 +12,13 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * 集成测试基类。
  *
  * <p>Spring Boot 4 测试规范（易踩坑点）：
- * <p>- 需要 mock 时用 {@link org.springframework.test.context.bean.override.mockito.MockitoBean}（注意全限定名）
+ * <p>- 需要 mock 时用 {@link MockitoBean}（注意全限定名）
  *
  * @author Uncarbon
  */

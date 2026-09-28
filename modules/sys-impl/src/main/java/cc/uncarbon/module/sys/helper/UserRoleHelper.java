@@ -58,18 +58,16 @@ public class UserRoleHelper {
      * 列举隐藏角色IDs
      * 租户管理员：列表中不显示超级管理员角色
      * 普通角色：列表中不显示超级管理员、租户管理员角色
-     *
-     * @return mutable Set，支持外部改变元素
      */
     public Set<Long> listHiddenRoleIds() {
         UserRoleScope me = getCurrentUserRole();
         // 超级管理员：不限制
         if (me.isSuperAdmin()) {
-            return new HashSet<>();
+            return Set.of();
         }
         // 租户管理员：列表中不显示超级管理员角色
         if (me.isTenantAdmin()) {
-            return CollUtil.newHashSet(SysConstant.SUPER_ADMIN_ROLE_ID);
+            return Set.of(SysConstant.SUPER_ADMIN_ROLE_ID);
         }
         // 普通角色：列表中不显示超级管理员、租户管理员角色
         Set<Long> ret = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()

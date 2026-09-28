@@ -135,12 +135,11 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
                 new SimpleTenantContext(tenantId, null, null),
                 () -> sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
                                 .select(SysUserEntity::getId)
-                                // 不列举出超管
-                                .ne(SysUserEntity::getId, SysConstant.SUPER_ADMIN_USER_ID)
                                 .in(CollUtil.isNotEmpty(statusEnums), SysUserEntity::getStatus, statusEnums)
                         )
                         .stream()
                         .map(SysUserEntity::getId)
+                        .filter(id -> !SysConstant.SUPER_ADMIN_USER_ID.equals(id))
                         .toList());
     }
 

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,10 +61,12 @@ public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRe
         Set<Long> existingMenuIds = tenantPackageMenuRelationMapper.selectList(menuIdsQuery)
                 .stream().map(TenantPackageMenuRelationEntity::getMenuId)
                 .collect(Collectors.toSet());
-        menuIds.removeAll(existingMenuIds);
+        // 拷贝入参，避免原地修改调用方集合（入参可能是不可变集合）
+        Set<Long> toInsertMenuIds = new HashSet<>(menuIds);
+        toInsertMenuIds.removeAll(existingMenuIds);
 
-        if (CollUtil.isNotEmpty(menuIds)) {
-            List<TenantPackageMenuRelationEntity> entityList = menuIds.stream()
+        if (CollUtil.isNotEmpty(toInsertMenuIds)) {
+            List<TenantPackageMenuRelationEntity> entityList = toInsertMenuIds.stream()
                     .map(menuId -> TenantPackageMenuRelationEntity.of(packageId, menuId)).toList();
             tenantPackageMenuRelationMapper.insert(entityList);
         }

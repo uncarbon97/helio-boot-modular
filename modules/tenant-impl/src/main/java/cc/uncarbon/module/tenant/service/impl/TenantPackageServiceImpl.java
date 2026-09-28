@@ -4,6 +4,7 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
+import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.facade.SysMenuFacade;
@@ -256,7 +257,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         );
 
         if (entity != null) {
-            throw new BusinessException(TenantErrorCodeEnum.A03004);
+            throw new HasRepeatRecordException(TenantErrorCodeEnum.A03004);
         }
     }
 

@@ -44,6 +44,17 @@
         <s3-sdk-v1.version>1.12.787</s3-sdk-v1.version>
         <s3-sdk-v2.version>2.31.58</s3-sdk-v2.version>
         <aliyun-sdk-oss.version>3.18.5</aliyun-sdk-oss.version>
+
+
+        <!-- 缓解第三方依赖漏洞 -->
+        <commons-io.safe-version>2.14.0</commons-io.safe-version>
+        <tika-core.safe-version>3.2.2</tika-core.safe-version>
+
+        <!--
+            单元测试默认跳过（保持既有构建行为）；
+            需要执行时：mvn test -Dskip-unit-tests=false
+        -->
+        <skip-unit-tests>true</skip-unit-tests>
     </properties>
 
     <modules>
@@ -112,6 +123,20 @@
                 <artifactId>aliyun-sdk-oss</artifactId>
                 <version>${aliyun-sdk-oss.version}</version>
             </dependency>
+
+
+            <!-- 缓解第三方依赖漏洞 -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika-core.safe-version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -144,7 +169,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>${skip-unit-tests}</skipTests>
                 </configuration>
             </plugin>
 

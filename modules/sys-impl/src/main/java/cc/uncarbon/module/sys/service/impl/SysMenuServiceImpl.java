@@ -381,7 +381,9 @@ public class SysMenuServiceImpl implements SysMenuService {
         assert UserContextHolder.getContext() != null;
         // 1. 取当前账号拥有角色Ids
         var roleIds = UserContextHolder.getContext().getRoleIds();
-        SysErrorCodeEnum.A01005.throwIfEmpty(roleIds);
+        if (CollUtil.isEmpty(roleIds)) {
+            throw new BusinessException(SysErrorCodeEnum.A01005);
+        }
 
         // 2. 得到全量 菜单ID-实体 map（含禁用，用于祖先启用性校验），备用
         Map<Long, SysMenuEntity> allMenuMap = getAllMenuMap();
@@ -395,7 +397,9 @@ public class SysMenuServiceImpl implements SysMenuService {
 
         // 4. 根据现有角色，获取直接关联的菜单ID
         Set<Long> directlyRelatedMenuIds = sysRoleMenuRelationService.listMenuIdsByRoles(roleIds);
-        SysErrorCodeEnum.A01006.throwIfEmpty(directlyRelatedMenuIds);
+        if (CollUtil.isEmpty(directlyRelatedMenuIds)) {
+            throw new BusinessException(SysErrorCodeEnum.A01006);
+        }
 
         // 5. 因为直接关联的菜单ID，可能不包含父级菜单，使得级联关系缺失，这里得给他补上
         Map<Long, Long> parentIdById = allMenuMap.values().stream()
