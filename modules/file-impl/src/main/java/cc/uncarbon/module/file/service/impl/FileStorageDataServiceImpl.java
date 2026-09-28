@@ -20,7 +20,6 @@ import cc.uncarbon.module.file.storage.event.FileStorageChangedEvent;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -36,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 文件存储点
@@ -140,7 +140,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         var old = fileStorageMapper.selectById(request.getId());
         NoRecordException.throwIfNull(old);
         if (!CharSequenceUtil.equals(old.getCode(), request.getCode())) {
-            checkStorageNotInUse(old.getCode());
+            checkStorageNotInUse(Set.of(old.getCode()));
         }
 
         var entity = new FileStorageEntity();
@@ -162,7 +162,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
                         .in(FileStorageEntity::getId, ids))
                 .stream().map(FileStorageEntity::getCode).toList();
         if (CollUtil.isNotEmpty(codes)) {
-            checkStorageNotInUse(codes.toArray(String[]::new));
+            checkStorageNotInUse(codes);
         }
         fileStorageMapper.deleteByIds(ids);
         publishChangedEvent(FileStorageChangedEvent.ChangeType.DELETE);
@@ -279,8 +279,8 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
     /**
      * 检查存储点编码是否仍被文件元数据引用
      */
-    private void checkStorageNotInUse(String... storageCodes) {
-        if (ArrayUtil.isEmpty(storageCodes)) {
+    private void checkStorageNotInUse(Collection<String> storageCodes) {
+        if (CollUtil.isEmpty(storageCodes)) {
             return;
         }
         boolean inUse = fileMetaMapper.exists(new LambdaQueryWrapper<FileMetaEntity>()

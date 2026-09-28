@@ -16,7 +16,6 @@ import cc.uncarbon.module.file.storage.DynamicFileStorageRegistrar;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.x.file.storage.core.FileInfo;
@@ -169,10 +168,11 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
         FileStorageDTO storage;
         if (CharSequenceUtil.isNotBlank(options.getPlatform())) {
             storage = fileStorageDataService.getByStorageCode(options.getPlatform());
+            FileErrorCodeEnum.B02003.throwIfNull(storage, options.getPlatform());
         } else {
             storage = fileStorageDataService.getPrimary();
+            FileErrorCodeEnum.B02003.throwIfNull(storage, "primary");
         }
-        FileErrorCodeEnum.B02003.throwIfNull(storage, CharSequenceUtil.blankToDefault(options.getPlatform(), StrUtil.EMPTY));
         // 底层存储平台按 租户ID_存储点编码 注册
         String fullPlatform = DynamicFileStorageRegistrar.formatFullPlatform(
                 TenantContextHolder.getTenantId(), storage.getCode());
