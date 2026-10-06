@@ -2,12 +2,18 @@ package cc.uncarbon.module.adminapi.event.listener;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
+import cc.uncarbon.module.adminapi.event.ExitTenantSwitchEvent;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.adminapi.event.RefreshSysUserSessionEvent;
 import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
+import cc.uncarbon.module.adminapi.helper.TenantSwitchHelper;
+import cc.uncarbon.module.adminapi.model.internal.TenantSwitchInfo;
 import cc.uncarbon.module.commons.satoken.StpKit;
+import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.sys.service.AdminLoginService;
+import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cn.dev33.satoken.session.SaSession;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.thread.ThreadUtil;
@@ -43,15 +49,24 @@ public class AdminApiEventListener {
     private final TaskExecutor taskExecutor;
     private final RolePermissionCacheHelper rolePermissionCacheHelper;
     private final AdminLoginService adminLoginService;
+    private final TenantFacade tenantFacade;
+    private final TenantUserRoleFacade tenantUserRoleFacade;
+    private final TenantSwitchHelper tenantSwitchHelper;
 
 
     public AdminApiEventListener(
             @Qualifier(TaskExecutionAutoConfiguration.APPLICATION_TASK_EXECUTOR_BEAN_NAME) TaskExecutor taskExecutor,
             RolePermissionCacheHelper rolePermissionCacheHelper,
-            AdminLoginService adminLoginService) {
+            AdminLoginService adminLoginService,
+            TenantFacade tenantFacade,
+            TenantUserRoleFacade tenantUserRoleFacade,
+            TenantSwitchHelper tenantSwitchHelper) {
         this.taskExecutor = taskExecutor;
         this.rolePermissionCacheHelper = rolePermissionCacheHelper;
         this.adminLoginService = adminLoginService;
+        this.tenantFacade = tenantFacade;
+        this.tenantUserRoleFacade = tenantUserRoleFacade;
+        this.tenantSwitchHelper = tenantSwitchHelper;
     }
 
     @EventListener(value = KickOutSysUsersEvent.class)
@@ -69,6 +84,25 @@ public class AdminApiEventListener {
                 }
             });
         }
+    }
+
+    @EventListener(value = ExitTenantSwitchEvent.class)
+    public void handle(ExitTenantSwitchEvent event) {
+        Collection<Long> sysUserIds = event.getData().sysUserIds();
+        if (CollUtil.isEmpty(sysUserIds)) {
+            return;
+        }
+        Long tenantId = event.getData().tenantId();
+        // 异步强制退出切换；分批+间隔执行，避免同一时间大量操作Redis键
+        taskExecutor.execute(() -> {
+            List<List<Long>> batches = ListUtil.partition(new ArrayList<>(sysUserIds), KICK_OUT_BATCH_SIZE);
+            for (int i = 0; i < batches.size(); i++) {
+                batches.get(i).forEach(userId -> exitOneUserSwitch(userId, tenantId));
+                if (i < batches.size() - 1) {
+                    ThreadUtil.safeSleep(KICK_OUT_INTERVAL_MILLIS);
+                }
+            }
+        });
     }
 
     @EventListener(value = RefreshRolePermissionCacheEvent.class)
@@ -97,6 +131,12 @@ public class AdminApiEventListener {
         });
     }
 
+    /*
+    ----------------------------------------------------------------
+                        私有方法 private methods
+    ----------------------------------------------------------------
+     */
+
     /**
      * 原位刷新单个用户的会话快照，token 保持不变，下一次请求即新权限
      */
@@ -117,5 +157,39 @@ public class AdminApiEventListener {
             return;
         }
         session.set(UserContext.CAMEL_NAME, freshContext);
+    }
+
+    /**
+     * 强制退出单个用户的租户切换，退回切换前视角；重建失败（用户已不存在/被禁用）兜底强制登出
+     */
+    private void exitOneUserSwitch(Long userId, Long tenantId) {
+        SaSession session = StpKit.ADMIN.getSessionByLoginId(userId, false);
+        if (session == null
+                || !(session.get(TenantSwitchInfo.CAMEL_NAME) instanceof TenantSwitchInfo info)) {
+            // 用户不在线或未处于切换态（残留登记），清理登记即可
+            tenantSwitchHelper.unregister(tenantId, userId);
+            return;
+        }
+
+        // 恢复默认视角：优先切换前上下文，缺失时回登录默认租户（超管即平台自营域 0）
+        TenantContext restore = info.getOriginalTenantContext() != null
+                ? info.getOriginalTenantContext()
+                : tenantFacade.resolveDefaultTenant(userId);
+        UserContext fresh = restore != null
+                ? adminLoginService.buildSessionUserContext(userId, restore)
+                : null;
+        if (fresh == null) {
+            // 用户已不存在或被禁用，兜底强制登出
+            tenantSwitchHelper.unregister(tenantId, userId);
+            StpKit.ADMIN.kickout(userId);
+            return;
+        }
+
+        session.set(TenantContext.CAMEL_NAME, restore);
+        session.set(UserContext.CAMEL_NAME, fresh);
+        session.delete(TenantSwitchInfo.CAMEL_NAME);
+        tenantSwitchHelper.unregister(tenantId, userId);
+        tenantSwitchHelper.register(restore.getTenantId(), userId);
+        tenantUserRoleFacade.rememberActiveTenant(userId, restore.getTenantId());
     }
 }

@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
+import cc.uncarbon.module.adminapi.event.ExitTenantSwitchEvent;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.adminapi.helper.TenantSwitchHelper;
@@ -22,6 +23,7 @@ import cc.uncarbon.module.tenant.service.TenantService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -104,13 +106,21 @@ public class AdminTenantMetaController {
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
         var old = tenantService.getNonnullById(request.getId(), true);
         List<Long> kickedUserIds = tenantService.adminSetStatus(request);
-        // 并入「已切换至该租户视角」的会话登记（如超管切换视角后停留），再统一强制登出
-        Set<Long> kickedUserIdSet = new HashSet<>(kickedUserIds);
-        kickedUserIdSet.addAll(tenantSwitchHelper.listUserIds(request.getId()));
-        if (!kickedUserIdSet.isEmpty()) {
+        // 后处理
+        if (EnabledStatusEnum.DISABLED == request.getNewStatus()) {
+            // 「已切入该租户视角」的会话（如超管切换后停留）不整会话登出，强制退回原视角；本租户用户仍强制登出
+            Set<Long> visitorIds = tenantSwitchHelper.listUserIds(request.getId());
+            kickedUserIds.forEach(visitorIds::remove);
+            if (CollUtil.isNotEmpty(visitorIds)) {
+                eventPublisher.publishEvent(new ExitTenantSwitchEvent(
+                        new ExitTenantSwitchEvent.EventData(request.getId(), visitorIds)
+                ));
+            }
+        }
+        if (CollUtil.isNotEmpty(kickedUserIds)) {
             // 租户被禁用，强制登出该租户全部用户
             eventPublisher.publishEvent(new KickOutSysUsersEvent(
-                    new KickOutSysUsersEvent.EventData(kickedUserIdSet)
+                    new KickOutSysUsersEvent.EventData(new HashSet<>(kickedUserIds))
             ));
         }
         // 用于操作日志

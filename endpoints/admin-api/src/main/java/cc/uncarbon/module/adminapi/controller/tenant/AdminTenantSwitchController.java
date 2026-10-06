@@ -124,7 +124,7 @@ public class AdminTenantSwitchController {
         // 记忆激活租户，供下次登录首选
         tenantUserRoleFacade.rememberActiveTenant(loginId, target.getTenantId());
 
-        // 维护租户在会话登记，供租户禁用时强制登出
+        // 维护租户在会话登记，供租户禁用时强制退回原视角
         if (current != null) {
             tenantSwitchHelper.unregister(current.getTenantId(), loginId);
         }
