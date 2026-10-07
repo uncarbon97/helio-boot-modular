@@ -72,4 +72,6 @@ Desktop.ini
 .env
 .env.*
 
-application-local.y*ml
+# 本地配置文件（可能包含数据库账号密码等敏感信息）
+**/application-local.yml
+**/application-local.yaml

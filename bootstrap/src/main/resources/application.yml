@@ -8,7 +8,7 @@ spring:
   application:
     name: helium-monolith
   profiles:
-    # 切换多环境；本地开发可以单独复制出来一个 local 环境配置文件，但不上传到 Git 服务器
+    # 为了方便本地开发并兼顾安全，可以另外复制出来一个 local 配置文件，但不要加入版本控制系统
     active: dev,local
   config:
     import:
