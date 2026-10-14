@@ -55,6 +55,9 @@
             需要执行时：mvn test -Dskip-unit-tests=false
         -->
         <skip-unit-tests>true</skip-unit-tests>
+
+        <!-- 单元测试覆盖率（JaCoCo），需支持 Java 25 字节码 -->
+        <jacoco.version>0.8.14</jacoco.version>
     </properties>
 
     <modules>
@@ -171,6 +174,40 @@
                 <configuration>
                     <skipTests>${skip-unit-tests}</skipTests>
                 </configuration>
+            </plugin>
+
+            <!--
+                单元测试覆盖率（JaCoCo）：
+                prepare-agent / prepare-agent-integration 分别为 surefire / failsafe 注入探针
+                verify 阶段输出各模块自身报告 target/site/jacoco/index.html；
+                跨模块聚合报告见 integration-tests 模块（report-aggregate）。
+                用法：mvn -Dskip-unit-tests=false verify [-Prun-it]
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>prepare-agent-integration</id>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- 编译时，不执行 mvn deploy -->

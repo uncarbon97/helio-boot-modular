@@ -27,7 +27,7 @@
             例：mvn -pl integration-tests -am -Prun-it verify -Dit.groups=tenant
             留空 = 跑全部
         -->
-        <it.groups></it.groups>
+        <it.groups/>
     </properties>
 
     <dependencies>
@@ -53,6 +53,30 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <!--
+                跨模块聚合覆盖率报告（版本与执行继承自根 pom 的 jacoco-maven-plugin）：
+                汇总本模块及依赖（bootstrap 传递全量业务模块）的 jacoco.exec / jacoco-it.exec，
+                输出 integration-tests/target/site/jacoco-aggregate/index.html。
+                前提：与各模块在同一 reactor 构建中，如 mvn -Dskip-unit-tests=false -Prun-it verify
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>report-aggregate</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <!--
             默认不跑集成测试（需要外部 DB/Redis 在跑）。
@@ -61,6 +85,9 @@
         -->
         <profile>
             <id>run-it</id>
+            <properties>
+                <skip-unit-tests>false</skip-unit-tests>
+            </properties>
             <build>
                 <plugins>
                     <plugin>

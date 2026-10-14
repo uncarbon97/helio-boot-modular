@@ -16,7 +16,7 @@ spring:
           lazy: false
   data:
     redis:
-      host: 127.0.0.1
+      host: ${REDIS_HOST:127.0.0.1}
       port: 6379
       # 未设密码请保持注释，避免向 Redis 发送 AUTH 引发启动失败
       # password:
