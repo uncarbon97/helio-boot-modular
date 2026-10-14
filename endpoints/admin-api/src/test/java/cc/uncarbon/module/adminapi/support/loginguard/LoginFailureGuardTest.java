@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,7 +19,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Duration;
-import org.mockito.ArgumentMatchers;
 
 /**
  * {@link LoginFailureGuard} 防撞库计数分支测试（锁定 key 维度按登录模式收敛）
@@ -123,7 +123,7 @@ class LoginFailureGuardTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

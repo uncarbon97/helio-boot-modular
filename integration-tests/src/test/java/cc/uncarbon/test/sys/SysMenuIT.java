@@ -7,12 +7,14 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import cc.uncarbon.module.sys.enums.MenuVisibleScopeEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -21,8 +23,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
-import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 
 /**
  * 菜单管理集成测试：CRUD、权限标识重复拦截、成环拦截、删除约束、
@@ -110,7 +110,7 @@ class SysMenuIT extends BaseIntegrationTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

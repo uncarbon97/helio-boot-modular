@@ -9,7 +9,6 @@ import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
-import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cc.uncarbon.module.tenant.service.TenantService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -267,7 +266,7 @@ class TenantFacadeImplTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

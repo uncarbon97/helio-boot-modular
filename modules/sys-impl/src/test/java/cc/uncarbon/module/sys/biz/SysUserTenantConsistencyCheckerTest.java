@@ -1,11 +1,10 @@
 package cc.uncarbon.module.sys.biz;
 
+import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -70,7 +69,7 @@ class SysUserTenantConsistencyCheckerTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

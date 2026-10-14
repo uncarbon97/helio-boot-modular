@@ -1,10 +1,8 @@
 package cc.uncarbon.module.sys.service.impl;
 
-import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
 import cc.uncarbon.framework.helium.base.context.UserContext;
-import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.errorcode.StructuredErrorCode;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
-import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
@@ -13,6 +11,7 @@ import cc.uncarbon.framework.helium.web.context.VisitorContext;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
+import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
@@ -43,8 +42,6 @@ import org.mockito.quality.Strictness;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
-import cc.uncarbon.framework.helium.base.errorcode.StructuredErrorCode;
 
 /**
  * {@link AdminLoginServiceImpl} 双登录模式 + 会话重建分支测试
@@ -307,7 +304,7 @@ class AdminLoginServiceImplTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

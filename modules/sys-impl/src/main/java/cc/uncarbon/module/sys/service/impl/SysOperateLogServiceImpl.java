@@ -105,7 +105,7 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

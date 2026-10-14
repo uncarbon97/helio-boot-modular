@@ -1,22 +1,25 @@
 package cc.uncarbon.test.sys;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
-import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
 import cc.uncarbon.module.sys.model.request.AdminSysUserCreateRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.SysRoleService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
-import cc.uncarbon.framework.helium.base.page.PageParam;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -25,10 +28,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
-import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 
 /**
  * 用户管理集成测试：CRUD、同名拦截、越权拦截、绑定角色、删除级联清理
@@ -98,7 +97,7 @@ class SysUserIT extends BaseIntegrationTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

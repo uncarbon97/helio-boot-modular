@@ -133,7 +133,7 @@ public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

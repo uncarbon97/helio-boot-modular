@@ -6,6 +6,8 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
@@ -15,8 +17,8 @@ import cc.uncarbon.module.sys.enums.MenuVisibleScopeEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
-import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,10 +34,8 @@ import org.mockito.quality.Strictness;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
-import java.util.stream.Collectors;
-import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * {@link SysMenuServiceImpl} 菜单树/权限解析分支测试
@@ -342,7 +342,7 @@ class SysMenuServiceImplTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

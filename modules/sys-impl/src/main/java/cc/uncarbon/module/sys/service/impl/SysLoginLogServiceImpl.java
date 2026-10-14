@@ -106,7 +106,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

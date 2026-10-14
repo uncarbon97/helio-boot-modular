@@ -5,9 +5,11 @@ import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
@@ -21,21 +23,15 @@ import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
+import cc.uncarbon.module.sys.model.query.AdminSysRoleListRelatedUserQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
-import cc.uncarbon.module.sys.model.request.AdminSysUserBindDeptRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserBindRoleRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserCreateRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserResetPasswordRequest;
-import cc.uncarbon.module.sys.model.request.AdminSysUserUpdateRequest;
-import cc.uncarbon.module.sys.model.request.TenantUserCreateRequest;
+import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
-import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -50,8 +46,6 @@ import org.mockito.quality.Strictness;
 
 import java.util.List;
 import java.util.Set;
-import cc.uncarbon.module.sys.model.query.AdminSysRoleListRelatedUserQuery;
-import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 
 /**
  * {@link SysUserServiceImpl} 用户管理越权/校验分支测试
@@ -525,7 +519,7 @@ class SysUserServiceImplTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

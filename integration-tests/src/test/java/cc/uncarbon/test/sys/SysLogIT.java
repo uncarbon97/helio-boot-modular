@@ -1,7 +1,13 @@
 package cc.uncarbon.test.sys;
 
+import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.context.SimpleVisitorContext;
+import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
+import cc.uncarbon.module.sys.dal.entity.SysLoginLogEntity;
+import cc.uncarbon.module.sys.dal.entity.SysOperateLogEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysLoginLogMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import cc.uncarbon.module.sys.enums.LoginLogTypeEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;
@@ -12,7 +18,10 @@ import cc.uncarbon.module.sys.model.valueobj.SysLoginLogDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysOperateLogDTO;
 import cc.uncarbon.module.sys.service.SysLoginLogService;
 import cc.uncarbon.module.sys.service.SysOperateLogService;
+import cc.uncarbon.module.sys.service.impl.SysLoginLogServiceImpl;
+import cc.uncarbon.module.sys.service.impl.SysOperateLogServiceImpl;
 import cc.uncarbon.test.base.BaseIntegrationTest;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -20,15 +29,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import cc.uncarbon.module.sys.dal.mapper.SysLoginLogMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
-import cc.uncarbon.module.sys.service.impl.SysLoginLogServiceImpl;
-import cc.uncarbon.framework.helium.base.page.PageParam;
-import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
-import cc.uncarbon.module.sys.service.impl.SysOperateLogServiceImpl;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import cc.uncarbon.module.sys.dal.entity.SysLoginLogEntity;
-import cc.uncarbon.module.sys.dal.entity.SysOperateLogEntity;
 
 /**
  * 登录/操作日志集成测试：落库、UA 超长截断、UA 解析回显、条件分页
@@ -108,7 +108,7 @@ class SysLogIT extends BaseIntegrationTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

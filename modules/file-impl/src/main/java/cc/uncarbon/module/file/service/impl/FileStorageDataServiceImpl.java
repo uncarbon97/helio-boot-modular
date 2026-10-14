@@ -200,7 +200,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

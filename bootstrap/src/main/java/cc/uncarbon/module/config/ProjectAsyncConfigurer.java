@@ -15,7 +15,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 @Configuration
 @Slf4j
-public class LocalAsyncConfigurer implements AsyncConfigurer {
+public class ProjectAsyncConfigurer implements AsyncConfigurer {
 
     /**
      * 虚拟线程不必乱注入什么 Bean 了，用 Spring Boot 自带的即可。

@@ -6,7 +6,15 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
+import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
+import cc.uncarbon.module.sys.dal.mapper.*;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
+import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
+import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
+import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
+import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
+import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMapper;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
@@ -14,8 +22,8 @@ import cc.uncarbon.module.tenant.model.request.AdminTenantPackageBindMenuRequest
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageUpsertRequest;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cc.uncarbon.module.tenant.service.TenantService;
-import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -24,19 +32,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
-import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
-import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysRoleMenuRelationMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
-import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
-import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
-import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
 
 /**
  * 租户生命周期集成测试：建租户（角色+管理员+套餐级联）、
@@ -153,7 +148,7 @@ class TenantCrudIT extends BaseIntegrationTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

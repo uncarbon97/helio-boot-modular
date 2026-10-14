@@ -63,7 +63,7 @@ public class SysOperateLogRecorder implements ILogRecordDataService {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

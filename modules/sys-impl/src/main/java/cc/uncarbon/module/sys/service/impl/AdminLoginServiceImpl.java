@@ -274,7 +274,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

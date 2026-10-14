@@ -124,7 +124,7 @@ public class FileMetaServiceImpl implements FileMetaService {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

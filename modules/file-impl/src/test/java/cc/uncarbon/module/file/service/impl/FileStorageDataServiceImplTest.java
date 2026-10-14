@@ -1,19 +1,21 @@
 package cc.uncarbon.module.file.service.impl;
 
-import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageParam;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.file.dal.entity.FileMetaEntity;
+import cc.uncarbon.module.file.MybatisPlusTestSupport;
 import cc.uncarbon.module.file.dal.entity.FileStorageEntity;
 import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
 import cc.uncarbon.module.file.dal.mapper.FileStorageMapper;
 import cc.uncarbon.module.file.enums.StoragePlatformTypeEnum;
 import cc.uncarbon.module.file.errorcode.FileErrorCodeEnum;
+import cc.uncarbon.module.file.model.query.AdminFileStorageListQuery;
 import cc.uncarbon.module.file.model.request.AdminFileStorageUpsertRequest;
 import cc.uncarbon.module.file.model.setting.storage.LocalSetting;
 import cc.uncarbon.module.file.storage.event.FileStorageChangedEvent;
-import cc.uncarbon.module.file.MybatisPlusTestSupport;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -30,9 +32,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import cc.uncarbon.module.file.model.query.AdminFileStorageListQuery;
-import cc.uncarbon.framework.helium.base.page.PageParam;
 
 /**
  * {@link FileStorageDataServiceImpl} 存储点管理分支测试（主存储点唯一/引用保护/配置序列化）
@@ -219,7 +218,7 @@ class FileStorageDataServiceImplTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

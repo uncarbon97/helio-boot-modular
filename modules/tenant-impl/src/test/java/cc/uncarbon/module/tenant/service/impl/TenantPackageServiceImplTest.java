@@ -7,6 +7,7 @@ import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.facade.SysMenuFacade;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
+import cc.uncarbon.module.tenant.MybatisPlusTestSupport;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
@@ -16,7 +17,6 @@ import cc.uncarbon.module.tenant.model.request.AdminTenantPackageBindMenuRequest
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageUpsertRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageBindMenuResult;
 import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
-import cc.uncarbon.module.tenant.MybatisPlusTestSupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -193,7 +193,7 @@ class TenantPackageServiceImplTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

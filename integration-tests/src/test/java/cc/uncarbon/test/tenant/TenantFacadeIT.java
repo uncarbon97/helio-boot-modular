@@ -1,29 +1,20 @@
 package cc.uncarbon.test.tenant;
 
-import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
+import cc.uncarbon.module.sys.dal.mapper.*;
+import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
+import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cc.uncarbon.module.tenant.service.TenantService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
-import jakarta.annotation.Resource;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysRoleMenuRelationMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
-import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
-import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
+import jakarta.annotation.Resource;
+import org.junit.jupiter.api.*;
 
 /**
  * 租户门面集成测试：编码校验、切换目标解析、可切换列表、切换断言
@@ -104,7 +95,7 @@ class TenantFacadeIT extends BaseIntegrationTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

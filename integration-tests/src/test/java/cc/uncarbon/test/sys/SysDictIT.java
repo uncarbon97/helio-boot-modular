@@ -1,9 +1,13 @@
 package cc.uncarbon.test.sys;
 
-import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
+import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysDictCategoryMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysDictItemMapper;
 import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
@@ -11,6 +15,7 @@ import cc.uncarbon.module.sys.model.request.AdminSysDictItemUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
 import cc.uncarbon.module.sys.service.SysDictService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -18,11 +23,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import cc.uncarbon.module.sys.dal.mapper.SysDictCategoryMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysDictItemMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
-import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 
 /**
  * 字典集成测试：DB 字典 CRUD、重复编码拦截、孤儿字典项拦截、内置枚举字典
@@ -91,7 +91,7 @@ class SysDictIT extends BaseIntegrationTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

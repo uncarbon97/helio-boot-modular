@@ -6,15 +6,19 @@ import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
+import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
+import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.TenantUserBasicProfileDTO;
+import cc.uncarbon.module.tenant.MybatisPlusTestSupport;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
+import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
+import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
-import cc.uncarbon.module.tenant.MybatisPlusTestSupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,10 +32,6 @@ import org.mockito.quality.Strictness;
 
 import java.util.List;
 import java.util.Set;
-import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
-import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
-import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
-import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 
 /**
  * {@link TenantServiceImpl} 租户生命周期分支测试
@@ -231,7 +231,7 @@ class TenantServiceImplTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 

@@ -2,6 +2,8 @@ package cc.uncarbon.test.file;
 
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
+import cc.uncarbon.module.file.dal.mapper.FileStorageMapper;
 import cc.uncarbon.module.file.enums.StoragePlatformTypeEnum;
 import cc.uncarbon.module.file.facade.FileUpDownloadFacade;
 import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
@@ -11,10 +13,15 @@ import cc.uncarbon.module.file.model.response.FileDownloadReply;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.service.FileMetaService;
 import cc.uncarbon.module.file.service.FileStorageDataService;
+import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
+import cc.uncarbon.module.sys.dal.mapper.*;
+import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.service.TenantService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -26,17 +33,6 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
-import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
-import cc.uncarbon.module.file.dal.mapper.FileStorageMapper;
-import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysRoleMenuRelationMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
-import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
 
 /**
  * 文件上传下载集成测试：动态注册 DB 存储点 → 上传 → SHA256 秒传索引 → 服务端代理下载
@@ -151,7 +147,7 @@ class FileUpDownloadIT extends BaseIntegrationTest {
 
     /*
     ----------------------------------------------------------------
-                        私有方法 private methods
+                        私有方法
     ----------------------------------------------------------------
      */
 
