@@ -23,7 +23,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  * @author Uncarbon
  */
 @SpringBootTest(classes = Bootstrap.class)
-@ActiveProfiles(value = "test")
+@ActiveProfiles(value = {"test"})
 public abstract class BaseIntegrationTest {
 
     /**

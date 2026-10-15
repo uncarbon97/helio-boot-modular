@@ -5,16 +5,16 @@ spring:
       datasource:
         # MySQL 数据源
         mysql:
-          url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${DB_TIMEZONE}
-          username: ${MYSQL_USERNAME:helium}
-          password: ${MYSQL_PASSWORD:helium}
+          url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${DB_TIMEZONE}
+          username: ${DB_USERNAME:helium}
+          password: ${DB_PASSWORD:helium}
           # 设置 false 会在工程启动时就初始化数据源
           lazy: false
         # PG 数据源
         postgres:
-          url: jdbc:postgresql://${PG_HOST:127.0.0.1}:${PG_PORT:5432}/${PG_DB_NAME:helium}?reWriteBatchedInserts=true&TimeZone=${DB_TIMEZONE}
-          username: ${PG_USERNAME:helium}
-          password: ${PG_PASSWORD:helium}
+          url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:helium}?reWriteBatchedInserts=true&TimeZone=${DB_TIMEZONE}
+          username: ${DB_USERNAME:helium}
+          password: ${DB_PASSWORD:helium}
           lazy: true
   data:
     redis:

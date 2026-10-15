@@ -6,13 +6,14 @@
 spring:
   datasource:
     dynamic:
+      primary: it
       datasource:
-        primary: master
-        # 主数据源（建议指向独立的测试库，避免污染开发数据）
-        master:
-          url: jdbc:${MASTER_DB_TYPE:mysql}://${MASTER_DB_HOST:127.0.0.1}:${MASTER_DB_PORT:3306}/${MASTER_DB_NAME:helium_test}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-          username: ${MASTER_DB_USERNAME:helium}
-          password: ${MASTER_DB_PASSWORD:helium}
+        # 集成测试专用数据源
+        it:
+          url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${DB_TIMEZONE}
+          username: ${DB_USERNAME:helium}
+          password: ${DB_PASSWORD:helium}
+          # 设置 false 会在工程启动时就初始化数据源
           lazy: false
   data:
     redis:
