@@ -2,6 +2,7 @@ package cc.uncarbon.test.file;
 
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
 import cc.uncarbon.module.file.dal.mapper.FileStorageMapper;
 import cc.uncarbon.module.file.enums.StoragePlatformTypeEnum;
@@ -124,11 +125,19 @@ class FileUpDownloadIT extends BaseIntegrationTest {
         }
         fileMetaId = ref.meta.getId();
 
-        // 3. SHA256 秒传索引
-        FileMetaDTO indexed = fileUpDownloadFacade.findByDigestSha256(digest);
-        Assertions.assertNotNull(indexed);
-        Assertions.assertEquals(fileMetaId, indexed.getId());
-        Assertions.assertNull(fileUpDownloadFacade.findByDigestSha256("not-exist-digest"));
+        // 3. SHA256 秒传索引（文件元数据归属租户，需以该租户视角读取）
+        Runnable digestLookup = () -> {
+            FileMetaDTO indexed = fileUpDownloadFacade.findByDigestSha256(digest);
+            Assertions.assertNotNull(indexed);
+            Assertions.assertEquals(fileMetaId, indexed.getId());
+            Assertions.assertNull(fileUpDownloadFacade.findByDigestSha256("not-exist-digest"));
+        };
+        if (tenantEnabled) {
+            withContext(testUser(0L, "admin"),
+                    testTenant(tenantId, "IT文件租户", tenantCode), digestLookup);
+        } else {
+            digestLookup.run();
+        }
 
         // 4. 服务端代理下载（本地存储无直链 → byte[]）
         FileDownloadReply reply = fileUpDownloadFacade.downloadByTenantAndId(
@@ -138,10 +147,9 @@ class FileUpDownloadIT extends BaseIntegrationTest {
         Assertions.assertArrayEquals(CONTENT, reply.getFileBytes());
         Assertions.assertTrue(reply.getStorageFilename().endsWith(".txt"));
 
-        // 5. 不存在的文件 → 错误码而非异常
-        FileDownloadReply missing = fileUpDownloadFacade.downloadByTenantAndId(
-                tenantEnabled ? tenantCode : null, 99_999_999L);
-        Assertions.assertFalse(missing.isSuccess());
+        // 5. 不存在的文件 → 业务异常（门面原样抛出，由控制器统一转错误响应）
+        Assertions.assertThrows(NoRecordException.class, () -> fileUpDownloadFacade.downloadByTenantAndId(
+                tenantEnabled ? tenantCode : null, 99_999_999L));
     }
 
 

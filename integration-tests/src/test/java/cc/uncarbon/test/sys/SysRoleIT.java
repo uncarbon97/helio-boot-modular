@@ -68,15 +68,18 @@ class SysRoleIT extends BaseIntegrationTest {
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
                 () -> sysRoleService.adminBindMenu(
                         new AdminSysRoleBindMenuRequest().setRoleId(roleId).setMenuIds(Set.of(menuId))));
-        Assertions.assertEquals(Set.of(menuId),
-                sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(roleId)));
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
+                () -> Assertions.assertEquals(Set.of(menuId),
+                        sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(roleId))));
 
         // 删除角色 → 关联关系清理
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
                 () -> sysRoleService.adminDelete(List.of(roleId)));
-        Assertions.assertEquals(Set.of(),
-                sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(roleId)));
-        Assertions.assertNull(sysRoleService.getById(roleId));
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
+            Assertions.assertEquals(Set.of(),
+                    sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(roleId)));
+            Assertions.assertNull(sysRoleService.getById(roleId));
+        });
     }
 
 

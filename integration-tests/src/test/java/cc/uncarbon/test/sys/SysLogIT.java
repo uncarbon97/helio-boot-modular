@@ -63,21 +63,24 @@ class SysLogIT extends BaseIntegrationTest {
                 .setResultStatus(LogResultStatusEnum.SUCCESS)
                 .setTenantId(0L));
 
-        // UA 截断到 255
-        var entity = loginLogMapper.selectById(logId);
-        Assertions.assertEquals(SysLoginLogServiceImpl.USER_AGENT_MAX_LENGTH,
-                entity.getVisitorUserAgent().length());
+        // 读取走租户隔离（日志行归属租户 0），平台自营域视角断言
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
+            // UA 截断到 255
+            var entity = loginLogMapper.selectById(logId);
+            Assertions.assertEquals(SysLoginLogServiceImpl.USER_AGENT_MAX_LENGTH,
+                    entity.getVisitorUserAgent().length());
 
-        // DTO 回显 UA 解析结果
-        SysLoginLogDTO dto = sysLoginLogService.getNonnullById(logId);
-        Assertions.assertNotNull(dto.getVisitorBrowser());
-        Assertions.assertNotNull(dto.getVisitorOs());
+            // DTO 回显 UA 解析结果
+            SysLoginLogDTO dto = sysLoginLogService.getNonnullById(logId);
+            Assertions.assertNotNull(dto.getVisitorBrowser());
+            Assertions.assertNotNull(dto.getVisitorOs());
 
-        // 账号筛选 + 结果状态筛选
-        var page = sysLoginLogService.adminList(new AdminSysLoginLogListQuery()
-                .setPageParam(new PageParam(1, 10))
-                .setUserPin(pin).setResultStatus(LogResultStatusEnum.SUCCESS));
-        Assertions.assertTrue(page.getRecords().stream().anyMatch(l -> logId.equals(l.getId())));
+            // 账号筛选 + 结果状态筛选
+            var page = sysLoginLogService.adminList(new AdminSysLoginLogListQuery()
+                    .setPageParam(new PageParam(1, 10))
+                    .setUserPin(pin).setResultStatus(LogResultStatusEnum.SUCCESS));
+            Assertions.assertTrue(page.getRecords().stream().anyMatch(l -> logId.equals(l.getId())));
+        });
     }
 
     @Test
@@ -85,24 +88,29 @@ class SysLogIT extends BaseIntegrationTest {
         String bizNo = "itb" + (System.nanoTime() % 1_000_000_000L);
         String longUa = UA + "y".repeat(300);
 
-        Long logId = sysOperateLogService.create(new SysOperateLogCreateRequest()
-                .setBizType("IT业务").setBehavior("IT行为").setBizNo(bizNo)
-                .setOperation("测试操作").setUserTypeCode(UserTypeCodeEnum.ADMIN_USER)
-                .setVisitorIp("127.0.0.1").setVisitorUserAgent(longUa)
-                .setResultStatus(LogResultStatusEnum.SUCCESS));
+        // 操作日志 tenant_id 取自租户上下文自动填充，平台自营域视角执行
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
+            Long logId = sysOperateLogService.create(new SysOperateLogCreateRequest()
+                    .setBizType("IT业务").setBehavior("IT行为").setBizNo(bizNo)
+                    .setOperation("测试操作").setUserTypeCode(UserTypeCodeEnum.ADMIN_USER)
+                    .setUserId(0L)
+                    .setRequestMethod("POST").setRequestPath("/it/test")
+                    .setVisitorIp("127.0.0.1").setVisitorUserAgent(longUa)
+                    .setResultStatus(LogResultStatusEnum.SUCCESS));
 
-        // UA 截断到 250
-        var entity = operateLogMapper.selectById(logId);
-        Assertions.assertEquals(SysOperateLogServiceImpl.USER_AGENT_MAX_LENGTH,
-                entity.getVisitorUserAgent().length());
+            // UA 截断到 250
+            var entity = operateLogMapper.selectById(logId);
+            Assertions.assertEquals(SysOperateLogServiceImpl.USER_AGENT_MAX_LENGTH,
+                    entity.getVisitorUserAgent().length());
 
-        // bizNo 筛选
-        var page = sysOperateLogService.adminList(new AdminSysOperateLogListQuery()
-                .setPageParam(new PageParam(1, 10))
-                .setBizNo(bizNo).setBeginAt(Instant.now().minusSeconds(60)).setEndAt(Instant.now().plusSeconds(60)));
-        Assertions.assertTrue(page.getRecords().stream().anyMatch(l -> logId.equals(l.getId())));
-        SysOperateLogDTO dto = sysOperateLogService.getNonnullById(logId);
-        Assertions.assertEquals("IT行为", dto.getBehavior());
+            // bizNo 筛选
+            var page = sysOperateLogService.adminList(new AdminSysOperateLogListQuery()
+                    .setPageParam(new PageParam(1, 10))
+                    .setBizNo(bizNo).setBeginAt(Instant.now().minusSeconds(60)).setEndAt(Instant.now().plusSeconds(60)));
+            Assertions.assertTrue(page.getRecords().stream().anyMatch(l -> logId.equals(l.getId())));
+            SysOperateLogDTO dto = sysOperateLogService.getNonnullById(logId);
+            Assertions.assertEquals("IT行为", dto.getBehavior());
+        });
     }
 
 

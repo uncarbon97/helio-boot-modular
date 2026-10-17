@@ -85,6 +85,8 @@ public class TenantServiceImpl implements TenantService {
 
         var entity = new TenantMetaEntity();
         BeanUtil.copyProperties(request, entity);
+        // 新租户默认启用
+        entity.setStatus(EnabledStatusEnum.ENABLED);
 
         tenantMetaMapper.insert(entity);
 

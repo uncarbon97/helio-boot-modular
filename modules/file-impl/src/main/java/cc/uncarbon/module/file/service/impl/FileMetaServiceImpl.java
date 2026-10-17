@@ -102,6 +102,21 @@ public class FileMetaServiceImpl implements FileMetaService {
         return convertEntity(entity);
     }
 
+    /**
+     * 仅绝对 http(s) 地址可视为直链（302/外显）
+     * <p>本地存储等未配置访问域名时，框架返回的是相对路径，并无访问价值，
+     * 置空使其走服务端代理下载，避免下游误判为可直链
+     */
+    private static String resolveDirectUrl(String url) {
+        return CharSequenceUtil.startWithAny(url, "http://", "https://") ? url : null;
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法
+    ----------------------------------------------------------------
+     */
+
     @Override
     public FileMetaDTO save(@NonNull FileInfo fileInfo, @NonNull FileStorageDTO storage,
                             @NonNull FacadeUploadOptions options, @NonNull FileAttrExtraRequest attr) {
@@ -117,16 +132,10 @@ public class FileMetaServiceImpl implements FileMetaService {
                 .setFileSize(fileInfo.getSize())
                 .setDigestSha256(options.getDigestSha256())
                 .setCategory(attr.getCategory())
-                .setDirectUrl(fileInfo.getUrl());
+                .setDirectUrl(resolveDirectUrl(fileInfo.getUrl()));
         fileMetaMapper.insert(entity);
         return convertEntity(entity);
     }
-
-    /*
-    ----------------------------------------------------------------
-                        私有方法
-    ----------------------------------------------------------------
-     */
 
     /**
      * 按元数据重建底层存储 FileInfo，用于物理删除

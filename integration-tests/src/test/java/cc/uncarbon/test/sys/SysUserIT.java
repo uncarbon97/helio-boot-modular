@@ -54,9 +54,11 @@ class SysUserIT extends BaseIntegrationTest {
 
         // 新增默认禁用
         Long userId = create(pin, "13800001111");
-        SysUserDTO dto = sysUserService.getOperableById(userId);
-        Assertions.assertNotNull(dto);
-        Assertions.assertEquals(SysUserStatusEnum.DISABLED, dto.getStatus());
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
+            SysUserDTO dto = sysUserService.getOperableById(userId);
+            Assertions.assertNotNull(dto);
+            Assertions.assertEquals(SysUserStatusEnum.DISABLED, dto.getStatus());
+        });
 
         // 同 pin 重复 → A01030
         var dup = Assertions.assertThrows(HasRepeatRecordException.class, () -> create(pin, "13800002222"));
@@ -66,8 +68,9 @@ class SysUserIT extends BaseIntegrationTest {
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
                 () -> sysUserService.adminSetStatus(new AdminSetStatusRequest<Long, SysUserStatusEnum>()
                         .setId(userId).setNewStatus(SysUserStatusEnum.ENABLED)));
-        Assertions.assertEquals(SysUserStatusEnum.ENABLED,
-                sysUserService.getOperableById(userId).getStatus());
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () ->
+                Assertions.assertEquals(SysUserStatusEnum.ENABLED,
+                        sysUserService.getOperableById(userId).getStatus()));
 
         // 超管给自己去掉超管角色 → A01020
         var self = Assertions.assertThrows(BusinessException.class,
@@ -84,14 +87,17 @@ class SysUserIT extends BaseIntegrationTest {
         });
 
         // 手机号筛选
-        var page = sysUserService.adminList(new AdminSysUserListQuery()
-                .setPageParam(new PageParam(1, 10)).setPhoneNo("13800001111"));
-        Assertions.assertTrue(page.getRecords().stream().anyMatch(u -> userId.equals(u.getId())));
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
+            var page = sysUserService.adminList(new AdminSysUserListQuery()
+                    .setPageParam(new PageParam(1, 10)).setPhoneNo("13800001111"));
+            Assertions.assertTrue(page.getRecords().stream().anyMatch(u -> userId.equals(u.getId())));
+        });
 
         // 删除 → 关联一并清理
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
                 () -> sysUserService.adminDelete(List.of(userId)));
-        Assertions.assertNull(sysUserService.getOperableById(userId));
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
+                () -> Assertions.assertNull(sysUserService.getOperableById(userId)));
     }
 
 

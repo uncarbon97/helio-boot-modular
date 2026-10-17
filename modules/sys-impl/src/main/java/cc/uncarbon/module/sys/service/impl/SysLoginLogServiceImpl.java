@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.iplocation.IPLocationResolver;
@@ -88,7 +89,8 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
                 .setVisitorUserAgent(ua)
                 .setVisitorIpLocation(ipLocation);
 
-        sysLoginLogMapper.insert(entity);
+        // 登录日志 tenant_id 由业务显式写入（登录失败时可能尚无租户上下文），忽略租户态落库；读取仍走租户隔离
+        TenantContextHolder.runIgnored(() -> sysLoginLogMapper.insert(entity));
         return entity.getId();
     }
 

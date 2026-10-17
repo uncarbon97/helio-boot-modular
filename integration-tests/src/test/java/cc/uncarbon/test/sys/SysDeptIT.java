@@ -39,18 +39,22 @@ class SysDeptIT extends BaseIntegrationTest {
     void deptCrudLifecycle() {
         Long rootId = create("IT根部门", null);
         Assertions.assertNotNull(rootId);
-        // 根部门 parentId 置空返回
-        SysDeptDTO root = sysDeptService.getNonnullById(rootId);
-        Assertions.assertNull(root.getParentId());
+        // 根部门 parentId 置空返回（读取走租户隔离，需租户上下文）
+        var rootRef = new Object() {
+            SysDeptDTO dto;
+        };
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
+                () -> rootRef.dto = sysDeptService.getNonnullById(rootId));
+        Assertions.assertNull(rootRef.dto.getParentId());
 
         Long childId = create("IT子部门", rootId);
         Assertions.assertNotNull(childId);
 
-        // 同一上级下同名 → A01040
+        // 同一上级下同名 → A01040（创建时追加了纳米后缀，须用实际落库名）
         var dup = Assertions.assertThrows(BusinessException.class,
                 () -> withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
                         () -> sysDeptService.adminCreate(
-                                new AdminSysDeptUpsertRequest().setName("IT根部门").setParentId(null))));
+                                new AdminSysDeptUpsertRequest().setName(rootRef.dto.getName()).setParentId(null))));
         Assertions.assertEquals(SysErrorCodeEnum.A01040, ((BusinessException) dup).getErrorCode());
 
         // 上级不存在 → NoRecord
@@ -79,8 +83,10 @@ class SysDeptIT extends BaseIntegrationTest {
             Assertions.assertEquals(EnabledStatusEnum.ENABLED, sysDeptService.getNonnullById(childId).getStatus());
         });
 
-        // 父停用后，子不能再启用（先停父再启用子 → A01037）
+        // 父停用后，子不能再启用；停用父级前须先停用子级（否则 A01036）
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
+            sysDeptService.adminSetStatus(new AdminSetStatusRequest<Long, EnabledStatusEnum>()
+                    .setId(childId).setNewStatus(EnabledStatusEnum.DISABLED));
             sysDeptService.adminSetStatus(new AdminSetStatusRequest<Long, EnabledStatusEnum>()
                     .setId(rootId).setNewStatus(EnabledStatusEnum.DISABLED));
         });
@@ -93,7 +99,8 @@ class SysDeptIT extends BaseIntegrationTest {
         // 叶子可删
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
                 () -> sysDeptService.adminDelete(List.of(childId)));
-        Assertions.assertNull(sysDeptService.getById(childId));
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
+                () -> Assertions.assertNull(sysDeptService.getById(childId)));
     }
 
     @Test

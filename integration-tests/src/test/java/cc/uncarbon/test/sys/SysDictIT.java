@@ -43,39 +43,42 @@ class SysDictIT extends BaseIntegrationTest {
     void dictCategoryAndItemLifecycle() {
         String code = "itc" + (System.nanoTime() % 1_000_000_000L);
 
-        Long categoryId = createCategory(code);
-        Assertions.assertNotNull(categoryId);
+        // 字典表参与行级租户隔离，平台自营域视角执行
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
+            Long categoryId = createCategory(code);
+            Assertions.assertNotNull(categoryId);
 
-        // 分类编码重复 → A01033
-        var dupCat = Assertions.assertThrows(HasRepeatRecordException.class, () -> createCategory(code));
-        Assertions.assertEquals(SysErrorCodeEnum.A01033, ((HasRepeatRecordException) dupCat).getErrorCode());
+            // 分类编码重复 → A01033
+            var dupCat = Assertions.assertThrows(HasRepeatRecordException.class, () -> createCategory(code));
+            Assertions.assertEquals(SysErrorCodeEnum.A01033, ((HasRepeatRecordException) dupCat).getErrorCode());
 
-        // 字典项所属分类必须存在
-        Assertions.assertThrows(NoRecordException.class, () -> createItem(99_999_999L, code + "i"));
+            // 字典项所属分类必须存在
+            Assertions.assertThrows(NoRecordException.class, () -> createItem(99_999_999L, code + "i"));
 
-        Long itemId = createItem(categoryId, code + "i");
-        Assertions.assertNotNull(itemId);
+            Long itemId = createItem(categoryId, code + "i");
+            Assertions.assertNotNull(itemId);
 
-        // 同分类下字典项编码重复 → A01034
-        var dupItem = Assertions.assertThrows(HasRepeatRecordException.class,
-                () -> createItem(categoryId, code + "i"));
-        Assertions.assertEquals(SysErrorCodeEnum.A01034, ((HasRepeatRecordException) dupItem).getErrorCode());
+            // 同分类下字典项编码重复 → A01034
+            var dupItem = Assertions.assertThrows(HasRepeatRecordException.class,
+                    () -> createItem(categoryId, code + "i"));
+            Assertions.assertEquals(SysErrorCodeEnum.A01034, ((HasRepeatRecordException) dupItem).getErrorCode());
 
-        // 分类下仍有字典项不能删 → A01043
-        var delCat = Assertions.assertThrows(BusinessException.class,
-                () -> sysDictService.adminDeleteCategory(List.of(categoryId)));
-        Assertions.assertEquals(SysErrorCodeEnum.A01043, ((BusinessException) delCat).getErrorCode());
+            // 分类下仍有字典项不能删 → A01043
+            var delCat = Assertions.assertThrows(BusinessException.class,
+                    () -> sysDictService.adminDeleteCategory(List.of(categoryId)));
+            Assertions.assertEquals(SysErrorCodeEnum.A01043, ((BusinessException) delCat).getErrorCode());
 
-        // 先删项再删分类
-        sysDictService.adminDeleteItem(List.of(itemId));
-        sysDictService.adminDeleteCategory(List.of(categoryId));
-        Assertions.assertThrows(NoRecordException.class, () -> sysDictService.getCategoryNonnullById(categoryId));
+            // 先删项再删分类
+            sysDictService.adminDeleteItem(List.of(itemId));
+            sysDictService.adminDeleteCategory(List.of(categoryId));
+            Assertions.assertThrows(NoRecordException.class, () -> sysDictService.getCategoryNonnullById(categoryId));
+        });
     }
 
     @Test
     void builtinEnumDictServedFromCache() {
-        // SysUserStatusEnum 标注 @EnumDict → 内置字典 user_status
-        List<SysDictItemDTO> items = sysDictService.listItemsByCategory("user_status", null);
+        // SysUserStatusEnum 标注 @EnumDict → 内置字典 sys_user_status（类名去 Enum 后缀转下划线）
+        List<SysDictItemDTO> items = sysDictService.listItemsByCategory("sys_user_status", null);
 
         Assertions.assertFalse(items.isEmpty());
         Assertions.assertTrue(items.stream().anyMatch(i -> "DISABLED".equals(i.getCode())));
@@ -84,8 +87,9 @@ class SysDictIT extends BaseIntegrationTest {
 
     @Test
     void unknownCategoryYieldsEmpty() {
-        Assertions.assertEquals(List.of(),
-                sysDictService.listItemsByCategory("it-no-such-category", null));
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
+                () -> Assertions.assertEquals(List.of(),
+                        sysDictService.listItemsByCategory("it-no-such-category", null)));
     }
 
 

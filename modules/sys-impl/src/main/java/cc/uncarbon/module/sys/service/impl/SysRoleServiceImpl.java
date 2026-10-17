@@ -83,12 +83,17 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public Long adminCreate(AdminSysRoleUpsertRequest request) {
         log.info(LOG_PREFIX + "新增 >> {}", request);
-        checkRepeat(request);
+        // 保留编码属静态非法入参，先于查库的重复校验快速失败
         checkBeforeCreate(request);
+        checkRepeat(request);
 
         request.setId(null);
         var entity = new SysRoleEntity();
         BeanUtil.copyProperties(request, entity);
+        // 新建角色默认启用
+        if (entity.getStatus() == null) {
+            entity.setStatus(EnabledStatusEnum.ENABLED);
+        }
 
         sysRoleMapper.insert(entity);
         return entity.getId();

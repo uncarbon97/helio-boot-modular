@@ -92,14 +92,17 @@ class TenantCrudIT extends BaseIntegrationTest {
                 .setPackageId(pkgId));
         Long adminRoleId = tenantAdminRoleId(tenantId);
         Assertions.assertNotNull(adminRoleId);
-        Assertions.assertEquals(Set.of(m1, m2),
-                sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(adminRoleId)));
+        // 角色菜单关联行归属新租户，需以该租户视角查询
+        withContext(testUser(0L, "admin"), testTenant(tenantId, "IT级联租户", code), () ->
+                Assertions.assertEquals(Set.of(m1, m2),
+                        sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(adminRoleId))));
 
         // 套餐改空 → 租户内角色菜单级联清空
         tenantService.adminUpdate(new AdminTenantMetaUpdateRequest()
                 .setId(tenantId).setName("IT级联租户改名").setPackageId(null));
-        Assertions.assertEquals(Set.of(),
-                sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(adminRoleId)));
+        withContext(testUser(0L, "admin"), testTenant(tenantId, "IT级联租户改名", code), () ->
+                Assertions.assertEquals(Set.of(),
+                        sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(adminRoleId))));
 
         // 平台自营域保护
         var platform = Assertions.assertThrows(BusinessException.class,

@@ -102,11 +102,16 @@ class AdminAuthIT extends BaseIntegrationTest {
         Assertions.assertEquals(SysErrorCodeEnum.A01001, unknown.getErrorCode());
 
         // 成功与失败均已落登录日志
-        var page = sysLoginLogService.adminList(
-                new AdminSysLoginLogListQuery()
-                        .setPageParam(new PageParam(1, 10))
-                        .setUserPin(adminPin));
-        Assertions.assertTrue(page.getTotal() >= 3, "应有至少 3 条登录日志（成功+两次失败）");
+        // （TENANT_FIRST 日志均归属该租户；USER_FIRST 未定租户的失败日志兜底归属租户 0，故以忽略租户态计数；
+        //   账号不存在的失败日志按「尝试登录的 pin」落库，需分开统计）
+        TenantContextHolder.runIgnored(() -> {
+            long known = sysLoginLogService.adminList(new AdminSysLoginLogListQuery()
+                    .setPageParam(new PageParam(1, 10)).setUserPin(adminPin)).getTotal();
+            Assertions.assertTrue(known >= 2, "应有至少 2 条登录日志（成功+密码错误）");
+            long unknownInternal = sysLoginLogService.adminList(new AdminSysLoginLogListQuery()
+                    .setPageParam(new PageParam(1, 10)).setUserPin("nosuch" + nano)).getTotal();
+            Assertions.assertTrue(unknownInternal >= 1, "账号不存在的尝试也应落登录日志");
+        });
 
         cleanupTenant(tenantId, code);
     }
@@ -146,9 +151,14 @@ class AdminAuthIT extends BaseIntegrationTest {
 
     @AfterEach
     void cleanupLogs() {
-        TenantContextHolder.runIgnored(() ->
-                loginLogMapper.selectList(new LambdaQueryWrapper<SysLoginLogEntity>()
-                                .likeRight(SysLoginLogEntity::getUserPin, "ita"))
-                        .forEach(l -> loginLogMapper.deleteById(l.getId())));
+        TenantContextHolder.runIgnored(() -> {
+            loginLogMapper.selectList(new LambdaQueryWrapper<SysLoginLogEntity>()
+                            .likeRight(SysLoginLogEntity::getUserPin, "ita"))
+                    .forEach(l -> loginLogMapper.deleteById(l.getId()));
+            // 账号不存在的尝试按尝试 pin 落库
+            loginLogMapper.selectList(new LambdaQueryWrapper<SysLoginLogEntity>()
+                            .likeRight(SysLoginLogEntity::getUserPin, "nosuch"))
+                    .forEach(l -> loginLogMapper.deleteById(l.getId()));
+        });
     }
 }

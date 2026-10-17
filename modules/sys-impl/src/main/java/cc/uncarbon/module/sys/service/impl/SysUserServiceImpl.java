@@ -454,25 +454,24 @@ public class SysUserServiceImpl implements SysUserService {
      * 防止越权访问漏洞
      */
     private void checkBeforeBindUserRoleRelation(AdminSysUserBindRoleRequest request) {
-        checkBuiltinRoleImmutable(request);
         UserRoleScope me = userRoleHelper.getCurrentUserRole();
         // 是否想要操作自身
         boolean selfFlag = Objects.equals(request.getUserId(), UserContextHolder.getUserId());
-        if (me.isSuperAdmin()) {
+        if (selfFlag && !me.isSuperAdmin()) {
+            // 不能动自身用户
+            throw new BusinessException(SysErrorCodeEnum.A01020);
+        }
+        if (selfFlag && !CollUtil.contains(request.getRoleIds(), SysConstant.SUPER_ADMIN_ROLE_ID)) {
             // 超级管理员不能去掉自己的超级管理员角色
-            if (selfFlag && !CollUtil.contains(request.getRoleIds(), SysConstant.SUPER_ADMIN_ROLE_ID)) {
-                throw new BusinessException(SysErrorCodeEnum.A01020);
-            }
+            throw new BusinessException(SysErrorCodeEnum.A01020);
+        }
+        checkBuiltinRoleImmutable(request);
+        if (me.isSuperAdmin()) {
             // 也不能赋予其他人超级管理员角色
             if (!selfFlag && CollUtil.contains(request.getRoleIds(), SysConstant.SUPER_ADMIN_ROLE_ID)) {
                 throw new BusinessException(SysErrorCodeEnum.A01021);
             }
             return;
-        }
-
-        if (selfFlag) {
-            // 不能动自身用户
-            throw new BusinessException(SysErrorCodeEnum.A01020);
         }
 
         // 目标已经是超级管理员or租户管理员时，均不能绑定
