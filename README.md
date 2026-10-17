@@ -35,10 +35,10 @@ JDK compatibility: 25
 │   └───app-api  APP API 端点（空架子）
 ├───modules  业务模块层（契约 + 实现）
 │   ├───file-contract  文件管理契约
-│   ├───file-impl  文件管理实现
+│   ├───file-service  文件管理实现
 │   ├───sys-contract  系统管理契约
-│   ├───sys-impl  系统管理实现
+│   ├───sys-service  系统管理实现
 │   ├───tenant-contract  多租户契约
-│   └───tenant-impl  多租户实现
+│   └───tenant-service  多租户实现
 ├───integration-tests  集成测试
 ```

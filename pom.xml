@@ -67,11 +67,11 @@
         <module>endpoints/app-api</module>
         <module>modules/commons</module>
         <module>modules/sys-contract</module>
-        <module>modules/sys-impl</module>
+        <module>modules/sys-service</module>
         <module>modules/tenant-contract</module>
-        <module>modules/tenant-impl</module>
+        <module>modules/tenant-service</module>
         <module>modules/file-contract</module>
-        <module>modules/file-impl</module>
+        <module>modules/file-service</module>
     </modules>
 
     <dependencyManagement>

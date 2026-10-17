@@ -26,19 +26,19 @@
         <!-- 引用下游实现 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
-            <artifactId>sys-impl</artifactId>
+            <artifactId>sys-service</artifactId>
             <version>${sys.version}</version>
         </dependency>
 
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
-            <artifactId>file-impl</artifactId>
+            <artifactId>file-service</artifactId>
             <version>${file.version}</version>
         </dependency>
 
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
-            <artifactId>tenant-impl</artifactId>
+            <artifactId>tenant-service</artifactId>
             <version>${tenant.version}</version>
         </dependency>
 
