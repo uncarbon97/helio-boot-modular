@@ -43,6 +43,57 @@
         </dependency>
 
         <!--
+            显式直依赖各业务模块：report-aggregate 只聚合「本模块依赖图中可见的模块」，
+            仅靠 bootstrap 传递依赖时，单独构建本模块（-pl integration-tests，不带 -am）会漏掉全部业务模块，
+            聚合报告只剩 bootstrap 自身，数字无效。
+        -->
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>commons</artifactId>
+            <version>${commons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>sys-contract</artifactId>
+            <version>${sys.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>sys-impl</artifactId>
+            <version>${sys.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>file-contract</artifactId>
+            <version>${file.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>file-impl</artifactId>
+            <version>${file.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>tenant-contract</artifactId>
+            <version>${tenant.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>tenant-impl</artifactId>
+            <version>${tenant.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>admin-api</artifactId>
+            <version>${admin-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>app-api</artifactId>
+            <version>${app-api.version}</version>
+        </dependency>
+
+        <!--
             IT 启动全量上下文时，顺带侦测废弃/迁移过的配置键
             仅限本测试模块内使用。
         -->
