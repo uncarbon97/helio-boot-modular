@@ -1,6 +1,7 @@
 package cc.uncarbon.module.tenant.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -13,10 +14,12 @@ import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMapper;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
+import cc.uncarbon.module.tenant.model.query.AdminTenantPackageListQuery;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageBindMenuRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantPackageUpsertRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageBindMenuResult;
 import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -93,6 +96,47 @@ class TenantPackageServiceImplTest {
     }
 
     @Test
+    void adminUpdateDuplicateCodeRejected() {
+        Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(tenantPackageMapper.selectOne(Mockito.any())).thenReturn(new TenantPackageEntity().setId(1L));
+
+        var ex = Assertions.assertThrows(HasRepeatRecordException.class,
+                () -> service.adminUpdate(upsert(9L, "p1")));
+        Assertions.assertEquals(TenantErrorCodeEnum.A03004, ex.getErrorCode());
+    }
+
+    @Test
+    void adminUpdateHappyPath() {
+        Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(tenantPackageMapper.selectOne(Mockito.any())).thenReturn(null);
+
+        service.adminUpdate(upsert(9L, "p1"));
+
+        ArgumentCaptor<TenantPackageEntity> captor = ArgumentCaptor.forClass(TenantPackageEntity.class);
+        Mockito.verify(tenantPackageMapper).updateById(captor.capture());
+        Assertions.assertEquals(9L, captor.getValue().getId());
+        Assertions.assertEquals("p1", captor.getValue().getCode());
+    }
+
+    @Test
+    void adminListPagingWithConditions() {
+        Mockito.when(tenantPackageMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<TenantPackageEntity> page = inv.getArgument(0);
+            page.setRecords(List.of(new TenantPackageEntity().setId(3L).setCode("p1").setName("套餐一")));
+            page.setTotal(1);
+            return page;
+        });
+
+        // 编码/名称/状态条件同时生效
+        var ret = service.adminList(new AdminTenantPackageListQuery()
+                .setPageParam(new PageParam(1, 10))
+                .setCode("p1").setName("套餐").setStatus(EnabledStatusEnum.ENABLED));
+
+        Assertions.assertEquals(1, ret.getTotal());
+        Assertions.assertEquals("p1", ret.getRecords().get(0).getCode());
+    }
+
+    @Test
     void adminDeleteInUseRejected() {
         Mockito.when(tenantMetaMapper.exists(Mockito.any())).thenReturn(true);
 
@@ -129,6 +173,18 @@ class TenantPackageServiceImplTest {
         ArgumentCaptor<TenantPackageEntity> captor = ArgumentCaptor.forClass(TenantPackageEntity.class);
         Mockito.verify(tenantPackageMapper).updateById(captor.capture());
         Assertions.assertEquals(EnabledStatusEnum.ENABLED, captor.getValue().getStatus());
+    }
+
+    @Test
+    void adminSetStatusDisableNotInUseProceeds() {
+        Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(tenantMetaMapper.exists(Mockito.any())).thenReturn(false);
+
+        service.adminSetStatus(status(3L, EnabledStatusEnum.DISABLED));
+
+        ArgumentCaptor<TenantPackageEntity> captor = ArgumentCaptor.forClass(TenantPackageEntity.class);
+        Mockito.verify(tenantPackageMapper).updateById(captor.capture());
+        Assertions.assertEquals(EnabledStatusEnum.DISABLED, captor.getValue().getStatus());
     }
 
     @Test

@@ -133,6 +133,38 @@ class SysUserServiceImplTest {
         Mockito.verify(sysUserMapper, Mockito.never()).selectPage(Mockito.any(), Mockito.any());
     }
 
+    private static <T> T withUserReturn(Long userId, java.util.function.Supplier<T> op) {
+        var ref = new Object() {
+            T value;
+        };
+        withUser(userId, () -> ref.value = op.get());
+        return ref.value;
+    }
+
+    @Test
+    void adminListFiltersBySelectedDeptAndPhone() {
+        AdminSysUserListQuery query = new AdminSysUserListQuery()
+                .setPageParam(new PageParam(1, 10))
+                .setSelectedDeptId(88L)
+                .setPhoneNo("138");
+        // 部门下有用户 → 继续 in 条件查询；隐藏用户集非空 → 走 notIn 条件
+        Mockito.when(sysUserDeptRelationService.listUserIdsByDepts(Set.of(88L))).thenReturn(Set.of(3L));
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of(999L));
+        Mockito.when(sysUserMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysUserEntity> page = inv.getArgument(0);
+            page.setRecords(List.of(new SysUserEntity().setId(3L).setPin("u3")));
+            page.setTotal(1);
+            return page;
+        });
+        // 用户无主部门 → 填充分支跳过
+        Mockito.when(sysDeptService.getSpecifiedUserDept(3L, false)).thenReturn(null);
+
+        var ret = service.adminList(query);
+
+        Assertions.assertEquals(1, ret.getTotal());
+        Assertions.assertNull(ret.getRecords().get(0).getDeptId());
+    }
+
 
     /*
     ----------------------------------------------------------------
@@ -236,6 +268,65 @@ class SysUserServiceImplTest {
         withUser(0L, () -> service.adminSetStatus(request));
 
         Mockito.verify(sysUserMapper).updateStatusBatch(List.of(3L), SysUserStatusEnum.ENABLED);
+    }
+
+    @Test
+    void adminListRoleRelatedUsersWithKeywordFillsDept() {
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
+        Mockito.when(sysUserRoleRelationService.listUserIdsByRole(5L)).thenReturn(Set.of(3L));
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysUserEntity> page = inv.getArgument(0);
+            page.setRecords(List.of(new SysUserEntity().setId(3L).setPin("u3").setNickname("n3")));
+            page.setTotal(1);
+            return page;
+        });
+        Mockito.when(sysDeptService.getSpecifiedUserDept(3L, false))
+                .thenReturn(new UserDeptScope(List.of(5L), List.of(new SysDeptEntity().setId(5L).setName("研发部"))));
+
+        var ret = service.adminListRoleRelatedUsers(
+                new AdminSysRoleListRelatedUserQuery()
+                        .setPageParam(new PageParam(1, 10)).setRoleId(5L).setKeyword("n3"));
+
+        Assertions.assertEquals(1, ret.getTotal());
+        Assertions.assertEquals("研发部", ret.getRecords().get(0).getDeptName());
+    }
+
+    @Test
+    void adminSetStatusSuperAdminCanDisableOthers() {
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+
+        var request = new AdminSetStatusRequest<Long, SysUserStatusEnum>()
+                .setId(8L).setNewStatus(SysUserStatusEnum.DISABLED);
+        withUser(0L, () -> service.adminSetStatus(request));
+
+        Mockito.verify(sysUserMapper).updateStatusBatch(List.of(8L), SysUserStatusEnum.DISABLED);
+    }
+
+    @Test
+    void adminSetStatusNonSuperAdminDelegatesToBeforeUpdate() {
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+
+        // 非超管禁用自身 → 委托 checkBeforeUpdate 后拒绝
+        var request = new AdminSetStatusRequest<Long, SysUserStatusEnum>()
+                .setId(7L).setNewStatus(SysUserStatusEnum.DISABLED);
+        var ex = Assertions.assertThrows(BusinessException.class,
+                () -> withUser(7L, () -> service.adminSetStatus(request)));
+        Assertions.assertEquals(SysErrorCodeEnum.A01020, ex.getErrorCode());
+    }
+
+    @Test
+    void adminUpdateHappyPathBySuperAdmin() {
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
+
+        withUser(0L, () -> service.adminUpdate(updateRequest(9L)));
+
+        Mockito.verify(sysUserMapper).updateById(Mockito.any(SysUserEntity.class));
     }
 
     @Test
@@ -384,6 +475,102 @@ class SysUserServiceImplTest {
     }
 
     @Test
+    void adminUpdateHiddenTargetRejectedForNormalUser() {
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(8L)).thenReturn(normalScope(8L, List.of(5L)));
+        // 目标用户属于隐藏用户 → 越权拒绝
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of(8L));
+
+        var ex = Assertions.assertThrows(BusinessException.class,
+                () -> withUser(7L, () -> service.adminUpdate(updateRequest(8L))));
+        Assertions.assertEquals(SysErrorCodeEnum.A01021, ex.getErrorCode());
+    }
+
+    @Test
+    void adminBindRoleSuperAdminCannotGrantSuperRoleToOthers() {
+        // 内置角色不可变校验先行通过（selectByIds 默认空）
+        Mockito.when(sysUserRoleRelationService.listRoleIdsByUser(2L)).thenReturn(List.of());
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
+
+        var request = new AdminSysUserBindRoleRequest().setUserId(2L)
+                .setRoleIds(Set.of(SysConstant.SUPER_ADMIN_ROLE_ID));
+        var ex = Assertions.assertThrows(BusinessException.class,
+                () -> withUser(0L, () -> service.adminBindRole(request)));
+        Assertions.assertEquals(SysErrorCodeEnum.A01021, ex.getErrorCode());
+    }
+
+    @Test
+    void adminBindRoleSuperAdminSelfKeepsSuperRole() {
+        Mockito.when(sysUserRoleRelationService.listRoleIdsByUser(0L)).thenReturn(List.of());
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(0L)).thenReturn(new UserRoleScope(
+                List.of(SysConstant.SUPER_ADMIN_ROLE_ID),
+                List.of(new SysRoleEntity().setId(SysConstant.SUPER_ADMIN_ROLE_ID)
+                        .setCode(SysConstant.SUPER_ADMIN_ROLE_CODE).setName("超级管理员"))));
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserMapper.selectById(0L)).thenReturn(new SysUserEntity().setId(0L).setPin("root"));
+        Mockito.when(sysDeptService.getSpecifiedUserDept(0L, false)).thenReturn(null);
+
+        var request = new AdminSysUserBindRoleRequest().setUserId(0L)
+                .setRoleIds(Set.of(SysConstant.SUPER_ADMIN_ROLE_ID));
+        var ret = withUserReturn(0L, () -> service.adminBindRole(request));
+
+        Mockito.verify(sysUserRoleRelationService).cleanAndBindByUser(0L, Set.of(SysConstant.SUPER_ADMIN_ROLE_ID));
+        Assertions.assertEquals(List.of("超级管理员"), ret.getRoleNames());
+    }
+
+    @Test
+    void adminBindRoleNormalUserWithinOwnRolesProceeds() {
+        Mockito.when(sysUserRoleRelationService.listRoleIdsByUser(9L)).thenReturn(List.of());
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(9L)).thenReturn(normalScope(9L, List.of(5L)));
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserMapper.selectById(9L)).thenReturn(new SysUserEntity().setId(9L).setPin("u9"));
+        Mockito.when(sysDeptService.getSpecifiedUserDept(9L, false)).thenReturn(null);
+
+        var request = new AdminSysUserBindRoleRequest().setUserId(9L).setRoleIds(Set.of(5L));
+        var ret = withUserReturn(7L, () -> service.adminBindRole(request));
+
+        // 未超越自身角色范围 → 不触发菜单/租户校验，直接放行
+        Mockito.verify(sysRoleMenuRelationService, Mockito.never()).listMenuIdsByRoles(Mockito.anyCollection());
+        Mockito.verify(sysUserRoleRelationService).cleanAndBindByUser(9L, Set.of(5L));
+        Assertions.assertEquals(List.of("R5"), ret.getRoleNames());
+    }
+
+    @Test
+    void adminBindRoleEmptyRoleIdsSkipsScopeCheck() {
+        Mockito.when(sysUserRoleRelationService.listRoleIdsByUser(9L)).thenReturn(List.of());
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(9L)).thenReturn(normalScope(9L, List.of(5L)));
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserMapper.selectById(9L)).thenReturn(new SysUserEntity().setId(9L).setPin("u9"));
+        Mockito.when(sysDeptService.getSpecifiedUserDept(9L, false)).thenReturn(null);
+
+        // 想要绑定的角色为空 → 跳过角色范围校验（视为仅解绑）
+        var request = new AdminSysUserBindRoleRequest().setUserId(9L).setRoleIds(null);
+        withUser(7L, () -> service.adminBindRole(request));
+
+        Mockito.verify(sysUserRoleRelationService).cleanAndBindByUser(9L, null);
+    }
+
+    @Test
+    void adminBindRoleTenantAdminGrantSuperRoleRejected() {
+        Mockito.when(sysUserRoleRelationService.listRoleIdsByUser(9L)).thenReturn(List.of());
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(new UserRoleScope(
+                List.of(5L), List.of(new SysRoleEntity().setId(5L).setCode(SysConstant.TENANT_ADMIN_ROLE_CODE))));
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(9L)).thenReturn(normalScope(9L, List.of(5L)));
+        Mockito.when(userRoleHelper.listHiddenRoleIds()).thenReturn(Set.of(SysConstant.SUPER_ADMIN_ROLE_ID));
+
+        var request = new AdminSysUserBindRoleRequest().setUserId(9L)
+                .setRoleIds(Set.of(SysConstant.SUPER_ADMIN_ROLE_ID));
+        var ex = Assertions.assertThrows(BusinessException.class,
+                () -> withUser(7L, () -> service.adminBindRole(request)));
+        Assertions.assertEquals(SysErrorCodeEnum.A01022, ex.getErrorCode());
+    }
+
+    @Test
     void adminBindDeptDisabledDeptRejected() {
         Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
@@ -398,6 +585,21 @@ class SysUserServiceImplTest {
     }
 
     @Test
+    void adminBindRoleTenantAdminNonExistingRoleRejected() {
+        Mockito.when(sysUserRoleRelationService.listRoleIdsByUser(9L)).thenReturn(List.of());
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(new UserRoleScope(
+                List.of(5L), List.of(new SysRoleEntity().setId(5L).setCode(SysConstant.TENANT_ADMIN_ROLE_CODE))));
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(9L)).thenReturn(normalScope(9L, List.of(5L)));
+        Mockito.when(userRoleHelper.listHiddenRoleIds()).thenReturn(Set.of());
+        // selectByIds 默认返回空 → 想要绑定的角色在本租户内不存在
+
+        var request = new AdminSysUserBindRoleRequest().setUserId(9L).setRoleIds(Set.of(7L));
+        var ex = Assertions.assertThrows(BusinessException.class,
+                () -> withUser(7L, () -> service.adminBindRole(request)));
+        Assertions.assertEquals(SysErrorCodeEnum.A01022, ex.getErrorCode());
+    }
+
+    @Test
     void adminBindDeptHappyPath() {
         Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
@@ -409,6 +611,30 @@ class SysUserServiceImplTest {
         withUser(0L, () -> service.adminBindDept(request));
 
         Mockito.verify(sysUserDeptRelationService).cleanAndBind(9L, 5L);
+    }
+
+    @Test
+    void adminBindDeptNonSuperAdminSelfRejected() {
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+
+        var request = new AdminSysUserBindDeptRequest().setUserId(7L).setDeptId(5L);
+        var ex = Assertions.assertThrows(BusinessException.class,
+                () -> withUser(7L, () -> service.adminBindDept(request)));
+        Assertions.assertEquals(SysErrorCodeEnum.A01020, ex.getErrorCode());
+    }
+
+    @Test
+    void adminBindDeptNonSuperAdminAdminTargetRejected() {
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(8L)).thenReturn(
+                new UserRoleScope(List.of(6L), List.of(new SysRoleEntity().setId(6L).setCode(SysConstant.TENANT_ADMIN_ROLE_CODE))));
+
+        var request = new AdminSysUserBindDeptRequest().setUserId(8L).setDeptId(5L);
+        var ex = Assertions.assertThrows(BusinessException.class,
+                () -> withUser(7L, () -> service.adminBindDept(request)));
+        Assertions.assertEquals(SysErrorCodeEnum.A01021, ex.getErrorCode());
     }
 
 
@@ -516,6 +742,56 @@ class SysUserServiceImplTest {
         Assertions.assertEquals(SysErrorCodeEnum.A01021, ex.getErrorCode());
     }
 
+    @Test
+    void adminBindDeptNonSuperAdminNormalTargetProceeds() {
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(9L)).thenReturn(normalScope(9L, List.of(5L)));
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysDeptService.getNonnullById(5L)).thenReturn(
+                new SysDeptDTO().setId(5L).setStatus(EnabledStatusEnum.ENABLED));
+
+        var request = new AdminSysUserBindDeptRequest().setUserId(9L).setDeptId(5L);
+        withUser(7L, () -> service.adminBindDept(request));
+
+        Mockito.verify(sysUserDeptRelationService).cleanAndBind(9L, 5L);
+    }
+
+    @Test
+    void getOperableByIdFillsDept() {
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserMapper.selectById(3L)).thenReturn(new SysUserEntity().setId(3L).setPin("u3"));
+        Mockito.when(sysDeptService.getSpecifiedUserDept(3L, false))
+                .thenReturn(new UserDeptScope(List.of(5L), List.of(new SysDeptEntity().setId(5L).setName("研发部"))));
+
+        var ret = service.getOperableById(3L);
+
+        Assertions.assertEquals(3L, ret.getId());
+        Assertions.assertEquals(5L, ret.getDeptId());
+        Assertions.assertEquals("研发部", ret.getDeptName());
+    }
+
+    @Test
+    void getOperableMissingYieldsNoRecord() {
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserMapper.selectById(9L)).thenReturn(null);
+
+        // 实体缺失 → 返回 null 且不填充部门
+        Assertions.assertNull(service.getOperableById(9L));
+        Mockito.verify(sysDeptService, Mockito.never()).getSpecifiedUserDept(Mockito.anyLong(), Mockito.anyBoolean());
+        Assertions.assertThrows(NoRecordException.class, () -> service.getNonnullOperableById(9L));
+    }
+
+    @Test
+    void getNonnullBasicProfileByIdBranches() {
+        Mockito.when(sysUserMapper.selectById(9L)).thenReturn(null);
+        Assertions.assertThrows(NoRecordException.class, () -> service.getNonnullBasicProfileById(9L));
+
+        Mockito.when(sysUserMapper.selectById(9L)).thenReturn(new SysUserEntity().setId(9L).setPin("u9").setNickname("昵称"));
+        var ret = service.getNonnullBasicProfileById(9L);
+        Assertions.assertEquals("u9", ret.getPin());
+    }
+
 
     /*
     ----------------------------------------------------------------
@@ -525,6 +801,19 @@ class SysUserServiceImplTest {
 
     private static void withUser(Long userId, Runnable op) {
         ScopedValue.where(UserContextHolder.scoped(), new SimpleUserContext().setUserId(userId)).run(op);
+    }
+
+    @Test
+    void checkUserQueryAccessBranches() {
+        // 超级管理员直接放行
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
+        Assertions.assertDoesNotThrow(() -> service.checkUserQueryAccess(8L));
+
+        // 非超级管理员委托操作权限校验 → 隐藏用户拒绝
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of(8L));
+        var ex = Assertions.assertThrows(BusinessException.class, () -> service.checkUserQueryAccess(8L));
+        Assertions.assertEquals(SysErrorCodeEnum.A01021, ex.getErrorCode());
     }
 
     private AdminSysUserCreateRequest createRequest(Long deptId) {
@@ -546,6 +835,6 @@ class SysUserServiceImplTest {
 
     private UserRoleScope normalScope(Long userId, List<Long> roleIds) {
         return new UserRoleScope(roleIds, roleIds.stream()
-                .map(id -> new SysRoleEntity().setId(id).setCode("R" + id)).toList());
+                .map(id -> new SysRoleEntity().setId(id).setCode("R" + id).setName("R" + id)).toList());
     }
 }

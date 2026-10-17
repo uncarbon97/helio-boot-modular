@@ -1,15 +1,20 @@
 package cc.uncarbon.module.file.service.impl;
 
+import cc.uncarbon.framework.helium.base.page.PageParam;
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.file.MybatisPlusTestSupport;
 import cc.uncarbon.module.file.dal.entity.FileMetaEntity;
 import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
 import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
+import cc.uncarbon.module.file.model.query.AdminFileMetaListQuery;
 import cc.uncarbon.module.file.model.request.FileAttrExtraRequest;
 import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
 import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
 import cc.uncarbon.module.file.storage.DynamicFileStorageRegistrar;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.dromara.x.file.storage.core.FileInfo;
 import org.dromara.x.file.storage.core.FileStorageService;
-import cc.uncarbon.module.file.MybatisPlusTestSupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -22,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -140,5 +146,81 @@ class FileMetaServiceImplTest {
 
         Mockito.when(fileMetaMapper.selectById(7L)).thenReturn(new FileMetaEntity().setId(7L).setExtendName("png"));
         Assertions.assertEquals("png", service.getById(7L).getExtendName());
+    }
+
+    @Test
+    void getNonnullByIdBranches() {
+        Mockito.when(fileMetaMapper.selectById(7L)).thenReturn(new FileMetaEntity().setId(7L).setExtendName("txt"));
+        Assertions.assertEquals(7L, service.getNonnullById(7L).getId());
+
+        Mockito.when(fileMetaMapper.selectById(8L)).thenReturn(null);
+        Assertions.assertThrows(NoRecordException.class, () -> service.getNonnullById(8L));
+    }
+
+    @Test
+    void adminListConvertsPageWithBlankFilters() {
+        stubSelectPage(2L,
+                new FileMetaEntity().setId(1L).setExtendName("txt"),
+                new FileMetaEntity().setId(2L).setExtendName("png"));
+
+        PageResult<FileMetaDTO> ret = service.adminList(new AdminFileMetaListQuery()
+                .setPageParam(new PageParam(1, 10)));
+
+        Assertions.assertEquals(2L, ret.getTotal());
+        Assertions.assertEquals(2, ret.getRecords().size());
+        Assertions.assertEquals("txt", ret.getRecords().get(0).getExtendName());
+        Assertions.assertEquals("png", ret.getRecords().get(1).getExtendName());
+    }
+
+    @Test
+    void adminListConvertsPageWithAllFilters() {
+        stubSelectPage(1L, new FileMetaEntity().setId(1L).setExtendName("txt"));
+
+        // 全部筛选条件齐备，覆盖 eq/like/between 组装分支
+        PageResult<FileMetaDTO> ret = service.adminList(new AdminFileMetaListQuery()
+                .setPageParam(new PageParam(1, 10))
+                .setStorageCode("st")
+                .setExtendName("txt")
+                .setCategory("avatar")
+                .setBeginAt(Instant.parse("2026-01-01T00:00:00Z"))
+                .setEndAt(Instant.parse("2026-12-31T23:59:59Z")));
+
+        Assertions.assertEquals(1, ret.getRecords().size());
+
+        // beginAt 为空时短路，不应用时间区间
+        ret = service.adminList(new AdminFileMetaListQuery()
+                .setPageParam(new PageParam(1, 10))
+                .setEndAt(Instant.parse("2026-12-31T23:59:59Z")));
+        Assertions.assertEquals(1, ret.getRecords().size());
+    }
+
+    @Test
+    void adminListEmptyRecordsYieldsEmptyPage() {
+        stubSelectPage(0L);
+
+        PageResult<FileMetaDTO> ret = service.adminList(new AdminFileMetaListQuery()
+                .setPageParam(new PageParam(1, 10)));
+
+        Assertions.assertTrue(ret.getRecords().isEmpty());
+        Assertions.assertEquals(0L, ret.getTotal());
+    }
+
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 模拟分页查询返回
+     */
+    private void stubSelectPage(long total, FileMetaEntity... entities) {
+        Mockito.when(fileMetaMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<FileMetaEntity> page = inv.getArgument(0);
+            page.setRecords(List.of(entities));
+            page.setTotal(total);
+            return page;
+        });
     }
 }

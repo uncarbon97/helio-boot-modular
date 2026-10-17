@@ -119,10 +119,12 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
         var ret = new SysLoginLogDTO();
         BeanUtil.copyProperties(entity, ret);
         // 按需改写字段
-        UserAgent parsedUa = UserAgentUtil.parse(entity.getVisitorUserAgent());
-        ret
-                .setVisitorBrowser("%s %s".formatted(parsedUa.getBrowser().getName(), parsedUa.getVersion()))
-                .setVisitorOs("%s %s".formatted(parsedUa.getOs().getName(), parsedUa.getOsVersion()));
+        if (CharSequenceUtil.isNotBlank(entity.getVisitorUserAgent())) {
+            UserAgent parsedUa = UserAgentUtil.parse(entity.getVisitorUserAgent());
+            ret
+                    .setVisitorBrowser("%s %s".formatted(parsedUa.getBrowser().getName(), parsedUa.getVersion()))
+                    .setVisitorOs("%s %s".formatted(parsedUa.getOs().getName(), parsedUa.getOsVersion()));
+        }
 
         return ret;
     }

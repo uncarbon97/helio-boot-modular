@@ -1,6 +1,7 @@
 package cc.uncarbon.module.tenant.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -14,11 +15,13 @@ import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
+import cc.uncarbon.module.tenant.model.query.AdminTenantMetaListQuery;
 import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.model.request.AdminTenantMetaUpdateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 import cc.uncarbon.module.tenant.model.valueobj.TenantPackageDTO;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -226,6 +229,66 @@ class TenantServiceImplTest {
                 .thenReturn(List.of(metaEntity(55L, null)));
 
         Assertions.assertEquals(1, service.listEnabled().size());
+    }
+
+    @Test
+    void adminListFillsTenantAdminProfile() {
+        Mockito.when(tenantMetaMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<TenantMetaEntity> page = inv.getArgument(0);
+            // 一个有管理员用户，一个没有
+            page.setRecords(List.of(
+                    metaEntity(55L, null).setAdminUserId(66L),
+                    metaEntity(56L, null)));
+            page.setTotal(2);
+            return page;
+        });
+        Mockito.when(tenantUserRoleFacade.getTenantUserBasicProfile(55L, 66L))
+                .thenReturn(new TenantUserBasicProfileDTO().setPin("tu55"));
+
+        var ret = service.adminList(new AdminTenantMetaListQuery()
+                .setPageParam(new PageParam(1, 10)).setCode("t55").setName("租户").setStatus(EnabledStatusEnum.ENABLED));
+
+        Assertions.assertEquals(2, ret.getTotal());
+        Assertions.assertNotNull(ret.getRecords().get(0).getAdminUserProfile());
+        Assertions.assertEquals("tu55", ret.getRecords().get(0).getAdminUserProfile().getPin());
+        // 未设置管理员的租户不查资料
+        Assertions.assertNull(ret.getRecords().get(1).getAdminUserProfile());
+        Mockito.verify(tenantUserRoleFacade, Mockito.never())
+                .getTenantUserBasicProfile(Mockito.eq(56L), Mockito.anyLong());
+    }
+
+    @Test
+    void adminListEmptyPage() {
+        Mockito.when(tenantMetaMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<TenantMetaEntity> page = inv.getArgument(0);
+            page.setRecords(List.of());
+            page.setTotal(0);
+            return page;
+        });
+
+        var ret = service.adminList(new AdminTenantMetaListQuery().setPageParam(new PageParam(1, 10)));
+
+        Assertions.assertEquals(0, ret.getTotal());
+        Assertions.assertTrue(ret.getRecords().isEmpty());
+    }
+
+    @Test
+    void lookupMissingBranches() {
+        // 主键缺失 → NoRecordException
+        Mockito.when(tenantMetaMapper.selectById(9L)).thenReturn(null);
+        Assertions.assertThrows(NoRecordException.class, () -> service.getNonnullById(9L, true));
+
+        // 编码查不到 → null（填充逻辑跳过）
+        Mockito.when(tenantMetaMapper.selectByCode("missing")).thenReturn(null);
+        Assertions.assertNull(service.getByCode("missing", true));
+
+        // 命中但未设置管理员 → 不触发资料填充
+        Mockito.when(tenantMetaMapper.selectById(55L)).thenReturn(metaEntity(55L, null));
+        TenantMetaDTO dto = service.getById(55L, true);
+        Assertions.assertEquals(55L, dto.getId());
+        Assertions.assertNull(dto.getAdminUserProfile());
+        Mockito.verify(tenantUserRoleFacade, Mockito.never())
+                .getTenantUserBasicProfile(Mockito.anyLong(), Mockito.anyLong());
     }
 
 

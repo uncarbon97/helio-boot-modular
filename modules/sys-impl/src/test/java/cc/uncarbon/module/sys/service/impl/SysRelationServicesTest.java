@@ -1,12 +1,12 @@
 package cc.uncarbon.module.sys.service.impl;
 
-import cc.uncarbon.module.sys.dal.entity.SysRoleMenuRelationEntity;
-import cc.uncarbon.module.sys.dal.entity.SysUserRoleRelationEntity;
-import cc.uncarbon.module.sys.dal.entity.SysUserDeptRelationEntity;
-import cc.uncarbon.module.sys.dal.mapper.SysRoleMenuRelationMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
-import cc.uncarbon.module.sys.dal.mapper.SysUserDeptRelationMapper;
 import cc.uncarbon.module.sys.MybatisPlusTestSupport;
+import cc.uncarbon.module.sys.dal.entity.SysRoleMenuRelationEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserDeptRelationEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserRoleRelationEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysRoleMenuRelationMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserDeptRelationMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -119,11 +119,52 @@ class SysRelationServicesTest {
     }
 
     @Test
+    void roleMenuCleanAndBindAppendsOnlyMissing() {
+        Mockito.when(roleMenuMapper.selectList(Mockito.any()))
+                .thenReturn(List.of(SysRoleMenuRelationEntity.of(1L, 10L)));
+
+        // 入参含重复 11 → 去重后与已存在 10 求差集，仅增量插入 11
+        roleMenuService.cleanAndBind(1L, List.of(10L, 11L, 11L));
+
+        Mockito.verify(roleMenuMapper).delete(Mockito.any());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<SysRoleMenuRelationEntity>> captor = ArgumentCaptor.forClass(List.class);
+        Mockito.verify(roleMenuMapper).insert(captor.capture());
+        Assertions.assertEquals(1, captor.getValue().size());
+        Assertions.assertEquals(11L, captor.getValue().get(0).getMenuId());
+    }
+
+    @Test
+    void roleMenuCleanAndBindNoMissingSkipsInsert() {
+        Mockito.when(roleMenuMapper.selectList(Mockito.any())).thenReturn(List.of(
+                SysRoleMenuRelationEntity.of(1L, 10L), SysRoleMenuRelationEntity.of(1L, 11L)));
+
+        roleMenuService.cleanAndBind(1L, List.of(10L, 11L));
+
+        Mockito.verify(roleMenuMapper).delete(Mockito.any());
+        Mockito.verify(roleMenuMapper, Mockito.never()).insert(Mockito.anyList());
+    }
+
+    @Test
     void roleMenuDeleteByMenuIdsAndRoleIdsGuardEmpty() {
         roleMenuService.deleteByMenuIds(null);
         roleMenuService.deleteByRoleIds(List.of());
 
         Mockito.verifyNoInteractions(roleMenuMapper);
+    }
+
+    @Test
+    void roleMenuDeleteByMenuIdsDeletes() {
+        roleMenuService.deleteByMenuIds(List.of(10L, 11L));
+
+        Mockito.verify(roleMenuMapper).delete(Mockito.any());
+    }
+
+    @Test
+    void roleMenuDeleteByRoleIdsDeletes() {
+        roleMenuService.deleteByRoleIds(List.of(1L, 2L));
+
+        Mockito.verify(roleMenuMapper).delete(Mockito.any());
     }
 
 
