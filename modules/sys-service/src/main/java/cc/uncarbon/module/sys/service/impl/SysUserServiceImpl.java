@@ -276,6 +276,18 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
+    public void checkUserQueryAccess(Collection<Long> userIds) {
+        if (CollUtil.isEmpty(userIds)) {
+            return;
+        }
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (me.isSuperAdmin()) {
+            return;
+        }
+        checkUserOperationAccess(userIds);
+    }
+
+    @Override
     public void checkRoleQueryAccess(Long roleId) {
         UserRoleScope me = userRoleHelper.getCurrentUserRole();
         if (me.isSuperAdmin()) {

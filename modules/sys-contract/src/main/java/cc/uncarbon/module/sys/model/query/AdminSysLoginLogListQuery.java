@@ -11,6 +11,7 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collection;
 
 
 /**
@@ -25,16 +26,16 @@ public class AdminSysLoginLogListQuery implements Serializable, PageQuery {
     @Schema(description = "分页查询参数")
     private PageParam pageParam;
 
-    @Schema(description = "用户账号")
-    private String userPin;
-
-    @Schema(description = "结果状态")
-    private LogResultStatusEnum resultStatus;
-
     @Schema(description = "时间区间起")
     private Instant beginAt;
 
     @Schema(description = "时间区间止")
     private Instant endAt;
+
+    @Schema(description = "结果状态")
+    private LogResultStatusEnum resultStatus;
+
+    @Schema(description = "操作人用户ID数组")
+    private Collection<Long> userIds;
 
 }

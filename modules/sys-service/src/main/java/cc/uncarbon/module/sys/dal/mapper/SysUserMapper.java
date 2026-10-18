@@ -1,5 +1,6 @@
 package cc.uncarbon.module.sys.dal.mapper;
 
+import cc.uncarbon.framework.helium.base.stream.StreamFunction;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
@@ -8,13 +9,13 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 import org.jspecify.annotations.NonNull;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 系统用户
@@ -22,20 +23,19 @@ import java.util.Collection;
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUserEntity> {
 
-    /**
-     * 分页查询未分配部门的用户
-     */
-    Page<SysUserEntity> pageNoDeptUser(
-            Page<SysUserEntity> page,
-            @Param("phoneNo") String phoneNo,
-            @Param("hiddenUserIds") Collection<Long> hiddenUserIds
-    );
-
     default SysUserEntity getByPin(String pin) {
         return selectOne(new LambdaQueryWrapper<SysUserEntity>()
                 .eq(SysUserEntity::getPin, pin)
                 .last(SQLSegment.LIMIT_1)
         );
+    }
+
+    default Map<Long, String> getPinMapByIds(Collection<Long> ids) {
+        if (CollUtil.isEmpty(ids)) return Map.of();
+        return selectList(new LambdaQueryWrapper<SysUserEntity>()
+                .select(SysUserEntity::getId, SysUserEntity::getPin)
+                .in(SysUserEntity::getId, ids)
+        ).stream().collect(Collectors.toMap(SysUserEntity::getId, SysUserEntity::getPin, StreamFunction.keepExisting()));
     }
 
     /**

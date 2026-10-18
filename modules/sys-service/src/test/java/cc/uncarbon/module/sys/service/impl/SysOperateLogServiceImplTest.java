@@ -75,7 +75,7 @@ class SysOperateLogServiceImplTest {
                 .setBizType("sysUser")
                 .setBehavior("create")
                 .setBizNo("BIZ-1")
-                .setUserId(1001L)
+                .setUserIds(1001L)
                 .setResultStatus(LogResultStatusEnum.SUCCESS)
                 .setBeginAt(Instant.parse("2026-01-01T00:00:00Z"))
                 .setEndAt(Instant.parse("2026-02-01T00:00:00Z")));

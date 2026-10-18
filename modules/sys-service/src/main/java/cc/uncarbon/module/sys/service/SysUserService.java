@@ -89,6 +89,11 @@ public interface SysUserService {
     void checkUserQueryAccess(Long userId);
 
     /**
+     * 批量校验当前用户是否可查询目标用户的关联信息（防止跨租户/越权 ID 枚举）
+     */
+    void checkUserQueryAccess(Collection<Long> userIds);
+
+    /**
      * 校验当前用户是否可查询目标角色的关联信息（防止跨租户/越权 ID 枚举）
      */
     void checkRoleQueryAccess(Long roleId);

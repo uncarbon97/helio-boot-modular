@@ -7,10 +7,12 @@ import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.iplocation.IPLocationResolver;
 import cc.uncarbon.module.sys.dal.entity.SysLoginLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysLoginLogMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;
 import cc.uncarbon.module.sys.model.request.SysLoginLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysLoginLogDTO;
 import cc.uncarbon.module.sys.service.SysLoginLogService;
+import cc.uncarbon.module.sys.service.SysUserService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -23,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,6 +44,8 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
     public static final int USER_AGENT_MAX_LENGTH = 255;
 
     private final SysLoginLogMapper sysLoginLogMapper;
+    private final SysUserMapper sysUserMapper;
+    private final SysUserService sysUserService;
     private final List<IPLocationResolver> ipLocationResolvers;
 
 
@@ -49,13 +54,29 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
      */
     @Override
     public PageResult<SysLoginLogDTO> adminList(AdminSysLoginLogListQuery query) {
+        // 过滤查询条件中的用户ID，防止越权枚举隐藏用户
+        sysUserService.checkUserQueryAccess(query.getUserIds());
+
+        boolean userIdsNotEmpty = CollUtil.isNotEmpty(query.getUserIds());
+        Collection<String> userPins;
+        if (userIdsNotEmpty) {
+            userPins = sysUserMapper.getPinMapByIds(query.getUserIds()).values();
+        } else {
+            userPins = List.of();
+        }
+        boolean userPinsNotEmpty = CollUtil.isNotEmpty(userPins);
+
         Page<SysLoginLogEntity> entityPage = sysLoginLogMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
                 new LambdaQueryWrapper<SysLoginLogEntity>()
-                        // 用户账号
-                        .like(CharSequenceUtil.isNotBlank(query.getUserPin()), SysLoginLogEntity::getUserPin, CharSequenceUtil.cleanBlank(query.getUserPin()))
                         // 状态
                         .eq(Objects.nonNull(query.getResultStatus()), SysLoginLogEntity::getResultStatus, query.getResultStatus())
+                        // 操作人：成功登录有userId，失败登录只有userPin，两者取并集
+                        .and(userIdsNotEmpty, wrapper -> wrapper
+                                .in(SysLoginLogEntity::getUserId, query.getUserIds())
+                                .or(userPinsNotEmpty)
+                                .in(userPinsNotEmpty, SysLoginLogEntity::getUserPin, userPins)
+                        )
                         // 时间区间
                         .between(Objects.nonNull(query.getBeginAt()) && Objects.nonNull(query.getEndAt()), SysLoginLogEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
                         // 排序

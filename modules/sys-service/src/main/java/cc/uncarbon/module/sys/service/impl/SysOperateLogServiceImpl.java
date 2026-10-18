@@ -10,6 +10,7 @@ import cc.uncarbon.module.sys.model.query.AdminSysOperateLogListQuery;
 import cc.uncarbon.module.sys.model.request.SysOperateLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysOperateLogDTO;
 import cc.uncarbon.module.sys.service.SysOperateLogService;
+import cc.uncarbon.module.sys.service.SysUserService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -38,12 +39,16 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
     public static final int USER_AGENT_MAX_LENGTH = 250;
 
     private final SysOperateLogMapper sysOperateLogMapper;
+    private final SysUserService sysUserService;
     private final List<IPLocationResolver> ipLocationResolvers;
     private final AuditNicknameFiller auditNicknameFiller;
 
 
     @Override
     public PageResult<SysOperateLogDTO> adminList(AdminSysOperateLogListQuery query) {
+        // 过滤查询条件中的用户ID，防止越权枚举隐藏用户
+        sysUserService.checkUserQueryAccess(query.getUserIds());
+
         Page<SysOperateLogEntity> entityPage = sysOperateLogMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
                 new LambdaQueryWrapper<SysOperateLogEntity>()
@@ -54,7 +59,7 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
                         // 业务号
                         .like(CharSequenceUtil.isNotBlank(query.getBizNo()), SysOperateLogEntity::getBizNo, CharSequenceUtil.cleanBlank(query.getBizNo()))
                         // 操作人
-                        .eq(Objects.nonNull(query.getUserId()), SysOperateLogEntity::getUserId, query.getUserId())
+                        .in(CollUtil.isNotEmpty(query.getUserIds()), SysOperateLogEntity::getUserId, query.getUserIds())
                         // 结果状态
                         .eq(Objects.nonNull(query.getResultStatus()), SysOperateLogEntity::getResultStatus, query.getResultStatus())
                         // 时间区间

@@ -12,6 +12,7 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Collection;
 
 /**
  * 系统操作日志-后台管理-分页查询
@@ -40,8 +41,8 @@ public class AdminSysOperateLogListQuery implements Serializable, PageQuery {
     @Schema(description = "业务号")
     private String bizNo;
 
-    @Schema(description = "操作人用户ID")
-    private Long userId;
+    @Schema(description = "操作人用户ID数组")
+    private Collection<Long> userIds;
 
     @Schema(description = "结果状态")
     private LogResultStatusEnum resultStatus;
