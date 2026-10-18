@@ -5,6 +5,7 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
@@ -43,6 +44,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     private final SysDeptMapper sysDeptMapper;
     private final SysUserDeptRelationService sysUserDeptRelationService;
     private final UserRoleHelper userRoleHelper;
+    private final AuditNicknameFiller auditNicknameFiller;
 
 
     @Override
@@ -133,7 +135,7 @@ public class SysDeptServiceImpl implements SysDeptService {
     public SysDeptDTO getById(Long id) {
         if (id == null) return null;
         var entity = sysDeptMapper.selectById(id);
-        return convertEntity(entity);
+        return auditNicknameFiller.fillOne(entity, this::convertEntity);
     }
 
     @Override
@@ -196,7 +198,7 @@ public class SysDeptServiceImpl implements SysDeptService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(this::convertEntity).toList();
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**

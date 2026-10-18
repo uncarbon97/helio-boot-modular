@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.model.valueobj;
 
 
 import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
+import cc.uncarbon.module.commons.model.valueobj.OperateLogUserDisplayAware;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -19,7 +20,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysOperateLogDTO implements Serializable {
+public class SysOperateLogDTO implements Serializable, OperateLogUserDisplayAware {
 
     @Schema(description = "主键ID")
     private Long id;
@@ -45,8 +46,11 @@ public class SysOperateLogDTO implements Serializable {
     @Schema(description = "额外业务信息")
     private String bizExtra;
 
-    @Schema(description = "操作人账号")
-    private String userPin;
+    @Schema(description = "操作人用户ID")
+    private Long userId;
+
+    @Schema(description = "操作人用户昵称")
+    private String userNickname;
 
     @Schema(description = "用户类型")
     private UserTypeCodeEnum userTypeCode;

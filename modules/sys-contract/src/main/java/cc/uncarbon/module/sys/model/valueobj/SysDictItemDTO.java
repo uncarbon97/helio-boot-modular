@@ -1,5 +1,6 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
+import cc.uncarbon.module.commons.model.valueobj.AuditUserDisplayAware;
 import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -18,7 +19,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysDictItemDTO implements Serializable {
+public class SysDictItemDTO implements Serializable, AuditUserDisplayAware {
 
     @Schema(description = "主键ID", title = "仅修改时使用")
     private Long id;
@@ -26,8 +27,14 @@ public class SysDictItemDTO implements Serializable {
     @Schema(description = "创建时刻")
     private Instant createdAt;
 
+    @Schema(description = "创建者")
+    private String createdBy;
+
     @Schema(description = "更新时刻")
     private Instant updatedAt;
+
+    @Schema(description = "更新者")
+    private String updatedBy;
 
     @Schema(description = "所属分类ID")
     private Long categoryId;

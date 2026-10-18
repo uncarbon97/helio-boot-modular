@@ -1,4 +1,4 @@
-package cc.uncarbon.module.sys.biz;
+package cc.uncarbon.module.sys.helper;
 
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
  *
  * @author Uncarbon
  */
-@Slf4j
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class SysUserTenantConsistencyChecker {
 
     private static final String LOG_PREFIX = "[系统管理][用户租户对账]";

@@ -4,6 +4,7 @@ package cc.uncarbon.module.file.service.impl;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.file.dal.entity.FileMetaEntity;
 import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
 import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
@@ -41,6 +42,7 @@ public class FileMetaServiceImpl implements FileMetaService {
 
     private final FileMetaMapper fileMetaMapper;
     private final FileStorageService fileStorageService;
+    private final AuditNicknameFiller auditNicknameFiller;
 
 
     @Override
@@ -84,7 +86,7 @@ public class FileMetaServiceImpl implements FileMetaService {
     public FileMetaDTO getById(Long id) {
         if (id == null) return null;
         var entity = fileMetaMapper.selectById(id);
-        return convertEntity(entity);
+        return auditNicknameFiller.fillOne(entity, this::convertEntity);
     }
 
     @Override
@@ -134,7 +136,7 @@ public class FileMetaServiceImpl implements FileMetaService {
                 .setCategory(attr.getCategory())
                 .setDirectUrl(resolveDirectUrl(fileInfo.getUrl()));
         fileMetaMapper.insert(entity);
-        return convertEntity(entity);
+        return auditNicknameFiller.fillOne(entity, this::convertEntity);
     }
 
     /**
@@ -171,7 +173,7 @@ public class FileMetaServiceImpl implements FileMetaService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(this::convertEntity).toList();
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**

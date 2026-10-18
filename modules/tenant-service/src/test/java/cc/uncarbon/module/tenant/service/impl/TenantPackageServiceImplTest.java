@@ -5,9 +5,11 @@ import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.facade.SysMenuFacade;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
+import cc.uncarbon.module.tenant.AuditNicknameFillerTestSupport;
 import cc.uncarbon.module.tenant.MybatisPlusTestSupport;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.entity.TenantPackageEntity;
@@ -24,10 +26,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -57,6 +56,8 @@ class TenantPackageServiceImplTest {
     private TenantUserRoleFacade tenantUserRoleFacade;
     @Mock
     private SysMenuFacade sysMenuFacade;
+    @Spy
+    private AuditNicknameFiller auditNicknameFiller = AuditNicknameFillerTestSupport.passThrough();
 
     @InjectMocks
     private TenantPackageServiceImpl service;

@@ -146,15 +146,17 @@ class RolePermissionCacheHelperTest {
 
         helper.delayedDoubleDelete(List.of(5L, 6L));
 
-        // 第一次立即删除（同步）
+        // 第一次立即删除（同步）；key 顺序取决于集合迭代序，按集合比较
         Mockito.verify(stringSetRedisTemplate)
-                .delete(List.of("admin:role-perm:5", "admin:role-perm:6"));
+                .delete(Mockito.argThat((List<String> keys) ->
+                        new HashSet<>(keys).equals(Set.of("admin:role-perm:5", "admin:role-perm:6"))));
 
         // 第二次延时 1 秒后删除
         Thread.sleep(1500);
 
         Mockito.verify(stringSetRedisTemplate, Mockito.times(2))
-                .delete(List.of("admin:role-perm:5", "admin:role-perm:6"));
+                .delete(Mockito.argThat((List<String> keys) ->
+                        new HashSet<>(keys).equals(Set.of("admin:role-perm:5", "admin:role-perm:6"))));
     }
 
     @Test

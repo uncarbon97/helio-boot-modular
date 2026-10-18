@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.model.valueobj;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.model.valueobj.AuditUserDisplayAware;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class SysDeptDTO implements Serializable {
+public class SysDeptDTO implements Serializable, AuditUserDisplayAware {
 
     @Schema(description = "主键ID")
     private Long id;
@@ -26,8 +27,14 @@ public class SysDeptDTO implements Serializable {
     @Schema(description = "创建时刻")
     private Instant createdAt;
 
+    @Schema(description = "创建者")
+    private String createdBy;
+
     @Schema(description = "更新时刻")
     private Instant updatedAt;
+
+    @Schema(description = "更新者")
+    private String updatedBy;
 
     @Schema(description = "部门名称")
     private String name;

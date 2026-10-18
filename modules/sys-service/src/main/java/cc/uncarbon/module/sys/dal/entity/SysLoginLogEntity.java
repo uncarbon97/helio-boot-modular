@@ -40,7 +40,7 @@ public class SysLoginLogEntity extends AbstractTenantGenericEntity {
 	@TableField(exist = false)
 	private Instant updatedAt;
 	@TableField(exist = false)
-	private String updatedBy;
+	private Long updatedBy;
 
 	@Schema(description = "登录日志类型")
 	@TableField(value = "login_log_type")

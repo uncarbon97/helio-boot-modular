@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
@@ -57,6 +58,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
     private final SysMenuService sysMenuService;
     private final UserRoleHelper userRoleHelper;
+    private final AuditNicknameFiller auditNicknameFiller;
 
 
     @Override
@@ -130,7 +132,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     public SysRoleDTO getById(Long id) {
         if (id == null) return null;
         var entity = sysRoleMapper.selectById(id);
-        var ret = convertEntity(entity);
+        var ret = auditNicknameFiller.fillOne(entity, this::convertEntity);
         if (ret != null) {
             fillMenu(List.of(ret));
         }
@@ -227,7 +229,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(this::convertEntity).toList();
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**

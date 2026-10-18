@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.commons.iplocation.IPLocationResolver;
 import cc.uncarbon.module.sys.dal.entity.SysOperateLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
@@ -38,6 +39,7 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
 
     private final SysOperateLogMapper sysOperateLogMapper;
     private final List<IPLocationResolver> ipLocationResolvers;
+    private final AuditNicknameFiller auditNicknameFiller;
 
 
     @Override
@@ -52,7 +54,7 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
                         // 业务号
                         .like(CharSequenceUtil.isNotBlank(query.getBizNo()), SysOperateLogEntity::getBizNo, CharSequenceUtil.cleanBlank(query.getBizNo()))
                         // 操作人
-                        .like(CharSequenceUtil.isNotBlank(query.getUserPin()), SysOperateLogEntity::getCreatedBy, CharSequenceUtil.cleanBlank(query.getUserPin()))
+                        .eq(Objects.nonNull(query.getUserId()), SysOperateLogEntity::getUserId, query.getUserId())
                         // 结果状态
                         .eq(Objects.nonNull(query.getResultStatus()), SysOperateLogEntity::getResultStatus, query.getResultStatus())
                         // 时间区间
@@ -67,7 +69,7 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
     public SysOperateLogDTO getById(Long id) {
         if (id == null) return null;
         var entity = sysOperateLogMapper.selectById(id);
-        return convertEntity(entity);
+        return auditNicknameFiller.fillByUserIdOne(entity, this::convertEntity);
     }
 
     @Override
@@ -117,8 +119,6 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
 
         var ret = new SysOperateLogDTO();
         BeanUtil.copyProperties(entity, ret);
-        // 按需改写字段
-        ret.setUserPin(entity.getCreatedBy());
         return ret;
     }
 
@@ -129,7 +129,7 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(this::convertEntity).toList();
+        return auditNicknameFiller.fillByUserId(entityList, this::convertEntity);
     }
 
     /**

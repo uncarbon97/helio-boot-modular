@@ -61,12 +61,12 @@ class FileMetaDTOTest {
     }
 
     /**
-     * 全参构造器应覆盖全部 14 个字段
+     * 全参构造器应覆盖全部 16 个字段
      */
     @Test
     void allArgsConstructorCoversAllFields() {
         Instant now = Instant.now();
-        FileMetaDTO dto = new FileMetaDTO(1L, now, now, 10L, "main", "/data", "sub/",
+        FileMetaDTO dto = new FileMetaDTO(1L, now, "小明", now, "小红", 10L, "main", "/data", "sub/",
                 "65f1c0a0d3b2", "头像", "png", 1024L,
                 "digest", "avatar", "https://example.com/x.png");
 
@@ -84,6 +84,8 @@ class FileMetaDTOTest {
         Assertions.assertEquals("digest", dto.getDigestSha256());
         Assertions.assertEquals("avatar", dto.getCategory());
         Assertions.assertEquals("https://example.com/x.png", dto.getDirectUrl());
+        Assertions.assertEquals("小明", dto.getCreatedBy());
+        Assertions.assertEquals("小红", dto.getUpdatedBy());
     }
 
     /**

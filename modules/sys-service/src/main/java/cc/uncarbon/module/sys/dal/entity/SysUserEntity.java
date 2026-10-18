@@ -3,6 +3,7 @@ package cc.uncarbon.module.sys.dal.entity;
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
+import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -27,7 +28,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_user")
-public class SysUserEntity extends AbstractTenantGenericEntity {
+public class SysUserEntity extends AbstractTenantGenericEntity implements AuditingUserSource {
 
     @Serial
     private static final long serialVersionUID = 1L;

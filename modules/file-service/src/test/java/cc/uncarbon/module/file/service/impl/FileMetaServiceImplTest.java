@@ -3,6 +3,8 @@ package cc.uncarbon.module.file.service.impl;
 import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
+import cc.uncarbon.module.file.AuditNicknameFillerTestSupport;
 import cc.uncarbon.module.file.MybatisPlusTestSupport;
 import cc.uncarbon.module.file.dal.entity.FileMetaEntity;
 import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
@@ -19,10 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -46,6 +45,8 @@ class FileMetaServiceImplTest {
     private FileMetaMapper fileMetaMapper;
     @Mock
     private FileStorageService fileStorageService;
+    @Spy
+    private AuditNicknameFiller auditNicknameFiller = AuditNicknameFillerTestSupport.passThrough();
 
     @InjectMocks
     private FileMetaServiceImpl service;

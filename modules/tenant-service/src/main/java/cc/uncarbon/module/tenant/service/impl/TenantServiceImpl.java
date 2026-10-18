@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.sys.model.request.TenantRoleBindMenuRequest;
@@ -55,6 +56,7 @@ public class TenantServiceImpl implements TenantService {
     private final TenantMetaMapper tenantMetaMapper;
     private final TenantPackageService tenantPackageService;
     private final TenantUserRoleFacade tenantUserRoleFacade;
+    private final AuditNicknameFiller auditNicknameFiller;
 
 
     @Override
@@ -162,7 +164,7 @@ public class TenantServiceImpl implements TenantService {
     public TenantMetaDTO getById(Long id, boolean fillTenantAdminUser) {
         if (id == null) return null;
         var entity = tenantMetaMapper.selectById(id);
-        var ret = convertEntity(entity);
+        var ret = auditNicknameFiller.fillOne(entity, this::convertEntity);
         if (ret != null && fillTenantAdminUser) {
             fillTenantAdminUser(List.of(ret));
         }
@@ -186,7 +188,7 @@ public class TenantServiceImpl implements TenantService {
     public TenantMetaDTO getByCode(String code, boolean fillTenantAdminUser) {
         if (CharSequenceUtil.isBlank(code)) return null;
         var entity = tenantMetaMapper.selectByCode(code);
-        var ret = convertEntity(entity);
+        var ret = auditNicknameFiller.fillOne(entity, this::convertEntity);
         if (ret != null && fillTenantAdminUser) {
             fillTenantAdminUser(List.of(ret));
         }
@@ -217,7 +219,7 @@ public class TenantServiceImpl implements TenantService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(this::convertEntity).toList();
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**

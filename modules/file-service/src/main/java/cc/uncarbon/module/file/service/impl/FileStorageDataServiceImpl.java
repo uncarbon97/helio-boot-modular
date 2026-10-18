@@ -7,6 +7,7 @@ import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.file.dal.entity.FileMetaEntity;
 import cc.uncarbon.module.file.dal.entity.FileStorageEntity;
 import cc.uncarbon.module.file.dal.mapper.FileMetaMapper;
@@ -49,6 +50,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
     private final FileMetaMapper fileMetaMapper;
     private static final JsonMapper JSON_MAPPER = new JsonMapper();
     private final ApplicationEventPublisher eventPublisher;
+    private final AuditNicknameFiller auditNicknameFiller;
 
 
     @Override
@@ -172,7 +174,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
     public FileStorageDTO getById(Long id) {
         if (id == null) return null;
         var entity = fileStorageMapper.selectById(id);
-        return convertEntity(entity);
+        return auditNicknameFiller.fillOne(entity, this::convertEntity);
     }
 
     @Override
@@ -224,7 +226,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(this::convertEntity).toList();
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**

@@ -8,6 +8,7 @@ import cc.uncarbon.module.commons.enumdict.EnumDict;
 import cc.uncarbon.module.commons.enumdict.EnumDictSpec;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.sys.AuditNicknameFillerTestSupport;
 import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
@@ -57,7 +58,8 @@ class SysDictServiceImplTest {
         categoryMapper = Mockito.mock(SysDictCategoryMapper.class);
         itemMapper = Mockito.mock(SysDictItemMapper.class);
         service = new SysDictServiceImpl(categoryMapper, itemMapper,
-                Mockito.mock(ApplicationContext.class), List.of());
+                Mockito.mock(ApplicationContext.class), List.of(),
+                AuditNicknameFillerTestSupport.passThrough());
     }
 
     /**

@@ -2,6 +2,7 @@ package cc.uncarbon.module.tenant.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -25,7 +26,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "tenant_meta")
-public class TenantMetaEntity extends AbstractGenericEntity {
+public class TenantMetaEntity extends AbstractGenericEntity implements AuditingUserSource {
 
     @Serial
     private static final long serialVersionUID = 1L;

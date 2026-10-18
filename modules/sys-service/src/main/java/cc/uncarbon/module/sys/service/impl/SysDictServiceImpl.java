@@ -9,6 +9,7 @@ import cc.uncarbon.module.commons.enumdict.EnumDictContributor;
 import cc.uncarbon.module.commons.enumdict.EnumDictSpec;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.dal.entity.SysDictItemEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysDictCategoryMapper;
@@ -62,6 +63,8 @@ public class SysDictServiceImpl implements SysDictService {
     private final SysDictItemMapper sysDictItemMapper;
     private final ApplicationContext applicationContext;
     private final List<EnumDictContributor> contributors;
+    private final AuditNicknameFiller auditNicknameFiller;
+
 
     /**
      * 缓存内置枚举字典
@@ -328,7 +331,7 @@ public class SysDictServiceImpl implements SysDictService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(this::convertEntity).toList();
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**
@@ -338,7 +341,7 @@ public class SysDictServiceImpl implements SysDictService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(this::convertEntity).toList();
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**

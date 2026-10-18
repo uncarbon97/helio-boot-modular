@@ -5,6 +5,7 @@ import cc.uncarbon.framework.helium.db.constant.EntityField;
 import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
 import cc.uncarbon.framework.helium.db.entity.TenantEntity;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
+import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
 import cc.uncarbon.module.file.enums.StoragePlatformTypeEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -28,7 +29,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "file_storage")
-public class FileStorageEntity extends AbstractGenericEntity implements TenantEntity {
+public class FileStorageEntity extends AbstractGenericEntity implements TenantEntity, AuditingUserSource {
 
     @Serial
     private static final long serialVersionUID = 1L;

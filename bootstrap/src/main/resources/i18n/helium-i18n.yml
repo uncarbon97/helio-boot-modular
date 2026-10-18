@@ -13,6 +13,7 @@
       - en-US
     yaml-basenames:
       - classpath*:i18n/errorcode
+      - classpath*:i18n/bizmessage
     resolver:
       # 用于 QueryParamLangResolver，从 URL 请求参数中读取语言，如「?lang=en-US」
       query-param-name: "lang"

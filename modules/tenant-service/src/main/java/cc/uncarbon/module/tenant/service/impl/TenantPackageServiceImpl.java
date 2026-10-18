@@ -6,6 +6,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.facade.SysMenuFacade;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
@@ -49,6 +50,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
     private final TenantMetaMapper tenantMetaMapper;
     private final TenantUserRoleFacade tenantUserRoleFacade;
     private final SysMenuFacade sysMenuFacade;
+    private final AuditNicknameFiller auditNicknameFiller;
 
 
     @Override
@@ -179,7 +181,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
     public TenantPackageDTO getById(Long id) {
         if (id == null) return null;
         var entity = tenantPackageMapper.selectById(id);
-        var ret = convertEntity(entity);
+        var ret = auditNicknameFiller.fillOne(entity, this::convertEntity);
         if (ret != null) {
             fillMenu(List.of(ret));
         }
@@ -212,11 +214,10 @@ public class TenantPackageServiceImpl implements TenantPackageService {
      * 实体转值对象
      */
     private List<TenantPackageDTO> convertList(List<TenantPackageEntity> entityList) {
-        List<TenantPackageDTO> ret = new ArrayList<>(entityList.size());
-        for (TenantPackageEntity entity : entityList) {
-            ret.add(convertEntity(entity));
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
         }
-        return ret;
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**

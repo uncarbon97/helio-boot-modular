@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
 import cc.uncarbon.module.sys.enums.MenuTypeEnum;
 import cc.uncarbon.module.sys.enums.MenuVisibleScopeEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -27,7 +28,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_menu")
-public class SysMenuEntity extends AbstractGenericEntity {
+public class SysMenuEntity extends AbstractGenericEntity implements AuditingUserSource {
 
 	@Serial
 	private static final long serialVersionUID = 1L;

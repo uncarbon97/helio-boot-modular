@@ -5,7 +5,9 @@ import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.sys.AuditNicknameFillerTestSupport;
 import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
@@ -22,10 +24,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -52,6 +51,8 @@ class SysDeptServiceImplTest {
     private SysUserDeptRelationService sysUserDeptRelationService;
     @Mock
     private UserRoleHelper userRoleHelper;
+    @Spy
+    private AuditNicknameFiller auditNicknameFiller = AuditNicknameFillerTestSupport.passThrough();
 
     @InjectMocks
     private SysDeptServiceImpl service;
@@ -318,6 +319,10 @@ class SysDeptServiceImplTest {
 
         Mockito.when(sysDeptMapper.selectSortedList()).thenReturn(List.of(dept(5L, 0L)));
         Assertions.assertEquals(1, service.adminList().size());
+
+        // 详情与列表均须经审计昵称填充器；fillOne 默认实现内部也委托 fill，故 fill 共 2 次
+        Mockito.verify(auditNicknameFiller).fillOne(Mockito.any(SysDeptEntity.class), Mockito.any());
+        Mockito.verify(auditNicknameFiller, Mockito.times(2)).fill(Mockito.anyList(), Mockito.any());
     }
 
 

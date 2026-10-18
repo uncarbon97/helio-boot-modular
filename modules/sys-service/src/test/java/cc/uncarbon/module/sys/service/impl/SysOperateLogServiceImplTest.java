@@ -4,6 +4,7 @@ import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.iplocation.IPLocationResolver;
+import cc.uncarbon.module.sys.AuditNicknameFillerTestSupport;
 import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.dal.entity.SysOperateLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
@@ -49,7 +50,8 @@ class SysOperateLogServiceImplTest {
     @BeforeEach
     void setUp() {
         // 构造器含 List<IPLocationResolver>，@InjectMocks 无法按泛型注入，参照 SysDictServiceImplTest 手动构造
-        service = new SysOperateLogServiceImpl(sysOperateLogMapper, List.of(primaryResolver, fallbackResolver));
+        service = new SysOperateLogServiceImpl(sysOperateLogMapper, List.of(primaryResolver, fallbackResolver),
+                AuditNicknameFillerTestSupport.passThrough());
     }
 
 
@@ -73,26 +75,26 @@ class SysOperateLogServiceImplTest {
                 .setBizType("sysUser")
                 .setBehavior("create")
                 .setBizNo("BIZ-1")
-                .setUserPin("u1")
+                .setUserId(1001L)
                 .setResultStatus(LogResultStatusEnum.SUCCESS)
                 .setBeginAt(Instant.parse("2026-01-01T00:00:00Z"))
                 .setEndAt(Instant.parse("2026-02-01T00:00:00Z")));
 
         Assertions.assertEquals(1, ret.getTotal());
         Assertions.assertEquals(1, ret.getRecords().size());
-        // 操作人账号取自审计字段 createdBy
-        Assertions.assertEquals("op1", ret.getRecords().getFirst().getUserPin());
+        // 操作人ID
+        Assertions.assertEquals(1001L, ret.getRecords().getFirst().getUserId());
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysOperateLogEntity>> wrapperCaptor =
                 ArgumentCaptor.forClass(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class);
         Mockito.verify(sysOperateLogMapper).selectPage(Mockito.any(), wrapperCaptor.capture());
-        // 四个模糊 + 一个等值 + 一个时间区间条件同时生效
+        // 三个模糊 + 两个等值 + 一个时间区间条件同时生效
         String sqlSegment = wrapperCaptor.getValue().getSqlSegment();
         Assertions.assertTrue(sqlSegment.contains("biz_type LIKE"));
         Assertions.assertTrue(sqlSegment.contains("behavior LIKE"));
         Assertions.assertTrue(sqlSegment.contains("biz_no LIKE"));
-        Assertions.assertTrue(sqlSegment.contains("created_by LIKE"));
+        Assertions.assertTrue(sqlSegment.contains("user_id ="));
         Assertions.assertTrue(sqlSegment.contains("result_status ="));
         Assertions.assertTrue(sqlSegment.contains("created_at BETWEEN"));
     }
@@ -216,14 +218,14 @@ class SysOperateLogServiceImplTest {
     }
 
     @Test
-    void getByIdMapsCreatedByToUserPin() {
+    void getByIdMapsOperatorFields() {
         Mockito.when(sysOperateLogMapper.selectById(9L)).thenReturn(entity());
 
         SysOperateLogDTO ret = service.getById(9L);
 
         Assertions.assertEquals(9L, ret.getId());
-        // 操作人账号由 createdBy 改写
-        Assertions.assertEquals("op1", ret.getUserPin());
+        // 操作人ID
+        Assertions.assertEquals(1001L, ret.getUserId());
         Assertions.assertEquals("sysUser", ret.getBizType());
         Assertions.assertEquals(CHROME_UA, ret.getVisitorUserAgent());
     }
@@ -257,8 +259,8 @@ class SysOperateLogServiceImplTest {
                 .setBizNo("BIZ-1")
                 .setVisitorIp("8.8.8.8")
                 .setVisitorUserAgent(CHROME_UA)
-                .setResultStatus(LogResultStatusEnum.SUCCESS);
-        entity.setCreatedBy("op1");
+                .setResultStatus(LogResultStatusEnum.SUCCESS)
+                .setUserId(1001L);
         return entity;
     }
 

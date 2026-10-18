@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.dal.entity;
 
 import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
+import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
 import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -25,7 +26,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "sys_dict_item")
-public class SysDictItemEntity extends AbstractGenericEntity {
+public class SysDictItemEntity extends AbstractGenericEntity implements AuditingUserSource {
 
     @Serial
     private static final long serialVersionUID = 1L;

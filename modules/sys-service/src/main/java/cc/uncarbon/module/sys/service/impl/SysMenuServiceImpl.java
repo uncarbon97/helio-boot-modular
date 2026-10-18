@@ -7,6 +7,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
@@ -51,6 +52,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     private final SysRoleMapper sysRoleMapper;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
     private final UserRoleHelper userRoleHelper;
+    private final AuditNicknameFiller auditNicknameFiller;
 
 
     @Override
@@ -149,7 +151,7 @@ public class SysMenuServiceImpl implements SysMenuService {
                 && listSuperAdminOnlySubtreeMenuIds().contains(id)) {
             return null;
         }
-        return convertEntity(entity);
+        return auditNicknameFiller.fillOne(entity, this::convertEntity);
     }
 
     @Override
@@ -280,7 +282,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return entityList.stream().map(this::convertEntity).toList();
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**

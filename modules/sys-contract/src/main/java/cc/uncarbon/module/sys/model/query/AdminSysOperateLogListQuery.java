@@ -40,8 +40,8 @@ public class AdminSysOperateLogListQuery implements Serializable, PageQuery {
     @Schema(description = "业务号")
     private String bizNo;
 
-    @Schema(description = "操作人账号")
-    private String userPin;
+    @Schema(description = "操作人用户ID")
+    private Long userId;
 
     @Schema(description = "结果状态")
     private LogResultStatusEnum resultStatus;

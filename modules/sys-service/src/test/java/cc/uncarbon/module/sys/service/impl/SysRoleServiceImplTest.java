@@ -7,7 +7,9 @@ import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.sys.AuditNicknameFillerTestSupport;
 import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
@@ -29,10 +31,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -63,6 +62,8 @@ class SysRoleServiceImplTest {
     private SysMenuService sysMenuService;
     @Mock
     private UserRoleHelper userRoleHelper;
+    @Spy
+    private AuditNicknameFiller auditNicknameFiller = AuditNicknameFillerTestSupport.passThrough();
 
     @InjectMocks
     private SysRoleServiceImpl service;
