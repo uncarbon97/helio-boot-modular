@@ -43,3 +43,16 @@
 "helium.bizlog":
   # 启用业务日志记录能力
   enabled: true
+  # 操作日志 diff 忽略的敏感字段
+  ignored-diff-fields:
+    # 口令及凭据
+    - pwd
+    - initPwd
+    - randomPassword
+    - tenantAdminPwd
+    # 文件存储点连接配置（含 AK/SK 等凭据）
+    - settingBody
+    - settingJson
+    # 个人敏感信息
+    - email
+    - phoneNo
