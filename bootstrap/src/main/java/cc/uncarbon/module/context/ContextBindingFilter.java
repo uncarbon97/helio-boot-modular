@@ -1,4 +1,4 @@
-package cc.uncarbon.module.filter;
+package cc.uncarbon.module.context;
 
 import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.i18n.context.I18nContext;
@@ -14,7 +14,6 @@ import cc.uncarbon.framework.helium.web.context.VisitorContext;
 import cc.uncarbon.framework.helium.web.util.IPUtil;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpKit;
-import cc.uncarbon.module.context.ContextBinder;
 import cn.dev33.satoken.context.model.SaTokenContextModelBox;
 import cn.dev33.satoken.stp.StpLogic;
 import cn.hutool.core.collection.CollUtil;

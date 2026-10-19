@@ -2,7 +2,7 @@ package cc.uncarbon.module.file.dal.entity;
 
 
 import cc.uncarbon.framework.helium.db.constant.EntityField;
-import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.entity.TenantEntity;
 import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -27,7 +27,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @Data
 @TableName(value = "file_meta")
-public class FileMetaEntity extends AbstractGenericEntity implements TenantEntity, AuditingUserSource {
+public class FileMetaEntity extends AbstractTenantGenericEntity implements TenantEntity, AuditingUserSource {
 
     @Serial
     private static final long serialVersionUID = 1L;
