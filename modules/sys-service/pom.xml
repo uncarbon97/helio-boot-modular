@@ -60,6 +60,11 @@
 
 
         <!-- 引用框架启动包 -->
+<!--        <dependency>-->
+<!--            <groupId>cc.uncarbon.framework</groupId>-->
+<!--            <artifactId>helium-core-db-field-crypto</artifactId>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-starter-db-mybatis-plus</artifactId>

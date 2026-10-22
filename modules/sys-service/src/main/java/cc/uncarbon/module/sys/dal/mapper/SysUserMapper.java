@@ -65,4 +65,31 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
                 .set(SysUserEntity::getStatus, status)
         );
     }
+
+    /**
+     * 专用清空方法：显式清空联系方式时，密文列 + 全部派生列（masked/盲索引）一并置 NULL，
+     * 禁止半清留下「密文 NULL + 索引残留」脏数据（updateById 传空串清不掉派生列，即为此禁用）
+     *
+     * <p>guard 测试白名单：密文列 .set 的唯一合法路径（只封条件不封 set）</p>
+     */
+    default void clearPiiContact(long userId, boolean clearPhone, boolean clearEmail) {
+        if (!clearPhone && !clearEmail) {
+            throw new IllegalArgumentException("clearPiiContact 至少需要清空手机号或邮箱之一");
+        }
+        LambdaUpdateWrapper<SysUserEntity> wrapper = new LambdaUpdateWrapper<SysUserEntity>()
+                .eq(SysUserEntity::getId, userId);
+        if (clearPhone) {
+            wrapper.set(SysUserEntity::getPhoneNo, null)
+                    .set(SysUserEntity::getPhoneNoMasked, null)
+                    .set(SysUserEntity::getPhoneNoBlindIndex, null)
+                    .set(SysUserEntity::getPhoneNoTailBlindIndex, null);
+        }
+        if (clearEmail) {
+            wrapper.set(SysUserEntity::getEmail, null)
+                    .set(SysUserEntity::getEmailMasked, null)
+                    .set(SysUserEntity::getEmailBlindIndex, null);
+        }
+        wrapper.set(SysUserEntity::getUpdatedAt, Instant.now());
+        update(null, wrapper);
+    }
 }

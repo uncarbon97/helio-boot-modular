@@ -66,6 +66,9 @@ public enum SysErrorCodeEnum implements StructuredErrorCode {
     A01043("该字典分类下仍有字典项，不能删除"),
     A01044("上级菜单已停用"),
 
+    // 以下枚举用于 PII 字段加密查询条件检查
+    A01045("手机号查询条件需包含至少8位数字（按后8位精确匹配）"),
+
     /*
      B 开头错误码，表示本服务内部错误
      */

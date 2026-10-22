@@ -47,3 +47,40 @@ spring:
   # 是否启用 ip2region 离线IP归属地查询
   # 详见 resources/ip2region/README.md
   enabled: false
+
+---
+"helium.db.field-crypto":
+  # 生产环境密钥必须由环境变量/KMS 注入，不提供默认值（缺失时启动失败，fail-closed）
+  data-root-key: ${FIELD_CRYPTO_DATA_ROOT_KEY}
+  data-key-ids:
+    - ${FIELD_CRYPTO_DATA_KEY_ID_K1:k1}
+  active-data-key-id: ${FIELD_CRYPTO_ACTIVE_DATA_KEY_ID:k1}
+  index-root-key: ${FIELD_CRYPTO_INDEX_ROOT_KEY}
+  # 禁用根密钥清单（fail-closed，任务 1.3）：已提交进仓库的 dev 默认值，生产命中即拒启（等价密钥公开）
+  forbidden-root-keys:
+    - ggsW3SXKmnRvEYPYBt7lgvFqCWttwd+z3Yz1NUgpuHY=
+    - IaYUq3c7/M6oaf5eTl/W0kcW0WjZA3gkdwRFU+H3dCc=
+  canary:
+    enabled: true
+    allow-overwrite: false
+
+---
+
+# actuator 端点收口（方案 §5.5 第 5 条 / 任务 2.12）：heapdump/env 等为密钥/明文直读面
+management:
+  endpoints:
+    web:
+      exposure:
+        # 生产端点白名单：禁 heapdump/threaddump/env/configprops/beans
+        include: health,info,metrics
+  endpoint:
+    env:
+      show-values: NEVER
+    configprops:
+      show-values: NEVER
+    beans:
+      enabled: false
+    heapdump:
+      enabled: false
+    threaddump:
+      enabled: false

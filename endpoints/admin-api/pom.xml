@@ -67,6 +67,12 @@
             <artifactId>helium-starter-redis</artifactId>
         </dependency>
 
+        <!-- 详情等解密接口限流（方案 §6.2 任务 2.11：账号枚举面收口） -->
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-ratelimiter-redis</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-starter-satoken</artifactId>

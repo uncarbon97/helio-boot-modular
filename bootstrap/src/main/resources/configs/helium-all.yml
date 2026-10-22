@@ -16,6 +16,29 @@
       enabled: true
 
 ---
+"helium.db.field-crypto":
+  # 字段级加密（PII 落库加密），方案见 .agents/2026-10-19/字段落库加密方案.MD
+  # 密钥体系：根密钥 + HKDF 派生（§5.1）——data-root-key 按 keyId 派生各代 DEK；index-root-key 按列派生盲索引 IK
+  # 数据加密根密钥 dataRootKey：Base64(32 字节)
+  # ！！下方默认值为开发用密钥，生产环境必须通过环境变量注入，严禁使用默认值 ！!
+  # ！！生产复用该值会被 FieldCryptoStartupGuard 拒启（prod 侧 forbidden-root-keys 已登记） ！!
+  data-root-key: ${FIELD_CRYPTO_DATA_ROOT_KEY:ggsW3SXKmnRvEYPYBt7lgvFqCWttwd+z3Yz1NUgpuHY=}
+  # 可用 keyId 集合；DEK 轮换（§5.2）：新增 keyId 并切 active-data-key-id，旧前缀计数=0 后才可移除
+  data-key-ids:
+    - ${FIELD_CRYPTO_DATA_KEY_ID_K1:k1}
+  active-data-key-id: ${FIELD_CRYPTO_ACTIVE_DATA_KEY_ID:k1}
+  # 索引根密钥 indexRootKey：Base64(32 字节)；轮换 = 停写重建全量索引列（runbook），长周期使用
+  index-root-key: ${FIELD_CRYPTO_INDEX_ROOT_KEY:IaYUq3c7/M6oaf5eTl/W0kcW0WjZA3gkdwRFU+H3dCc=}
+  # 禁用根密钥清单：生产命中即拒启（防复用已提交的 dev 默认值）；dev/test 留空即可
+  forbidden-root-keys: []
+  canary:
+    # 根密钥双指纹（field-ik / kek-data）启动比对，漂移拒启（§5.3 步骤 6）
+    enabled: true
+    # 轮换覆写维护开关：仅 IK/根密钥轮换 runbook 步骤中临时置 true（单次生效 + 审计日志），平时必须 false
+    allow-overwrite: false
+
+---
+
 "helium.openapi3":
   nextdoc4j:
     enabled: true
@@ -56,3 +79,5 @@
     # 个人敏感信息
     - email
     - phoneNo
+    # 昵称（P0 后仍明文，bizlog/日志脱敏先行覆盖，§5.5 / §7）
+    - nickname

@@ -3,6 +3,7 @@ package cc.uncarbon.module.adminapi.controller.sys;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
+import cc.uncarbon.framework.helium.ratelimiter.annotation.UseRateLimit;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
@@ -64,6 +65,7 @@ public class AdminSysUserController {
         return ApiResult.success(sysUserService.adminList(query));
     }
 
+    @UseRateLimit(mark = "sys-user-detail", duration = 60, max = 30)
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")

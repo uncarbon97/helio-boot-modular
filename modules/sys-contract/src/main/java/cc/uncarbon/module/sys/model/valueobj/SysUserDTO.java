@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -15,6 +16,9 @@ import java.time.Instant;
 
 /**
  * 系统用户
+ *
+ * <p>列表场景以 {@code phoneNoMasked}/{@code emailMasked} 为准（零解密直读），
+ * 完整明文仅详情/导出接口返回；明文字段 @ToString.Exclude 不进日志</p>
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -41,6 +45,7 @@ public class SysUserDTO implements Serializable, AuditUserDisplayAware {
     private String pin;
 
     @Schema(description = "昵称")
+    @ToString.Exclude
     private String nickname;
 
     @Schema(description = "状态")
@@ -49,11 +54,19 @@ public class SysUserDTO implements Serializable, AuditUserDisplayAware {
     @Schema(description = "性别")
     private GenderEnum gender;
 
-    @Schema(description = "邮箱")
+    @Schema(description = "邮箱（仅详情返回明文；列表恒为 null）")
+    @ToString.Exclude
     private String email;
 
-    @Schema(description = "手机号")
+    @Schema(description = "手机号（仅详情返回明文；列表恒为 null）")
+    @ToString.Exclude
     private String phoneNo;
+
+    @Schema(description = "手机号脱敏展示值，如 189****8927；列表场景以此为准")
+    private String phoneNoMasked;
+
+    @Schema(description = "邮箱脱敏展示值，如 al***@example.com；列表场景以此为准")
+    private String emailMasked;
 
     @Schema(description = "最后登录时刻")
     private Instant lastLoginAt;

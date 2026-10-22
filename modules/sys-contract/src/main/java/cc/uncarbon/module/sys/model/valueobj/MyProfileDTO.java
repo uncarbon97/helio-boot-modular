@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -13,7 +14,9 @@ import java.time.Instant;
 
 
 /**
- * 用户资料
+ * 用户资料（本人视角，含联系方式明文）
+ *
+ * <p>明文字段 @ToString.Exclude 不进日志</p>
  */
 @Accessors(chain = true)
 @AllArgsConstructor
@@ -25,6 +28,7 @@ public class MyProfileDTO implements Serializable {
     private String pin;
 
     @Schema(description = "昵称")
+    @ToString.Exclude
     private String nickname;
 
     @Schema(description = "最后登录时刻")
@@ -34,9 +38,11 @@ public class MyProfileDTO implements Serializable {
     private GenderEnum gender;
 
     @Schema(description = "邮箱")
+    @ToString.Exclude
     private String email;
 
     @Schema(description = "手机号")
+    @ToString.Exclude
     private String phoneNo;
 
     @Schema(description = "头像URL")

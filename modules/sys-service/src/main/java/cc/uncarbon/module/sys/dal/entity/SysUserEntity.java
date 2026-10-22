@@ -3,17 +3,23 @@ package cc.uncarbon.module.sys.dal.entity;
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
+import cc.uncarbon.framework.helium.fieldcrypto.annotation.BlindIndexOf;
+import cc.uncarbon.framework.helium.fieldcrypto.annotation.BlindIndexValueExtractors;
+import cc.uncarbon.framework.helium.fieldcrypto.annotation.MaskedOf;
+import cc.uncarbon.framework.helium.fieldcrypto.annotation.UseFieldCrypto;
 import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
+import cc.uncarbon.module.sys.constant.SysUserCipherCols;
+import cc.uncarbon.module.sys.dal.masker.EmailFieldValueMasker;
+import cc.uncarbon.module.sys.dal.masker.PhoneFieldValueMasker;
+import cc.uncarbon.module.sys.dal.typehandler.SysUserEmailEncryptedTypeHandler;
+import cc.uncarbon.module.sys.dal.typehandler.SysUserPhoneNoEncryptedTypeHandler;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.Serial;
@@ -27,7 +33,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@TableName(value = "sys_user")
+@TableName(value = "sys_user", autoResultMap = true)
 public class SysUserEntity extends AbstractTenantGenericEntity implements AuditingUserSource {
 
     @Serial
@@ -42,6 +48,7 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
     @TableField(value = "pin")
     private String pin;
 
+    @ToString.Exclude
     @Schema(description = "密码")
     @TableField(value = "pwd")
     private String pwd;
@@ -66,13 +73,45 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
     @TableField(value = "gender")
     private GenderEnum gender;
 
-    @Schema(description = "邮箱")
-    @TableField(value = "email")
+    @ToString.Exclude
+    @Schema(description = "邮箱（内存中为解密后明文；日志脱敏见 @ToString.Exclude）")
+    @TableField(value = "email_encrypted", typeHandler = SysUserEmailEncryptedTypeHandler.class)
+    @UseFieldCrypto(aad = SysUserCipherCols.EMAIL_CIPHER_AAD)
     private String email;
 
-    @Schema(description = "手机号")
-    @TableField(value = "phone_no")
+    @Schema(description = "邮箱全串盲索引（自动填充，LowerTrim 归一化）")
+    @TableField(value = "email_blind_index")
+    @BlindIndexOf(valueField = "email", purpose = SysUserCipherCols.EMAIL_FULL_PURPOSE,
+            extractor = BlindIndexValueExtractors.LowerTrim.class)
+    private String emailBlindIndex;
+
+    @Schema(description = "邮箱脱敏冗余列（自动填充，列表展示直读）")
+    @TableField(value = "email_masked")
+    @MaskedOf(valueField = "email", masker = EmailFieldValueMasker.class)
+    private String emailMasked;
+
+    @ToString.Exclude
+    @Schema(description = "手机号（内存中为解密后明文；日志脱敏见 @ToString.Exclude）")
+    @TableField(value = "phone_no_encrypted", typeHandler = SysUserPhoneNoEncryptedTypeHandler.class)
+    @UseFieldCrypto(aad = SysUserCipherCols.PHONE_CIPHER_AAD)
     private String phoneNo;
+
+    @Schema(description = "手机号全串盲索引（自动填充，CleanTrim 归一化；等值定位用）")
+    @TableField(value = "phone_no_blind_index")
+    @BlindIndexOf(valueField = "phoneNo", purpose = SysUserCipherCols.PHONE_FULL_PURPOSE,
+            extractor = BlindIndexValueExtractors.CleanTrim.class)
+    private String phoneNoBlindIndex;
+
+    @Schema(description = "手机号尾8位盲索引（自动填充；仅管理端尾号搜检索入口，允许碰撞）")
+    @TableField(value = "phone_no_tail_blind_index")
+    @BlindIndexOf(valueField = "phoneNo", purpose = SysUserCipherCols.PHONE_TAIL_PURPOSE,
+            extractor = BlindIndexValueExtractors.TailDigits.class)
+    private String phoneNoTailBlindIndex;
+
+    @Schema(description = "手机号脱敏冗余列（自动填充，列表展示直读）")
+    @TableField(value = "phone_no_masked")
+    @MaskedOf(valueField = "phoneNo", masker = PhoneFieldValueMasker.class)
+    private String phoneNoMasked;
 
     @Schema(description = "头像URL")
     @TableField(value = "avatar_url")
