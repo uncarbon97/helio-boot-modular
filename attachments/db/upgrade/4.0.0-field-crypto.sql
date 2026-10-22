@@ -26,16 +26,16 @@ ALTER TABLE sys_user
   DROP COLUMN email,
   ADD COLUMN phone_no_encrypted         VARCHAR(512) NULL COMMENT '手机号密文 {keyId}$base64(nonce||ct||tag)',
   ADD COLUMN phone_no_masked            VARCHAR(32)  NULL COMMENT '手机号脱敏冗余列，如 189****8927',
-  ADD COLUMN phone_no_blind_index       CHAR(24) CHARACTER SET ascii COLLATE ascii_bin NULL COMMENT '手机号全串盲索引 base64(HMAC-SHA256截断128bit)，等值定位',
-  ADD COLUMN phone_no_tail_blind_index  CHAR(24) CHARACTER SET ascii COLLATE ascii_bin NULL COMMENT '手机号尾8位盲索引(仅检索,允许碰撞)',
+  ADD COLUMN phone_no_full_blind_index       CHAR(24) CHARACTER SET ascii COLLATE ascii_bin NULL COMMENT '手机号全串盲索引 base64(HMAC-SHA256截断128bit)，等值定位',
+  ADD COLUMN phone_no_tail4_blind_index  CHAR(24) CHARACTER SET ascii COLLATE ascii_bin NULL COMMENT '手机号后4位盲索引(仅检索,允许碰撞)',
   ADD COLUMN email_encrypted            VARCHAR(512) NULL COMMENT '邮箱密文',
   ADD COLUMN email_masked               VARCHAR(255) NULL COMMENT '邮箱脱敏冗余列，如 al***@example.com',
-  ADD COLUMN email_blind_index          CHAR(24) CHARACTER SET ascii COLLATE ascii_bin NULL COMMENT '邮箱全串盲索引(小写归一化)，等值定位';
+  ADD COLUMN email_full_blind_index          CHAR(24) CHARACTER SET ascii COLLATE ascii_bin NULL COMMENT '邮箱全串盲索引(小写归一化)，等值定位';
 
 -- 五审/六审：全部普通索引，无唯一约束（同租户同手机号/同邮箱多用户均为合法态）
-CREATE INDEX idx_sys_user_tenant_phone ON sys_user (tenant_id, phone_no_blind_index);
-CREATE INDEX idx_sys_user_phone_tail   ON sys_user (phone_no_tail_blind_index);
-CREATE INDEX idx_sys_user_tenant_email ON sys_user (tenant_id, email_blind_index);
+CREATE INDEX idx_sys_user_tenant_phone ON sys_user (tenant_id, phone_no_full_blind_index);
+CREATE INDEX idx_sys_user_phone_tail   ON sys_user (phone_no_tail4_blind_index);
+CREATE INDEX idx_sys_user_tenant_email ON sys_user (tenant_id, email_full_blind_index);
 
 -- canary 元数据表（四审，§5.3 步骤 6）：根密钥双指纹（field-ik / kek-data），
 -- 框架首启幂等写入、此后每次启动比对，任一不符即拒启；非业务表，不进租户路由
@@ -51,25 +51,25 @@ CREATE TABLE IF NOT EXISTS helium_field_crypto_canary (
 --   DROP COLUMN email,
 --   ADD COLUMN phone_no_encrypted         VARCHAR(512),
 --   ADD COLUMN phone_no_masked            VARCHAR(32),
---   ADD COLUMN phone_no_blind_index       CHAR(24),
---   ADD COLUMN phone_no_tail_blind_index  CHAR(24),
+--   ADD COLUMN phone_no_full_blind_index       CHAR(24),
+--   ADD COLUMN phone_no_tail4_blind_index  CHAR(24),
 --   ADD COLUMN email_encrypted            VARCHAR(512),
 --   ADD COLUMN email_masked               VARCHAR(255),
---   ADD COLUMN email_blind_index          CHAR(24);
+--   ADD COLUMN email_full_blind_index          CHAR(24);
 --
 -- ALTER TABLE sys_user ALTER COLUMN tenant_id SET NOT NULL;  -- 先回填 0 再收紧
 --
 -- COMMENT ON COLUMN sys_user.phone_no_encrypted         IS '手机号密文 {keyId}$base64(nonce||ct||tag)';
 -- COMMENT ON COLUMN sys_user.phone_no_masked            IS '手机号脱敏冗余列';
--- COMMENT ON COLUMN sys_user.phone_no_blind_index       IS '手机号全串盲索引 base64(HMAC-SHA256截断128bit)';
--- COMMENT ON COLUMN sys_user.phone_no_tail_blind_index  IS '手机号尾8位盲索引(仅检索,允许碰撞)';
+-- COMMENT ON COLUMN sys_user.phone_no_full_blind_index       IS '手机号全串盲索引 base64(HMAC-SHA256截断128bit)';
+-- COMMENT ON COLUMN sys_user.phone_no_tail4_blind_index  IS '手机号后4位盲索引(仅检索,允许碰撞)';
 -- COMMENT ON COLUMN sys_user.email_encrypted            IS '邮箱密文';
 -- COMMENT ON COLUMN sys_user.email_masked               IS '邮箱脱敏冗余列';
--- COMMENT ON COLUMN sys_user.email_blind_index          IS '邮箱全串盲索引(小写归一化)';
+-- COMMENT ON COLUMN sys_user.email_full_blind_index          IS '邮箱全串盲索引(小写归一化)';
 --
--- CREATE INDEX idx_sys_user_tenant_phone ON sys_user (tenant_id, phone_no_blind_index);
--- CREATE INDEX idx_sys_user_phone_tail   ON sys_user (phone_no_tail_blind_index);
--- CREATE INDEX idx_sys_user_tenant_email ON sys_user (tenant_id, email_blind_index);
+-- CREATE INDEX idx_sys_user_tenant_phone ON sys_user (tenant_id, phone_no_full_blind_index);
+-- CREATE INDEX idx_sys_user_phone_tail   ON sys_user (phone_no_tail4_blind_index);
+-- CREATE INDEX idx_sys_user_tenant_email ON sys_user (tenant_id, email_full_blind_index);
 --
 -- -- canary 元数据表（PG）
 -- CREATE TABLE IF NOT EXISTS helium_field_crypto_canary (

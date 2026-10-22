@@ -14,7 +14,7 @@ public final class SysUserCipherCols {
      * 盲索引用途（与 SysUserEntity @BlindIndexOf 声明一致，guard 测试反射断言同源）
      */
     public static final String PHONE_FULL_PURPOSE = "sys_user.phone_no.full";
-    public static final String PHONE_TAIL_PURPOSE = "sys_user.phone_no.tail8";
+    public static final String PHONE_TAIL_PURPOSE = "sys_user.phone_no.tail4";
     public static final String EMAIL_FULL_PURPOSE = "sys_user.email.full";
 
     /*
@@ -26,9 +26,9 @@ public final class SysUserCipherCols {
     /*
      * DB 列名
      */
-    public static final String PHONE_FULL_INDEX_COLUMN = "phone_no_blind_index";
-    public static final String PHONE_TAIL_INDEX_COLUMN = "phone_no_tail_blind_index";
-    public static final String EMAIL_FULL_INDEX_COLUMN = "email_blind_index";
+    public static final String PHONE_FULL_INDEX_COLUMN = "phone_no_full_blind_index";
+    public static final String PHONE_TAIL_INDEX_COLUMN = "phone_no_tail4_blind_index";
+    public static final String EMAIL_FULL_INDEX_COLUMN = "email_full_blind_index";
     public static final String PHONE_CIPHER_COLUMN = "phone_no_encrypted";
     public static final String EMAIL_CIPHER_COLUMN = "email_encrypted";
     public static final String PHONE_MASKED_COLUMN = "phone_no_masked";

@@ -73,7 +73,7 @@ public class SysUserServiceImpl implements SysUserService {
     private static final String LOG_PREFIX = "[系统管理][用户]";
 
     /**
-     * 手机号尾8位提取器（与实体 @BlindIndexOf 声明一致，同源断言见 guard 测试）
+     * 手机号尾4位提取器（与实体 @BlindIndexOf 声明一致，同源断言见 guard 测试）
      */
     private static final BlindIndexValueExtractor PHONE_TAIL_EXTRACTOR = new BlindIndexValueExtractors.TailDigits();
 
@@ -115,7 +115,7 @@ public class SysUserServiceImpl implements SysUserService {
                         .select(SysUserEntity.class, EXCLUDE_CIPHER_COLUMNS)
                         // 手机号尾号盲索引（等值检索，明文 LIKE 已下线）
                         .eq(CharSequenceUtil.isNotBlank(query.getPhoneNo()),
-                                SysUserEntity::getPhoneNoTailBlindIndex, resolvePhoneTailBlindIndex(query.getPhoneNo()))
+                                SysUserEntity::getPhoneNoTail4BlindIndex, resolvePhoneTailBlindIndex(query.getPhoneNo()))
                         // 根据【手动选择的部门ID】筛选用户
                         .in(CollUtil.isNotEmpty(userIdsByDept), SysUserEntity::getId, userIdsByDept)
                         // 不显示特定用户
@@ -412,7 +412,7 @@ public class SysUserServiceImpl implements SysUserService {
     /**
      * 计算手机号尾号盲索引查询值
      *
-     * <p>入参清洗后需含 ≥8 位数字，否则视为非法查询条件；purpose 同源引用 {@link SysUserCipherCols#PHONE_TAIL_PURPOSE}</p>
+     * <p>入参清洗后需含 ≥4 位数字，否则视为非法查询条件；purpose 同源引用 {@link SysUserCipherCols#PHONE_TAIL_PURPOSE}</p>
      */
     private String resolvePhoneTailBlindIndex(String rawPhoneNo) {
         String cleaned = CharSequenceUtil.cleanBlank(rawPhoneNo);

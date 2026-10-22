@@ -81,13 +81,13 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
         if (clearPhone) {
             wrapper.set(SysUserEntity::getPhoneNo, null)
                     .set(SysUserEntity::getPhoneNoMasked, null)
-                    .set(SysUserEntity::getPhoneNoBlindIndex, null)
-                    .set(SysUserEntity::getPhoneNoTailBlindIndex, null);
+                    .set(SysUserEntity::getPhoneNoFullBlindIndex, null)
+                    .set(SysUserEntity::getPhoneNoTail4BlindIndex, null);
         }
         if (clearEmail) {
             wrapper.set(SysUserEntity::getEmail, null)
                     .set(SysUserEntity::getEmailMasked, null)
-                    .set(SysUserEntity::getEmailBlindIndex, null);
+                    .set(SysUserEntity::getEmailFullBlindIndex, null);
         }
         wrapper.set(SysUserEntity::getUpdatedAt, Instant.now());
         update(null, wrapper);

@@ -52,9 +52,9 @@ class SysUserCipherColsGuardTest {
         Assertions.assertTrue(isFlagged(".eq(SysUserEntity::getPhoneNo, keyword)"));
         // 违规样例 2：邮箱 getter 直接引用（主源码白名单外）
         Assertions.assertTrue(isFlagged("wrapper.in(SysUserEntity::getEmail, ids)"));
-        // 干净样例：派生列 getter（getEmailBlindIndex / getPhoneNoTailBlindIndex）不误报
-        Assertions.assertFalse(isFlagged(".eq(SysUserEntity::getPhoneNoTailBlindIndex, tailIndex)"));
-        Assertions.assertFalse(isFlagged(".eq(SysUserEntity::getEmailBlindIndex, emailIndex)"));
+        // 干净样例：派生列 getter（getEmailFullBlindIndex / getPhoneNoTail4BlindIndex）不误报
+        Assertions.assertFalse(isFlagged(".eq(SysUserEntity::getPhoneNoTail4BlindIndex, tailIndex)"));
+        Assertions.assertFalse(isFlagged(".eq(SysUserEntity::getEmailFullBlindIndex, emailIndex)"));
         Assertions.assertFalse(isFlagged(".eq(SysUserEntity::getPin, pin)"));
         // 干净样例：专用清空方法的 set 路径（在白名单文件内，本自测仅验证正则不封 set）
         Assertions.assertFalse(CIPHER_GETTER_IN_CONDITION.matcher(".set(SysUserEntity::getPhoneNo, null)").find());
@@ -62,12 +62,12 @@ class SysUserCipherColsGuardTest {
 
     @Test
     void entityAnnotationsMatchConstants() {
-        Assertions.assertEquals(SysUserCipherCols.PHONE_FULL_PURPOSE, purposeOf("phoneNoBlindIndex"));
-        Assertions.assertEquals(SysUserCipherCols.PHONE_TAIL_PURPOSE, purposeOf("phoneNoTailBlindIndex"));
-        Assertions.assertEquals(SysUserCipherCols.EMAIL_FULL_PURPOSE, purposeOf("emailBlindIndex"));
-        Assertions.assertEquals(BlindIndexValueExtractors.CleanTrim.class, extractorOf("phoneNoBlindIndex"));
-        Assertions.assertEquals(BlindIndexValueExtractors.TailDigits.class, extractorOf("phoneNoTailBlindIndex"));
-        Assertions.assertEquals(BlindIndexValueExtractors.LowerTrim.class, extractorOf("emailBlindIndex"));
+        Assertions.assertEquals(SysUserCipherCols.PHONE_FULL_PURPOSE, purposeOf("phoneNoFullBlindIndex"));
+        Assertions.assertEquals(SysUserCipherCols.PHONE_TAIL_PURPOSE, purposeOf("phoneNoTail4BlindIndex"));
+        Assertions.assertEquals(SysUserCipherCols.EMAIL_FULL_PURPOSE, purposeOf("emailFullBlindIndex"));
+        Assertions.assertEquals(BlindIndexValueExtractors.CleanTrim.class, extractorOf("phoneNoFullBlindIndex"));
+        Assertions.assertEquals(BlindIndexValueExtractors.TailDigits.class, extractorOf("phoneNoTail4BlindIndex"));
+        Assertions.assertEquals(BlindIndexValueExtractors.LowerTrim.class, extractorOf("emailFullBlindIndex"));
     }
 
     /*

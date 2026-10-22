@@ -80,10 +80,10 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
     private String email;
 
     @Schema(description = "邮箱全串盲索引（自动填充，LowerTrim 归一化）")
-    @TableField(value = "email_blind_index")
+    @TableField(value = "email_full_blind_index")
     @BlindIndexOf(valueField = "email", purpose = SysUserCipherCols.EMAIL_FULL_PURPOSE,
             extractor = BlindIndexValueExtractors.LowerTrim.class)
-    private String emailBlindIndex;
+    private String emailFullBlindIndex;
 
     @Schema(description = "邮箱脱敏冗余列（自动填充，列表展示直读）")
     @TableField(value = "email_masked")
@@ -97,16 +97,16 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
     private String phoneNo;
 
     @Schema(description = "手机号全串盲索引（自动填充，CleanTrim 归一化；等值定位用）")
-    @TableField(value = "phone_no_blind_index")
+    @TableField(value = "phone_no_full_blind_index")
     @BlindIndexOf(valueField = "phoneNo", purpose = SysUserCipherCols.PHONE_FULL_PURPOSE,
             extractor = BlindIndexValueExtractors.CleanTrim.class)
-    private String phoneNoBlindIndex;
+    private String phoneNoFullBlindIndex;
 
-    @Schema(description = "手机号尾8位盲索引（自动填充；仅管理端尾号搜检索入口，允许碰撞）")
-    @TableField(value = "phone_no_tail_blind_index")
+    @Schema(description = "手机号后4位盲索引（自动填充；仅管理端尾号搜检索入口，允许碰撞）")
+    @TableField(value = "phone_no_tail4_blind_index")
     @BlindIndexOf(valueField = "phoneNo", purpose = SysUserCipherCols.PHONE_TAIL_PURPOSE,
             extractor = BlindIndexValueExtractors.TailDigits.class)
-    private String phoneNoTailBlindIndex;
+    private String phoneNoTail4BlindIndex;
 
     @Schema(description = "手机号脱敏冗余列（自动填充，列表展示直读）")
     @TableField(value = "phone_no_masked")

@@ -60,11 +60,6 @@
 
 
         <!-- 引用框架启动包 -->
-<!--        <dependency>-->
-<!--            <groupId>cc.uncarbon.framework</groupId>-->
-<!--            <artifactId>helium-core-db-field-crypto</artifactId>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-starter-db-mybatis-plus</artifactId>
@@ -75,7 +70,11 @@
             <artifactId>helium-starter-db-dynamic-datasource</artifactId>
         </dependency>
 
-        <!-- 审计操作人昵称填充的国际化文案 -->
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-db-field-crypto</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-starter-i18n</artifactId>

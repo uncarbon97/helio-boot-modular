@@ -1,6 +1,7 @@
 package cc.uncarbon.module.commons.util;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import lombok.experimental.UtilityClass;
 
 /**
  * PII 展示脱敏工具
@@ -9,10 +10,11 @@ import cn.hutool.core.text.CharSequenceUtil;
  *
  * @author Uncarbon
  */
-public final class PiiMaskUtil {
+@UtilityClass
+public final class MaskUtil {
 
-    private PiiMaskUtil() {
-    }
+    public static final String STAR_4 = "****";
+
 
     /**
      * 手机号脱敏：18967038927 -> 189****8927
@@ -25,13 +27,13 @@ public final class PiiMaskUtil {
         }
         String trimmed = phoneNo.trim();
         if (trimmed.length() < 8) {
-            return "****";
+            return STAR_4;
         }
-        return trimmed.substring(0, 3) + "****" + trimmed.substring(trimmed.length() - 4);
+        return trimmed.substring(0, 3) + STAR_4 + trimmed.substring(trimmed.length() - 4);
     }
 
     /**
-     * 邮箱脱敏：alicealex@example.com -> al***@example.com
+     * 邮箱脱敏：alicealex@example.com -> al****@example.com
      *
      * <p>本地部分不足 3 字符时本地部分整体掩码（避免 1~2 字符邮箱被完整还原）</p>
      */
@@ -43,13 +45,13 @@ public final class PiiMaskUtil {
         int atIndex = trimmed.indexOf('@');
         if (atIndex < 0) {
             // 非标准邮箱，不按邮箱口径泄露
-            return "****";
+            return STAR_4;
         }
         String localPart = trimmed.substring(0, atIndex);
         String domainPart = trimmed.substring(atIndex);
         if (localPart.length() < 3) {
-            return "****" + domainPart;
+            return STAR_4 + domainPart;
         }
-        return localPart.substring(0, 2) + "***" + domainPart;
+        return localPart.substring(0, 2) + STAR_4 + domainPart;
     }
 }
