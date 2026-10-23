@@ -20,7 +20,7 @@
     data-root-key: ${FIELD_CRYPTO_DATA_ROOT_KEY:ggsW3SXKmnRvEYPYBt7lgvFqCWttwd+z3Yz1NUgpuHY=}
     # 盲索引根密钥，长周期使用
     index-root-key: ${FIELD_CRYPTO_INDEX_ROOT_KEY:IaYUq3c7/M6oaf5eTl/W0kcW0WjZA3gkdwRFU+H3dCc=}
-    # 可用 keyId，轮换时加入例如 k2、k3等
+    # 可用 keyId，轮换时加入例如 k2、k3 等
     data-key-ids:
       - k1
     active-data-key-id: ${FIELD_CRYPTO_ACTIVE_DATA_KEY_ID:k1}

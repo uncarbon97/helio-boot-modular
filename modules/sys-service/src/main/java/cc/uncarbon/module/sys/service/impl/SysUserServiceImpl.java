@@ -4,10 +4,8 @@ import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageResult;
-import cc.uncarbon.framework.helium.crypto.BlindIndex;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
-import cc.uncarbon.framework.helium.fieldcrypto.annotation.BlindIndexValueExtractor;
-import cc.uncarbon.framework.helium.fieldcrypto.annotation.BlindIndexValueExtractors;
+import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexCalculator;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.constant.SQLSegment;
@@ -40,14 +38,12 @@ import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.SysUserService;
-import cc.uncarbon.module.sys.util.PiiContactNormalizer;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -56,7 +52,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 
 /**
@@ -72,17 +67,6 @@ public class SysUserServiceImpl implements SysUserService {
 
     private static final String LOG_PREFIX = "[系统管理][用户]";
 
-    /**
-     * 手机号尾4位提取器（与实体 @BlindIndexOf 声明一致，同源断言见 guard 测试）
-     */
-    private static final BlindIndexValueExtractor PHONE_TAIL_EXTRACTOR = new BlindIndexValueExtractors.TailDigits();
-
-    /**
-     * 列表查询列过滤：排除密文列（零解密）
-     */
-    private static final Predicate<TableFieldInfo> EXCLUDE_CIPHER_COLUMNS =
-            i -> !i.getColumn().endsWith("_encrypted");
-
     private final SysUserMapper sysUserMapper;
     private final SysRoleMapper sysRoleMapper;
     private final SysDeptServiceImpl sysDeptService;
@@ -92,7 +76,7 @@ public class SysUserServiceImpl implements SysUserService {
     private final UserRoleHelper userRoleHelper;
     private final SysUserTenantRelationMapper sysUserTenantRelationMapper;
     private final AuditNicknameFiller auditNicknameFiller;
-    private final BlindIndex blindIndex;
+    private final BlindIndexCalculator blindIndexCalculator;
 
 
     @Override
@@ -111,11 +95,10 @@ public class SysUserServiceImpl implements SysUserService {
         Page<SysUserEntity> entityPage = sysUserMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
                 new LambdaQueryWrapper<SysUserEntity>()
-                        // 列表零解密：排除密文列，masked 列直读
-                        .select(SysUserEntity.class, EXCLUDE_CIPHER_COLUMNS)
-                        // 手机号尾号盲索引（等值检索，明文 LIKE 已下线）
-                        .eq(CharSequenceUtil.isNotBlank(query.getPhoneNo()),
-                                SysUserEntity::getPhoneNoTail4BlindIndex, resolvePhoneTailBlindIndex(query.getPhoneNo()))
+                        // 手机号尾号
+                        .eq(CharSequenceUtil.isNotBlank(query.getPhoneNoTail4()),
+                                SysUserEntity::getPhoneNoTail4BlindIndex,
+                                blindIndexCalculator.compute(SysUserCipherCols.PHONE_TAIL4_PURPOSE, query.getPhoneNoTail4()))
                         // 根据【手动选择的部门ID】筛选用户
                         .in(CollUtil.isNotEmpty(userIdsByDept), SysUserEntity::getId, userIdsByDept)
                         // 不显示特定用户
@@ -142,8 +125,6 @@ public class SysUserServiceImpl implements SysUserService {
         Page<SysUserEntity> entityPage = sysUserMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
                 new LambdaQueryWrapper<SysUserEntity>()
-                        // 列表零解密：排除密文列，masked 列直读
-                        .select(SysUserEntity.class, EXCLUDE_CIPHER_COLUMNS)
                         // 关键词(账号/昵称)
                         .and(CharSequenceUtil.isNotBlank(keyword), w -> w
                                 .like(SysUserEntity::getPin, keyword)
@@ -175,9 +156,8 @@ public class SysUserServiceImpl implements SysUserService {
         entity
                 .setPin(request.getPin())
                 .setPwd(PwdUtil.hash(request.getInitPwd()))
-                // 写侧归一化（§3.3）；盲索引/masked 列由框架拦截器按注解自动填充
-                .setPhoneNo(PiiContactNormalizer.cleanPhone(request.getPhoneNo()))
-                .setEmail(PiiContactNormalizer.normalizeEmail(request.getEmail()))
+                .setCleanPhoneNo(request.getPhoneNo())
+                .setCleanEmail(request.getEmail())
                 // 默认新用户是禁用状态
                 .setStatus(SysUserStatusEnum.DISABLED);
 
@@ -196,10 +176,9 @@ public class SysUserServiceImpl implements SysUserService {
 
         var entity = new SysUserEntity();
         BeanUtil.copyProperties(request, entity);
-        // 写侧归一化；盲索引/masked 列由框架拦截器按注解自动填充
         entity
-                .setPhoneNo(PiiContactNormalizer.cleanPhone(request.getPhoneNo()))
-                .setEmail(PiiContactNormalizer.normalizeEmail(request.getEmail()));
+                .setCleanPhoneNo(request.getPhoneNo())
+                .setCleanEmail(request.getEmail());
 
         sysUserMapper.updateById(entity);
     }
@@ -260,9 +239,8 @@ public class SysUserServiceImpl implements SysUserService {
         BeanUtil.copyProperties(request, entity);
         // 按需改写字段
         entity.setPwd(PwdUtil.hash(request.getPwdPlain()))
-                // 写侧归一化（§3.3）
-                .setPhoneNo(PiiContactNormalizer.cleanPhone(request.getPhoneNo()))
-                .setEmail(PiiContactNormalizer.normalizeEmail(request.getEmail()));
+                .setCleanPhoneNo(request.getPhoneNo())
+                .setCleanEmail(request.getEmail());
 
         if (request.isTenantAdmin()) {
             entity.setNickname(request.getTenantName() + "主管理员")
@@ -278,7 +256,7 @@ public class SysUserServiceImpl implements SysUserService {
         checkExistence(request.getUserId());
         var user = sysUserMapper.selectById(request.getUserId());
         sysUserMapper.updateEncryptedPwd(user.getId(),
-                PwdUtil.hash(request.getRandomPassword()), request.getMustChangePassword());
+                PwdUtil.hash(request.getRandomPassword()), request.getPwdMustChange());
     }
 
     @Override
@@ -371,15 +349,7 @@ public class SysUserServiceImpl implements SysUserService {
         if (CollUtil.isEmpty(entityList)) {
             return List.of();
         }
-        return auditNicknameFiller.fill(entityList, this::convertEntity).stream()
-                // 列表场景只出 *_masked 脱敏冗余列，不吐明文
-                .peek(dto -> {
-                    if (dto != null) {
-                        dto.setPhoneNo(null);
-                        dto.setEmail(null);
-                    }
-                })
-                .toList();
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
     }
 
     /**
@@ -407,23 +377,6 @@ public class SysUserServiceImpl implements SysUserService {
                 }
             }
         }
-    }
-
-    /**
-     * 计算手机号尾号盲索引查询值
-     *
-     * <p>入参清洗后需含 ≥4 位数字，否则视为非法查询条件；purpose 同源引用 {@link SysUserCipherCols#PHONE_TAIL_PURPOSE}</p>
-     */
-    private String resolvePhoneTailBlindIndex(String rawPhoneNo) {
-        String cleaned = CharSequenceUtil.cleanBlank(rawPhoneNo);
-        if (CharSequenceUtil.isBlank(cleaned)) {
-            return null;
-        }
-        String tail = PHONE_TAIL_EXTRACTOR.extract(cleaned);
-        if (tail == null) {
-            throw new BusinessException(SysErrorCodeEnum.A01045);
-        }
-        return blindIndex.compute(SysUserCipherCols.PHONE_TAIL_PURPOSE, tail);
     }
 
     /**

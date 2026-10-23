@@ -56,7 +56,7 @@ class AdminSysUserListQueryTest {
         AdminSysUserListQuery query = new AdminSysUserListQuery();
 
         Assertions.assertNull(query.getPageParam());
-        Assertions.assertNull(query.getPhoneNo());
+        Assertions.assertNull(query.getPhoneNoTail4());
         Assertions.assertNull(query.getSelectedDeptId());
     }
 
@@ -68,11 +68,11 @@ class AdminSysUserListQueryTest {
         PageParam pageParam = new PageParam();
         AdminSysUserListQuery query = new AdminSysUserListQuery()
                 .setPageParam(pageParam)
-                .setPhoneNo("13800138000")
+                .setPhoneNoTail4("13800138000")
                 .setSelectedDeptId(100L);
 
         Assertions.assertSame(pageParam, query.getPageParam());
-        Assertions.assertEquals("13800138000", query.getPhoneNo());
+        Assertions.assertEquals("13800138000", query.getPhoneNoTail4());
         Assertions.assertEquals(100L, query.getSelectedDeptId());
     }
 
@@ -82,7 +82,7 @@ class AdminSysUserListQueryTest {
     @Test
     void lombokEqualsAndHashCode() {
         AdminSysUserListQuery left = new AdminSysUserListQuery(null, "13800138000", 100L);
-        AdminSysUserListQuery right = new AdminSysUserListQuery().setPhoneNo("13800138000").setSelectedDeptId(100L);
+        AdminSysUserListQuery right = new AdminSysUserListQuery().setPhoneNoTail4("13800138000").setSelectedDeptId(100L);
 
         Assertions.assertEquals(left, right);
         Assertions.assertEquals(left.hashCode(), right.hashCode());

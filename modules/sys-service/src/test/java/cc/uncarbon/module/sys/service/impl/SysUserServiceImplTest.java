@@ -4,9 +4,9 @@ import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageParam;
-import cc.uncarbon.framework.helium.crypto.BlindIndex;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
+import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexCalculator;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
@@ -74,9 +74,8 @@ class SysUserServiceImplTest {
     @Mock
     private UserRoleHelper userRoleHelper;
     @Mock
-
+    private BlindIndexCalculator blindIndexCalculator;
     @Mock
-    private BlindIndex blindIndex;
     private SysUserTenantRelationMapper sysUserTenantRelationMapper;
     @Spy
     private AuditNicknameFiller auditNicknameFiller = AuditNicknameFillerTestSupport.passThrough();
@@ -151,11 +150,11 @@ class SysUserServiceImplTest {
         AdminSysUserListQuery query = new AdminSysUserListQuery()
                 .setPageParam(new PageParam(1, 10))
                 .setSelectedDeptId(88L)
-                .setPhoneNo("13800000000");
+                .setPhoneNoTail4("13800000000");
         // 部门下有用户 → 继续 in 条件查询；隐藏用户集非空 → 走 notIn 条件
         Mockito.when(sysUserDeptRelationService.listUserIdsByDepts(Set.of(88L))).thenReturn(Set.of(3L));
         Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of(999L));
-        Mockito.when(blindIndex.compute(Mockito.anyString(), Mockito.anyString())).thenReturn("TAIL_IDX");
+        Mockito.when(blindIndexCalculator.compute(Mockito.anyString(), Mockito.anyString())).thenReturn("TAIL_IDX");
         Mockito.when(sysUserMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
             Page<SysUserEntity> page = inv.getArgument(0);
             page.setRecords(List.of(new SysUserEntity().setId(3L).setPin("u3")));
@@ -727,7 +726,7 @@ class SysUserServiceImplTest {
         Mockito.when(sysUserMapper.selectById(9L)).thenReturn(new SysUserEntity().setId(9L));
 
         withUser(0L, () -> service.adminResetPassword(new AdminSysUserResetPasswordRequest()
-                .setUserId(9L).setRandomPassword("random-password-16").setMustChangePassword(YesOrNoEnum.YES)));
+                .setUserId(9L).setRandomPassword("random-password-16").setPwdMustChange(YesOrNoEnum.YES)));
 
         ArgumentCaptor<String> pwdCaptor = ArgumentCaptor.forClass(String.class);
         Mockito.verify(sysUserMapper).updateEncryptedPwd(Mockito.eq(9L), pwdCaptor.capture(),

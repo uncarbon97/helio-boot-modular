@@ -2,45 +2,4 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cc.uncarbon.module.sys.dal.mapper.SysUserMapper">
 
-    <!-- 显式列清单：必须排除 *_encrypted 列（自定义 XML resultType 不走列级 TypeHandler，密文串会错读进明文字段） -->
-    <select id="pageNoDeptUser" resultType="cc.uncarbon.module.sys.dal.entity.SysUserEntity">
-        SELECT
-            U.id,
-            U.tenant_id,
-            U.pin,
-            U.nickname,
-            U.status,
-            U.last_login_at,
-            U.gender,
-            U.avatar_url,
-            U.must_change_password,
-            U.del_flag,
-            U.created_at,
-            U.created_by,
-            U.updated_at,
-            U.updated_by,
-            U.phone_no_masked,
-            U.phone_no_full_blind_index,
-            U.phone_no_tail4_blind_index,
-            U.email_masked,
-            U.email_full_blind_index
-        FROM sys_user U
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM sys_user_dept_relation UDR
-            WHERE UDR.user_id = U.id
-        )
-        <!-- 传参需为盲索引值（HMAC 尾4位），非明文手机号 -->
-        <if test="phoneTailBlindIndex != null and phoneTailBlindIndex != ''">
-            AND U.phone_no_tail4_blind_index = #{phoneTailBlindIndex}
-        </if>
-        <if test="hiddenUserIds != null and !hiddenUserIds.isEmpty()">
-            AND U.id NOT IN
-            <foreach collection="hiddenUserIds" item="item" open="(" separator="," close=")">
-                #{item}
-            </foreach>
-        </if>
-        ORDER BY U.id DESC
-    </select>
-
 </mapper>

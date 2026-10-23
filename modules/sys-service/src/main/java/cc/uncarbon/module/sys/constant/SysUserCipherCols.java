@@ -1,39 +1,29 @@
 package cc.uncarbon.module.sys.constant;
 
+import lombok.experimental.UtilityClass;
+
 /**
- * sys_user 加密相关列与密钥用途常量
- *
- * <p>wrapper 条件只准引用本类常量（静态规则 {@code SysUserCipherColsGuardTest} 封口）；
- * purpose/aad 为冻结常量：purpose 变更 = 索引全量重建，AAD 变更 = 全量重加密事故。</p>
+ * sys_user 敏感字段加密相关常量
+ * <P>本常量值一经确定，不得擅自变更，否则会导致：数据无法解密，或盲索引失效
  *
  * @author Uncarbon
  */
-public final class SysUserCipherCols {
+@UtilityClass
+public class SysUserCipherCols {
+
+    private static final String PREFIX = "sys_user.";
 
     /*
-     * 盲索引用途（与 SysUserEntity @BlindIndexOf 声明一致，guard 测试反射断言同源）
+     * 列路径
      */
-    public static final String PHONE_FULL_PURPOSE = "sys_user.phone_no.full";
-    public static final String PHONE_TAIL_PURPOSE = "sys_user.phone_no.tail4";
-    public static final String EMAIL_FULL_PURPOSE = "sys_user.email.full";
+    public static final String PHONE_COLUMN_PATH = PREFIX + "phone_no";
+    public static final String EMAIL_COLUMN_PATH = PREFIX + "email";
 
     /*
-     * GCM AAD（与实体注解 / TypeHandler columnAad() 一致，永久冻结）
+     * 盲索引用途
      */
-    public static final String PHONE_CIPHER_AAD = "sys_user.phone_no_encrypted";
-    public static final String EMAIL_CIPHER_AAD = "sys_user.email_encrypted";
+    public static final String PHONE_FULL_PURPOSE = PREFIX + "phone_no.full";
+    public static final String PHONE_TAIL4_PURPOSE = PREFIX + "phone_no.tail4";
+    public static final String EMAIL_FULL_PURPOSE = PREFIX + "email.full";
 
-    /*
-     * DB 列名
-     */
-    public static final String PHONE_FULL_INDEX_COLUMN = "phone_no_full_blind_index";
-    public static final String PHONE_TAIL_INDEX_COLUMN = "phone_no_tail4_blind_index";
-    public static final String EMAIL_FULL_INDEX_COLUMN = "email_full_blind_index";
-    public static final String PHONE_CIPHER_COLUMN = "phone_no_encrypted";
-    public static final String EMAIL_CIPHER_COLUMN = "email_encrypted";
-    public static final String PHONE_MASKED_COLUMN = "phone_no_masked";
-    public static final String EMAIL_MASKED_COLUMN = "email_masked";
-
-    private SysUserCipherCols() {
-    }
 }

@@ -231,9 +231,9 @@ public class AdminLoginServiceImpl implements AdminLoginService {
             if (homeTenantId != null) {
                 return TenantContextHolder.callWithContext(
                         new SimpleTenantContext(homeTenantId, null, null),
-                        () -> assembleSessionUserContext(userEntity));
+                        () -> buildSessionUserContext(userEntity));
             }
-            return assembleSessionUserContext(userEntity);
+            return buildSessionUserContext(userEntity);
         } catch (Exception e) {
             log.error("重建用户会话上下文失败 >> userId={}", userId, e);
             return null;
@@ -257,7 +257,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
             return null;
         }
         try {
-            return TenantContextHolder.callWithContext(tenantContext, () -> assembleSessionUserContext(userEntity));
+            return TenantContextHolder.callWithContext(tenantContext, () -> buildSessionUserContext(userEntity));
         } catch (Exception e) {
             log.error("重建用户会话上下文失败 >> userId={}", userId, e);
             return null;
@@ -315,7 +315,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
     /**
      * 在当前（已按归属租户建立的）作用域内组装会话用户上下文
      */
-    private UserContext assembleSessionUserContext(SysUserEntity userEntity) {
+    private UserContext buildSessionUserContext(SysUserEntity userEntity) {
         UserRoleScope userRole = userRoleHelper.getSpecifiedUserRole(userEntity.getId());
         return new SimpleUserContext()
                 .setUserId(userEntity.getId())
@@ -323,7 +323,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
                 .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER.getValue())
                 .setRoleIds(userRole.getRelatedRoleIds())
                 .setRoleCodes(userRole.getRelatedRoles().stream().map(SysRoleEntity::getCode).toList())
-                .setUserPhoneNo(userEntity.getPhoneNo())
+                .setUserPhoneNo(userEntity.getPhoneNoMasked())
                 .setUserNickname(userEntity.getNickname());
     }
 }

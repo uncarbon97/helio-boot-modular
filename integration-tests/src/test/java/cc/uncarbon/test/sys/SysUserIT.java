@@ -89,7 +89,7 @@ class SysUserIT extends BaseIntegrationTest {
         // 手机号筛选
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
             var page = sysUserService.adminList(new AdminSysUserListQuery()
-                    .setPageParam(new PageParam(1, 10)).setPhoneNo("13800001111"));
+                    .setPageParam(new PageParam(1, 10)).setPhoneNoTail4("13800001111"));
             Assertions.assertTrue(page.getRecords().stream().anyMatch(u -> userId.equals(u.getId())));
         });
 

@@ -18,10 +18,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * 用户租户归属一致性对账任务（B1 / M4）
+ * 用户租户归属一致性对账任务
  *
- * <p>relation 表（sys_user_tenant_relation）为唯一真源，sys_user.tenant_id 为投影列；
- * 服务层同事务双写，本任务每日兜底对账，发现漂移即告警（只读，不自动修复）。</p>
+ * <p>sys_user_tenant_relation 为唯一真源，sys_user.tenant_id 为投影列；
+ * 服务层同事务双写，本任务每日兜底对账，发现漂移即告警
  *
  * @author Uncarbon
  */

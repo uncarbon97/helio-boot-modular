@@ -14,8 +14,6 @@ import java.io.Serializable;
 
 /**
  * 租户用户-新增
- *
- * <p>格式校验与 AdminSysUserUpdateRequest 同口径；明文/口令字段 @ToString.Exclude，不进任何日志</p>
  */
 @Accessors(chain = true)
 @AllArgsConstructor

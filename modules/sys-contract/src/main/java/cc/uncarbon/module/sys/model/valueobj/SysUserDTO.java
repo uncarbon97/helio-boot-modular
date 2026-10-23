@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -45,39 +44,30 @@ public class SysUserDTO implements Serializable, AuditUserDisplayAware {
     private String pin;
 
     @Schema(description = "昵称")
-    @ToString.Exclude
     private String nickname;
-
-    @Schema(description = "状态")
-    private SysUserStatusEnum status;
 
     @Schema(description = "性别")
     private GenderEnum gender;
 
-    @Schema(description = "邮箱（仅详情返回明文；列表恒为 null）")
-    @ToString.Exclude
-    private String email;
-
-    @Schema(description = "手机号（仅详情返回明文；列表恒为 null）")
-    @ToString.Exclude
-    private String phoneNo;
-
-    @Schema(description = "手机号脱敏展示值，如 189****8927；列表场景以此为准")
-    private String phoneNoMasked;
-
-    @Schema(description = "邮箱脱敏展示值，如 al***@example.com；列表场景以此为准")
-    private String emailMasked;
+    @Schema(description = "状态")
+    private SysUserStatusEnum status;
 
     @Schema(description = "最后登录时刻")
     private Instant lastLoginAt;
+
+    @Schema(description = "头像URL")
+    private String avatarUrl;
+
+    @Schema(description = "手机号脱敏")
+    private String phoneNoMasked;
+
+    @Schema(description = "邮箱脱敏")
+    private String emailMasked;
 
     @Schema(description = "所属部门ID")
     private Long deptId;
 
     @Schema(description = "所属部门名称")
     private String deptName;
-
-    @Schema(description = "头像URL")
-    private String avatarUrl;
 
 }

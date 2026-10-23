@@ -11,7 +11,6 @@ import cc.uncarbon.module.sys.model.request.AdminUpdateMyProfileRequest;
 import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
 import cc.uncarbon.module.sys.service.AdminUCenterService;
 import cc.uncarbon.module.sys.service.SysUserService;
-import cc.uncarbon.module.sys.util.PiiContactNormalizer;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cn.hutool.core.bean.BeanUtil;
 import lombok.RequiredArgsConstructor;
@@ -62,11 +61,9 @@ public class AdminUCenterServiceImpl implements AdminUCenterService {
     public void updateMyProfile(AdminUpdateMyProfileRequest request) {
         var entity = new SysUserEntity();
         BeanUtil.copyProperties(request, entity);
-        entity.setId(UserContextHolder.getUserId());
-        // 写侧归一化（与实体 extractor 同源）；盲索引/masked 列由框架自动填充
-        entity
-                .setPhoneNo(PiiContactNormalizer.cleanPhone(entity.getPhoneNo()))
-                .setEmail(PiiContactNormalizer.normalizeEmail(entity.getEmail()));
+        entity.setId(UserContextHolder.getUserId())
+                .setCleanPhoneNo(request.getPhoneNo())
+                .setCleanEmail(request.getEmail());
         sysUserMapper.updateById(entity);
     }
 

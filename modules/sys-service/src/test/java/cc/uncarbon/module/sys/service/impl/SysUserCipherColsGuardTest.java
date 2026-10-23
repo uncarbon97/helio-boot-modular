@@ -63,7 +63,7 @@ class SysUserCipherColsGuardTest {
     @Test
     void entityAnnotationsMatchConstants() {
         Assertions.assertEquals(SysUserCipherCols.PHONE_FULL_PURPOSE, purposeOf("phoneNoFullBlindIndex"));
-        Assertions.assertEquals(SysUserCipherCols.PHONE_TAIL_PURPOSE, purposeOf("phoneNoTail4BlindIndex"));
+        Assertions.assertEquals(SysUserCipherCols.PHONE_TAIL4_PURPOSE, purposeOf("phoneNoTail4BlindIndex"));
         Assertions.assertEquals(SysUserCipherCols.EMAIL_FULL_PURPOSE, purposeOf("emailFullBlindIndex"));
         Assertions.assertEquals(BlindIndexValueExtractors.CleanTrim.class, extractorOf("phoneNoFullBlindIndex"));
         Assertions.assertEquals(BlindIndexValueExtractors.TailDigits.class, extractorOf("phoneNoTail4BlindIndex"));

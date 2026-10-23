@@ -4,9 +4,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import lombok.experimental.UtilityClass;
 
 /**
- * PII 展示脱敏工具
- *
- * <p>与 DB 冗余脱敏列口径保持一致：手机号保前3后4，邮箱保本地部分前2字符+完整域名</p>
+ * 脱敏工具类
  *
  * @author Uncarbon
  */

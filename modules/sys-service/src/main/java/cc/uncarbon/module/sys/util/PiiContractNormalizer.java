@@ -1,24 +1,22 @@
 package cc.uncarbon.module.sys.util;
 
-import cc.uncarbon.framework.helium.fieldcrypto.annotation.BlindIndexValueExtractor;
-import cc.uncarbon.framework.helium.fieldcrypto.annotation.BlindIndexValueExtractors;
+import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexValueExtractor;
+import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexValueExtractors;
+import lombok.experimental.UtilityClass;
 
 /**
- * 手机号/邮箱写侧归一化
- *
- * <p>与实体 @BlindIndexOf 的 extractor 同源（同一实现类），避免两套口径漂移：
- * 手机号 trim + 去内嵌空格，邮箱 trim + 小写（不做 Gmail 点号/+别名折叠）</p>
+ * PII（Personally Identifiable Information）归一化工具
  *
  * @author Uncarbon
  */
-@lombok.experimental.UtilityClass
-public class PiiContactNormalizer {
+@UtilityClass
+public class PiiContractNormalizer {
 
     private static final BlindIndexValueExtractor PHONE = new BlindIndexValueExtractors.CleanTrim();
     private static final BlindIndexValueExtractor EMAIL = new BlindIndexValueExtractors.LowerTrim();
 
     /**
-     * @return 归一化手机号；空白入参返回 null（空串一律归一为 NULL，§3.3）
+     * @return 归一化手机号；空白入参返回 null
      */
     public static String cleanPhone(String raw) {
         String cleaned = raw == null ? null : PHONE.extract(raw);
@@ -26,7 +24,7 @@ public class PiiContactNormalizer {
     }
 
     /**
-     * @return 归一化邮箱（小写）；空白入参返回 null
+     * @return 归一化邮箱；空白入参返回 null
      */
     public static String normalizeEmail(String raw) {
         String cleaned = raw == null ? null : EMAIL.extract(raw);

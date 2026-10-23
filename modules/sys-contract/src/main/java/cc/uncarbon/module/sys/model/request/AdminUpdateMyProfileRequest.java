@@ -17,8 +17,6 @@ import java.io.Serializable;
 
 /**
  * 后台管理-更新个人资料
- *
- * <p>明文字段 @ToString.Exclude 不进日志；改手机号/邮箱暂无二次验证（SMS 基建缺失，登记 P1）</p>
  */
 @Accessors(chain = true)
 @AllArgsConstructor

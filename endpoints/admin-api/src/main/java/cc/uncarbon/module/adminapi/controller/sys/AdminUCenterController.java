@@ -58,7 +58,7 @@ public class AdminUCenterController {
         return new MyProfileDTO()
                 .setPin(userContext.getUserPin())
                 .setNickname(userContext.getUserNickname())
-                .setPhoneNo(userContext.getUserPhoneNo());
+                .setPhoneNoMasked(userContext.getUserPhoneNo());
     }
 
     @Operation(summary = "取当前用户资料")

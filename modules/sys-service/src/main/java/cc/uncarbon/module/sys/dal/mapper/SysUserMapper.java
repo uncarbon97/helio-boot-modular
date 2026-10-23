@@ -48,11 +48,11 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
         updateById(update);
     }
 
-    default void updateEncryptedPwd(long userId, String encryptedPwd, YesOrNoEnum mustChangePassword) {
+    default void updateEncryptedPwd(long userId, String encryptedPwd, YesOrNoEnum pwdMustChange) {
         updateById(new SysUserEntity().setId(userId)
                 .setPwd(encryptedPwd)
                 .setPwdLastUpdatedAt(Instant.now())
-                .setMustChangePassword(mustChangePassword)
+                .setPwdMustChange(pwdMustChange)
         );
     }
 
@@ -67,29 +67,25 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
     }
 
     /**
-     * 专用清空方法：显式清空联系方式时，密文列 + 全部派生列（masked/盲索引）一并置 NULL，
-     * 禁止半清留下「密文 NULL + 索引残留」脏数据（updateById 传空串清不掉派生列，即为此禁用）
-     *
-     * <p>guard 测试白名单：密文列 .set 的唯一合法路径（只封条件不封 set）</p>
+     * 专用清空方法
+     * <P>清空联系方式时，敏感字段 + 派生字段一并置 NULL
      */
     default void clearPiiContact(long userId, boolean clearPhone, boolean clearEmail) {
         if (!clearPhone && !clearEmail) {
-            throw new IllegalArgumentException("clearPiiContact 至少需要清空手机号或邮箱之一");
+            throw new IllegalArgumentException("至少需要清空手机号或邮箱之一");
         }
-        LambdaUpdateWrapper<SysUserEntity> wrapper = new LambdaUpdateWrapper<SysUserEntity>()
-                .eq(SysUserEntity::getId, userId);
+        var uw = new LambdaUpdateWrapper<SysUserEntity>();
         if (clearPhone) {
-            wrapper.set(SysUserEntity::getPhoneNo, null)
+            uw.set(SysUserEntity::getPhoneNo, null)
                     .set(SysUserEntity::getPhoneNoMasked, null)
                     .set(SysUserEntity::getPhoneNoFullBlindIndex, null)
                     .set(SysUserEntity::getPhoneNoTail4BlindIndex, null);
         }
         if (clearEmail) {
-            wrapper.set(SysUserEntity::getEmail, null)
+            uw.set(SysUserEntity::getEmail, null)
                     .set(SysUserEntity::getEmailMasked, null)
                     .set(SysUserEntity::getEmailFullBlindIndex, null);
         }
-        wrapper.set(SysUserEntity::getUpdatedAt, Instant.now());
-        update(null, wrapper);
+        update(new SysUserEntity().setId(userId), uw);
     }
 }
