@@ -13,10 +13,10 @@ import java.util.Collection;
 /**
  * 租户角色-绑定菜单
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class TenantRoleBindMenuRequest implements Serializable {
 
 

@@ -16,10 +16,10 @@ import java.util.Collection;
 /**
  * 租户套餐
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class TenantPackageDTO implements Serializable, AuditUserDisplayAware {
 
     @Schema(description = "主键ID")

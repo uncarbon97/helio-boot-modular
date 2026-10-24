@@ -15,10 +15,10 @@ import java.io.Serializable;
 /**
  * 租户用户-新增
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class TenantUserCreateRequest implements Serializable {
 
 

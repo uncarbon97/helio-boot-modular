@@ -33,9 +33,9 @@ import java.util.Objects;
 /**
  * 系统登录日志
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysLoginLogServiceImpl implements SysLoginLogService {
 
     /**

@@ -13,10 +13,10 @@ import java.io.Serializable;
 /**
  * 租户角色-新增
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class TenantRoleCreateRequest implements Serializable {
 
 

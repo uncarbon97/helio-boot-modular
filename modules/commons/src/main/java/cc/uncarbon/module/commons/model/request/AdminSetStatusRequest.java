@@ -13,10 +13,10 @@ import java.io.Serializable;
 /**
  * 修改状态请求
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminSetStatusRequest<I extends Serializable, E extends BaseEnum<?>> implements Serializable {
 
     @Schema(description = "主键ID")

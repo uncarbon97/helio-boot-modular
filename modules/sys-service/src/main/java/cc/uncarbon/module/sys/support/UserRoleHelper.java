@@ -26,9 +26,9 @@ import java.util.stream.Collectors;
  * 禁止在租户上下文内裸查用户-角色关联做超管/租管判定——超管切入其他租户视角后，
  * 行级过滤会追加 tenant_id=当前租户，平台域 (0,0,0) 绑定随之隐藏、判定失效
  */
+@Slf4j
 @RequiredArgsConstructor
 @Component
-@Slf4j
 public class UserRoleHelper {
 
     private final SysRoleMapper sysRoleMapper;

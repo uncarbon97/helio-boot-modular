@@ -14,10 +14,10 @@ import java.io.Serializable;
 /**
  * 后台管理-修改个人密码
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminUpdateMyPasswordRequest implements Serializable {
 
     @Schema(description = "原密码", requiredMode = Schema.RequiredMode.REQUIRED)

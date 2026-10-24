@@ -38,12 +38,12 @@ import java.util.Objects;
  * TENANT_FIRST 阶段限超级管理员：切换至其他租户视角做跨租户管理，权限保持超管本人，全程审计；
  * USER_FIRST 切换时放开给普通用户（在本人关联租户间切换，权限快照按目标租户重建）。
  */
-@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "租户管理-" + AdminTenantSwitchController.BIZ_TYPE)
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/tenant-switch")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/tenant-switch")
+@SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminTenantSwitchController {
 
     static final String BIZ_TYPE = "切换租户";

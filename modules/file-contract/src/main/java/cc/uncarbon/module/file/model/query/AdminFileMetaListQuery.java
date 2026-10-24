@@ -15,10 +15,10 @@ import java.time.Instant;
 /**
  * 文件元数据-后台管理-分页查询
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminFileMetaListQuery implements Serializable, PageQuery {
 
     @Schema(description = "分页查询参数")

@@ -13,10 +13,10 @@ import java.io.Serializable;
  * 后台管理-当前会话租户信息
  * 供前端租户切换器与视角横幅渲染
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminTenantContextVO implements Serializable {
 
     @Schema(description = "当前生效租户编码；null=平台视角或个人空间")

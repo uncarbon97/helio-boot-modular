@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
 /**
  * 系统用户-角色关联关系
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationService {
 
     private final SysUserRoleRelationMapper sysUserRoleRelationMapper;

@@ -15,10 +15,10 @@ import java.util.Collection;
 /**
  * 批量修改状态请求
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminBatchSetStatusRequest<I extends Serializable, E extends BaseEnum<?>> implements Serializable {
 
     @Schema(description = "主键ID数组")

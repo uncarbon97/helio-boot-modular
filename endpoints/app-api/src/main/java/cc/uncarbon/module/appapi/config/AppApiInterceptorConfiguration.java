@@ -17,9 +17,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  *
  * @author Uncarbon
  */
-@EnableConfigurationProperties(value = AppApiProperties.class)
 @RequiredArgsConstructor
 @Configuration
+@EnableConfigurationProperties(value = AppApiProperties.class)
 public class AppApiInterceptorConfiguration implements WebMvcConfigurer {
 
     private final AppApiProperties appApiProperties;

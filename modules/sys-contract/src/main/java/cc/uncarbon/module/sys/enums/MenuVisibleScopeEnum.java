@@ -15,8 +15,8 @@ import lombok.Getter;
  * 且不允许绑定给系统角色或租户套餐；需先调整为通用可见，再进行授权
  */
 @EnumDict(name = "菜单可见范围")
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum MenuVisibleScopeEnum implements BaseEnum<Integer> {
 
     /**

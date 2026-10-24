@@ -14,10 +14,10 @@ import java.io.Serializable;
 /**
  * 租户-后台管理-修改主数据
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminTenantMetaUpdateRequest implements Serializable {
 
 

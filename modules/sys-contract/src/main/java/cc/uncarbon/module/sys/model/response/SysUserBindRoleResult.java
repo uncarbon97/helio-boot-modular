@@ -14,10 +14,10 @@ import java.util.List;
 /**
  * 系统用户-绑定角色结果
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysUserBindRoleResult implements Serializable {
 
     @Schema(description = "用户信息")

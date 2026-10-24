@@ -12,9 +12,9 @@ import java.io.Serializable;
 /**
  * 下载文件回复
  */
-@Accessors(chain = true)
-@RequiredArgsConstructor
 @Data
+@RequiredArgsConstructor
+@Accessors(chain = true)
 public class FileDownloadReply implements Serializable {
 
     @Schema(description = "错误码")

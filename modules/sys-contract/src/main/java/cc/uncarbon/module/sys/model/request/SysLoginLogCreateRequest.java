@@ -16,10 +16,10 @@ import java.io.Serializable;
 /**
  * 系统登录日志-新增
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysLoginLogCreateRequest implements Serializable {
 
     @Schema(description = "登录日志类型", requiredMode = Schema.RequiredMode.REQUIRED)

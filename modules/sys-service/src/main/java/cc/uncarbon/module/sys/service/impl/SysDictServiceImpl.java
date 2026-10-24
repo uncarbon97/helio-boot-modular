@@ -47,9 +47,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 /**
  * 字典
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysDictServiceImpl implements SysDictService {
 
     private static final String LOG_PREFIX = "[系统管理][字典]";

@@ -14,10 +14,10 @@ import java.io.Serializable;
 /**
  * 后台管理-密码登录
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminAuthPasswordLoginRequest implements Serializable {
 
     @Schema(description = "账号", requiredMode = Schema.RequiredMode.REQUIRED)

@@ -37,12 +37,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "后台管理-" + AdminFileStorageController.BIZ_TYPE)
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/file/storage")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/file/storage")
+@SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminFileStorageController {
 
     // 功能权限串前缀

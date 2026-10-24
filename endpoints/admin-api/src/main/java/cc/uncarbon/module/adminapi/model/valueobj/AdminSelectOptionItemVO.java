@@ -24,9 +24,9 @@ import java.util.stream.Stream;
  * 系统管理-下拉框数据单项 VO
  * 只有非 null 的字段才会被输出
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Accessors(chain = true)
 @Getter
+@Accessors(chain = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AdminSelectOptionItemVO implements Serializable {
     /**
      * Jackson等序列化框架，可利用此无参构造器反射生成对象

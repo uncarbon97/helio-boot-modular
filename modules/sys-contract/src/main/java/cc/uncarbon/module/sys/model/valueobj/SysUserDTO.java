@@ -19,10 +19,10 @@ import java.time.Instant;
  * <p>列表场景以 {@code phoneNoMasked}/{@code emailMasked} 为准（零解密直读），
  * 完整明文仅详情/导出接口返回；明文字段 @ToString.Exclude 不进日志</p>
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysUserDTO implements Serializable, AuditUserDisplayAware {
 
     @Schema(description = "主键ID")

@@ -40,10 +40,10 @@ import java.util.List;
 
 
 @Tag(name = "后台管理--鉴权接口")
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/auth")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/auth")
 public class AdminAuthController {
 
     private final AdminLoginService adminLoginService;

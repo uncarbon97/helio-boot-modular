@@ -12,8 +12,8 @@ import lombok.Getter;
  * [BB] 本枚举内固定为 {@link ErrorCodeBizGroup#TENANT}
  * [CCC] 具体错误代号
  */
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum TenantErrorCodeEnum implements StructuredErrorCode {
 
     /*

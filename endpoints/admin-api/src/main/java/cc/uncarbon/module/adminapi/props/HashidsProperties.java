@@ -6,11 +6,11 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "admin-api.file-hashids")
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@ConfigurationProperties(prefix = "admin-api.file-hashids")
 public class HashidsProperties {
 
     /**

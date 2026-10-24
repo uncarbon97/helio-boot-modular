@@ -19,12 +19,12 @@ import java.io.Serial;
 /**
  * 部门
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_dept")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysDeptEntity extends AbstractTenantGenericEntity implements AuditingUserSource {
 
 	@Serial

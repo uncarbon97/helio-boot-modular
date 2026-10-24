@@ -17,10 +17,10 @@ import java.time.Instant;
 /**
  * 系统菜单
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysMenuDTO implements Serializable, AuditUserDisplayAware {
 
     @Schema(description = "主键ID")

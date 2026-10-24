@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "后台管理-系统操作日志管理")
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/operate-log")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/operate-log")
+@SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysOperateLogController {
 
     // 功能权限串前缀

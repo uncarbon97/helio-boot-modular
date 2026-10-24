@@ -20,12 +20,12 @@ import java.io.Serial;
 /**
  * 字典项
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_dict_item")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysDictItemEntity extends AbstractGenericEntity implements AuditingUserSource {
 
     @Serial

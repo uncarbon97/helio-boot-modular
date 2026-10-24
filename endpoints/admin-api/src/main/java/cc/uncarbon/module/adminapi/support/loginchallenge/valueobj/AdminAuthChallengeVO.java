@@ -12,11 +12,11 @@ import lombok.experimental.Accessors;
  * 后台管理-鉴权挑战
  * 不同挑战类型的字段按需填充，如滑块挑战可另加滑块图字段
  */
-@JsonInclude(value = JsonInclude.Include.NON_NULL)
-@Accessors(chain = true)
 @Getter
 @Setter
 @RequiredArgsConstructor
+@Accessors(chain = true)
+@JsonInclude(value = JsonInclude.Include.NON_NULL)
 public class AdminAuthChallengeVO {
 
     @Schema(description = "挑战类型（NONE=无挑战, OCR=图形验证码）")

@@ -38,9 +38,9 @@ import java.util.*;
 /**
  * 租户套餐
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class TenantPackageServiceImpl implements TenantPackageService {
 
     private static final String LOG_PREFIX = "[租户管理][租户套餐]";

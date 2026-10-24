@@ -17,10 +17,10 @@ import java.util.Collection;
  * @param <T> 主键数据类型
  * @author Uncarbon
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class IdsRequest<T extends Serializable> implements Serializable {
 
     @Schema(description = "主键ID数组", requiredMode = Schema.RequiredMode.REQUIRED)

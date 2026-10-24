@@ -22,12 +22,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "后台管理-系统登录日志管理")
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/login-log")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/login-log")
+@SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysLoginLogController {
 
     private static final String PERMISSION_PREFIX = "sys:login-log:";

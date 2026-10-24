@@ -15,10 +15,10 @@ import java.io.Serializable;
 /**
  * 租户套餐-后台管理-分页查询
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminTenantPackageListQuery implements Serializable, PageQuery {
 
     @Schema(description = "分页查询参数")

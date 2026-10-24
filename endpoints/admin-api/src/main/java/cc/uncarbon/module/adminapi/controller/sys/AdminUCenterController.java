@@ -35,12 +35,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "后台管理-用户中心")
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/ucenter")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/ucenter")
+@SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminUCenterController {
 
     /**

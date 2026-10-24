@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
  *
  * @author Uncarbon
  */
+@Slf4j
 @RequiredArgsConstructor
 @Component
-@Slf4j
 public class SysUserTenantConsistencyChecker {
 
     private static final String LOG_PREFIX = "[系统管理][用户租户对账]";

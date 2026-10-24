@@ -13,10 +13,10 @@ import java.io.Serializable;
 /**
  * 后台管理-切换至租户
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminTenantSwitchEnterRequest implements Serializable {
 
     @Schema(description = "目标租户编码", requiredMode = Schema.RequiredMode.REQUIRED)

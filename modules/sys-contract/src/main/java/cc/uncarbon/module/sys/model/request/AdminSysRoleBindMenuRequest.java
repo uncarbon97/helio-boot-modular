@@ -14,10 +14,10 @@ import java.util.Set;
 /**
  * 系统角色-后台管理-绑定角色菜单
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminSysRoleBindMenuRequest implements Serializable {
 
     @Schema(description = "菜单IDs；如果为空则视为解除所有绑定")

@@ -17,10 +17,10 @@ import java.io.Serializable;
 /**
  * 租户-后台管理-新增
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminTenantCreateRequest implements Serializable {
 
 

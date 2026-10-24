@@ -12,10 +12,10 @@ import java.io.Serializable;
 /**
  * 上传文件结果 VO
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class FileUploadResultVO implements Serializable {
 
     @Schema(description = "外显文件ID")

@@ -28,12 +28,12 @@ import java.util.stream.Collectors;
 /**
  * 系统角色
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_role")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysRoleEntity extends AbstractTenantGenericEntity implements AuditingUserSource {
 
 	@Serial

@@ -14,8 +14,8 @@ import java.util.List;
  * 预置系统菜单类型枚举
  */
 @EnumDict(name = "系统菜单类型")
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum MenuTypeEnum implements BaseEnum<Integer> {
 
     /**

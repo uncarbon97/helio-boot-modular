@@ -16,10 +16,10 @@ import java.util.Set;
 /**
  * 系统用户-登录结果
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysUserLoginResult implements Serializable {
 
     @Schema(description = "用户ID")

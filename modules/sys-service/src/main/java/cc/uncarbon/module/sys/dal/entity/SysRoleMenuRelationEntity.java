@@ -17,12 +17,12 @@ import java.io.Serial;
 /**
  * 系统角色-菜单关联关系
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_role_menu_relation")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysRoleMenuRelationEntity extends AbstractTenantRelationEntity {
 
 	@Serial

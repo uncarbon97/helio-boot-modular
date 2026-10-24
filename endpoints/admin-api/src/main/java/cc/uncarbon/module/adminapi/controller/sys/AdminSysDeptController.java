@@ -32,12 +32,12 @@ import java.util.List;
 import java.util.Set;
 
 
-@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "后台管理-" + AdminSysDeptController.BIZ_TYPE)
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/dept")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/dept")
+@SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysDeptController {
 
     private static final String PERMISSION_PREFIX = "sys:dept:";

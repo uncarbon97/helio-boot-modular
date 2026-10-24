@@ -18,10 +18,10 @@ import java.util.List;
 /**
  * 系统角色
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysRoleDTO implements Serializable, AuditUserDisplayAware {
 
     @Schema(description = "主键ID")

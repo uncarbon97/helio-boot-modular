@@ -11,10 +11,10 @@ import java.io.Serializable;
 /**
  * IP地址归属地
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class IPLocationBO implements Serializable {
 
     @Schema(description = "IP地址归属地")

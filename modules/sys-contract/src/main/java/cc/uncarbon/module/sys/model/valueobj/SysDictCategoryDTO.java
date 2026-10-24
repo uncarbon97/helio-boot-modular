@@ -15,10 +15,10 @@ import java.time.Instant;
 /**
  * 字典分类
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysDictCategoryDTO implements Serializable, AuditUserDisplayAware {
 
     @Schema(description = "主键ID")

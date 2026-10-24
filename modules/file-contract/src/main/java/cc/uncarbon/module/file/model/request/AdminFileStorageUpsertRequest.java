@@ -18,10 +18,10 @@ import java.util.Map;
 /**
  * 文件存储点-后台管理-新增/修改
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminFileStorageUpsertRequest implements Serializable {
 
     @Schema(description = "主键ID", title = "仅修改时使用")

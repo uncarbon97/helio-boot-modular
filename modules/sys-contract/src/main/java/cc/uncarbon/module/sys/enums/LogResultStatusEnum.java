@@ -9,8 +9,8 @@ import lombok.Getter;
 /**
  * 日志结果状态枚举
  */
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum LogResultStatusEnum implements BaseEnum<Integer> {
 
     SUCCESS(200, "成功"),

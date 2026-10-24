@@ -8,8 +8,8 @@ import lombok.Getter;
 /**
  * 用户类型编码枚举
  */
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum UserTypeCodeEnum implements BaseEnum<String> {
 
     ADMIN_USER("后台管理用户"),

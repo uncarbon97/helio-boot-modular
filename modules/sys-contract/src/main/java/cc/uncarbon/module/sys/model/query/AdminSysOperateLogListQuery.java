@@ -17,10 +17,10 @@ import java.util.Collection;
 /**
  * 系统操作日志-后台管理-分页查询
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminSysOperateLogListQuery implements Serializable, PageQuery {
 
     @Schema(description = "分页查询参数")

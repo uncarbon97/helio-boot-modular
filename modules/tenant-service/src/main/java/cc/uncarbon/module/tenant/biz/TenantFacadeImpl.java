@@ -26,9 +26,9 @@ import java.util.Objects;
 /**
  * 租户门面
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class TenantFacadeImpl implements TenantFacade {
 
     private static final String LOG_PREFIX = "[租户管理][租户门面]";

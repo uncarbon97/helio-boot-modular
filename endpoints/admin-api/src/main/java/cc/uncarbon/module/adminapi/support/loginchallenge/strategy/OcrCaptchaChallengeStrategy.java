@@ -26,9 +26,9 @@ import java.util.List;
  *
  * @author Uncarbon
  */
-@EnableConfigurationProperties(value = LoginChallengeProperties.class)
 @RequiredArgsConstructor
 @Component
+@EnableConfigurationProperties(value = LoginChallengeProperties.class)
 public class OcrCaptchaChallengeStrategy implements LoginChallengeStrategy {
 
     /**

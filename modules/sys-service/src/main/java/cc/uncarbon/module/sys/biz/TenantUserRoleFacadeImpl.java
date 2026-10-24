@@ -39,9 +39,9 @@ import java.util.stream.Collectors;
 /**
  * 租户用户、角色门面
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
 
     private final SysRoleService sysRoleService;

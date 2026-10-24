@@ -11,8 +11,8 @@ import lombok.Getter;
  * 字典状态枚举（分类与字典项通用）
  */
 @EnumDict(name = "字典状态")
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum DictStatusEnum implements BaseEnum<Integer> {
 
     DISABLED(0, "禁用"),

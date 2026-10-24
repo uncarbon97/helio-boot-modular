@@ -35,8 +35,8 @@ import java.util.regex.Pattern;
  * @author Uncarbon
  */
 @Slf4j
-@Service
 @RequiredArgsConstructor
+@Service
 public class SysUserFieldCryptoKeyRotationServiceImpl implements SysUserFieldCryptoKeyRotationService {
 
     private static final Pattern KEY_ID_PATTERN = FieldCryptoConstant.KEY_ID_PATTERN;

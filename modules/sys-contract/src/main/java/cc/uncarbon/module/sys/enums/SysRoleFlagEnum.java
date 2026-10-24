@@ -12,8 +12,8 @@ import java.util.Objects;
 /**
  * 系统角色特殊标记枚举
  */
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum SysRoleFlagEnum implements BaseEnum<String> {
 
     BUILTIN("builtin", "内置"),

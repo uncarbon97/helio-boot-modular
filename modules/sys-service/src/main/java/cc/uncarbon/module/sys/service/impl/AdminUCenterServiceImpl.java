@@ -22,9 +22,9 @@ import java.util.Objects;
 /**
  * 后台管理-用户中心
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class AdminUCenterServiceImpl implements AdminUCenterService {
 
     private final SysUserService sysUserService;

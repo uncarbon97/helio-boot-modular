@@ -10,11 +10,11 @@ import lombok.experimental.Accessors;
 /**
  * 系统用户-后台管理-新增
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class AdminSysUserCreateRequest extends AdminSysUserUpdateRequest {
 
     @Schema(hidden = true)

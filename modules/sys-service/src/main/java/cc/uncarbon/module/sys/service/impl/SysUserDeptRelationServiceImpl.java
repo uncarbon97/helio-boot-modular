@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 /**
  * 系统用户-部门关联关系
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationService {
 
     private final SysUserDeptRelationMapper sysUserDeptRelationMapper;

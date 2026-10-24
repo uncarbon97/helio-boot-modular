@@ -15,10 +15,10 @@ import java.io.Serializable;
 /**
  * 系统角色-后台管理-分页查询角色关联用户
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminSysRoleListRelatedUserQuery implements Serializable, PageQuery {
 
     @Schema(description = "分页查询参数")

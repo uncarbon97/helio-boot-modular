@@ -22,12 +22,12 @@ import java.io.Serial;
  *
  * <p>本表位于 ignored-tables（平台跨租户读写），tenant_id 由业务显式写入。</p>
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_user_tenant_relation")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysUserTenantRelationEntity extends AbstractTenantRelationEntity {
 
 	@Serial

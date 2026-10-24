@@ -20,9 +20,9 @@ import java.util.stream.Collectors;
 /**
  * 租户套餐-菜单关联
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRelationService {
 
     private final TenantPackageMenuRelationMapper tenantPackageMenuRelationMapper;

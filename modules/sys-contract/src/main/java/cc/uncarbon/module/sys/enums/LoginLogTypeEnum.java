@@ -9,8 +9,8 @@ import lombok.Getter;
 /**
  * 登录日志类型枚举
  */
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum LoginLogTypeEnum implements BaseEnum<Integer> {
 
     PASSWORD_LOGIN(1, "密码登录"),

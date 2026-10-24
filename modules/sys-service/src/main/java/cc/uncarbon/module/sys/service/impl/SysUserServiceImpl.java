@@ -60,9 +60,9 @@ import java.util.*;
  * <p>PII 加密写路径收口：各写入口统一经实体 + 注解自动填充，显式清空走 {@link SysUserMapper#clearPiiContact}；
  * 列表查询排除 *_encrypted 列（零解密，直读 masked 列），完整明文仅详情接口解密返回。</p>
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysUserServiceImpl implements SysUserService {
 
     private static final String LOG_PREFIX = "[系统管理][用户]";

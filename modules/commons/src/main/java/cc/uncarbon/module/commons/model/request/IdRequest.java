@@ -16,10 +16,10 @@ import java.io.Serializable;
  * @param <T> 主键数据类型
  * @author Uncarbon
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class IdRequest<T extends Serializable> implements Serializable {
 
     @Schema(description = "ID", requiredMode = Schema.RequiredMode.REQUIRED)

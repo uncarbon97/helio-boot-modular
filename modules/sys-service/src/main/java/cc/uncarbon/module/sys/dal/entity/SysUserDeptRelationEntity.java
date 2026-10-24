@@ -17,12 +17,12 @@ import java.io.Serial;
 /**
  * 系统用户-部门关联关系
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_user_dept_relation")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysUserDeptRelationEntity extends AbstractTenantRelationEntity {
 
 	@Serial

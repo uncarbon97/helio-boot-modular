@@ -8,10 +8,10 @@ import lombok.experimental.Accessors;
 /**
  * {@link org.dromara.x.file.storage.core.FileStorageProperties.LocalPlusConfig}
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class LocalSetting implements FileStorageSetting {
 
     /**

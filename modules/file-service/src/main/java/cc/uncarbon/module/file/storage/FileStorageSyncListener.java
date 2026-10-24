@@ -20,9 +20,9 @@ import java.util.concurrent.TimeUnit;
  *
  * @see DynamicFileStorageRegistrar
  */
+@Slf4j
 @RequiredArgsConstructor
 @Component
-@Slf4j
 @EnableScheduling
 public class FileStorageSyncListener {
 

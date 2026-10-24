@@ -36,9 +36,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>多JVM实例部署时，配合 {@link FileStorageSyncBroadcaster} 集群广播 +
  * {@link FileStorageSyncListener} 订阅与定时兜底，保证各实例内存态一致。</p>
  */
+@Slf4j
 @RequiredArgsConstructor
 @Component
-@Slf4j
 public class DynamicFileStorageRegistrar {
 
     private static final String LOG_PREFIX = "[动态文件存储点注册器]";

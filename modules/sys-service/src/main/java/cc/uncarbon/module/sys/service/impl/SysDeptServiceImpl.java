@@ -34,9 +34,9 @@ import java.util.stream.Collectors;
 /**
  * 部门
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysDeptServiceImpl implements SysDeptService {
 
     private static final String LOG_PREFIX = "[系统管理][部门]";

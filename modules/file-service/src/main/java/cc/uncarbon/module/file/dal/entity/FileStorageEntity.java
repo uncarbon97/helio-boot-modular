@@ -23,12 +23,12 @@ import java.io.Serial;
 /**
  * 文件存储点
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "file_storage")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class FileStorageEntity extends AbstractTenantGenericEntity implements TenantEntity, AuditingUserSource {
 
     @Serial

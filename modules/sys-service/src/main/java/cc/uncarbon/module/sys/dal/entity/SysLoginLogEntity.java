@@ -20,12 +20,12 @@ import java.time.Instant;
 /**
  * 系统登录日志
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_login_log")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysLoginLogEntity extends AbstractTenantGenericEntity {
 
 	@Serial

@@ -14,10 +14,10 @@ import java.util.Set;
 /**
  * 系统用户-后台管理-绑定用户角色
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminSysUserBindRoleRequest implements Serializable {
 
     @Schema(description = "角色IDs；如果为空则视为解除所有绑定")

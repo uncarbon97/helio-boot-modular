@@ -15,10 +15,10 @@ import java.time.Instant;
 /**
  * 用户资料（本人视角）
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class MyProfileDTO implements Serializable {
 
     @Schema(description = "账号")

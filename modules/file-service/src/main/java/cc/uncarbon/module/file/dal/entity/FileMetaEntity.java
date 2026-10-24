@@ -21,12 +21,12 @@ import java.io.Serial;
 /**
  * 文件元数据
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "file_meta")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class FileMetaEntity extends AbstractTenantGenericEntity implements TenantEntity, AuditingUserSource {
 
     @Serial

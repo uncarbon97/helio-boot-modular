@@ -28,9 +28,9 @@ import java.util.Objects;
 /**
  * 系统操作日志
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysOperateLogServiceImpl implements SysOperateLogService {
 
     /**

@@ -18,12 +18,12 @@ import java.io.Serial;
 /**
  * 租户套餐-菜单关联关系
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "tenant_package_menu_relation")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class TenantPackageMenuRelationEntity extends AbstractRelationEntity {
 
     @Serial

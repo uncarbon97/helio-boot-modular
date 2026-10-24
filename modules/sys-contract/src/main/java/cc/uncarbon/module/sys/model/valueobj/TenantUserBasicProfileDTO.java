@@ -14,10 +14,10 @@ import java.io.Serializable;
 /**
  * 租户用户-基本资料
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class TenantUserBasicProfileDTO implements Serializable {
 
     @Schema(description = "账号")

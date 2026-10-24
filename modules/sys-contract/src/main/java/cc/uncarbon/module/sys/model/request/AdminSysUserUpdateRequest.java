@@ -13,11 +13,11 @@ import lombok.experimental.Accessors;
 /**
  * 系统用户-后台管理-修改
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class AdminSysUserUpdateRequest extends AdminUpdateMyProfileRequest {
 
     @Schema(description = "主键ID", title = "仅修改时使用")

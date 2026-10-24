@@ -14,10 +14,10 @@ import java.io.Serializable;
 /**
  * 租户套餐-后台管理-新增/修改
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminTenantPackageUpsertRequest implements Serializable {
 
 

@@ -8,10 +8,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * 后台管理-登录失败限制配置（防撞库）
  */
-@ConfigurationProperties(prefix = "admin-api.login-failure-guard")
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@ConfigurationProperties(prefix = "admin-api.login-failure-guard")
 public class LoginFailureGuardProperties {
 
     /**

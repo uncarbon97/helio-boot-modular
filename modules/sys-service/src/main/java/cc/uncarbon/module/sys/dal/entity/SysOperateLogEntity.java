@@ -20,12 +20,12 @@ import java.time.Instant;
 /**
  * 系统操作日志
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_operate_log")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysOperateLogEntity extends AbstractTenantGenericEntity implements OperateLogUserSource {
 
 	@Serial

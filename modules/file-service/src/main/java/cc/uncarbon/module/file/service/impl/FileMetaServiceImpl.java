@@ -35,9 +35,9 @@ import java.util.Objects;
 /**
  * 文件元数据
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class FileMetaServiceImpl implements FileMetaService {
 
     private final FileMetaMapper fileMetaMapper;

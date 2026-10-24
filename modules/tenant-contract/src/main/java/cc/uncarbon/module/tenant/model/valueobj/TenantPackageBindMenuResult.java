@@ -12,9 +12,9 @@ import java.util.Set;
  * 租户套餐绑定菜单结果
  * 用于调用方按需更新缓存
  */
-@Accessors(chain = true)
-@RequiredArgsConstructor
 @Data
+@RequiredArgsConstructor
+@Accessors(chain = true)
 public class TenantPackageBindMenuResult {
 
     @Schema(description = "租户套餐ID")

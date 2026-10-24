@@ -15,10 +15,10 @@ import java.io.Serializable;
 /**
  * 文件存储点-后台管理-分页查询
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminFileStorageListQuery implements Serializable, PageQuery {
 
     @Schema(description = "分页查询参数")

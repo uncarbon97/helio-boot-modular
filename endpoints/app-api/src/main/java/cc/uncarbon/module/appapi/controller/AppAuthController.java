@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @Tag(name = "APP-鉴权接口")
-@RequestMapping(ApiPathPrefix.APP + "/v1/auth")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(ApiPathPrefix.APP + "/v1/auth")
 public class AppAuthController {
 
     @Operation(summary = "登录")

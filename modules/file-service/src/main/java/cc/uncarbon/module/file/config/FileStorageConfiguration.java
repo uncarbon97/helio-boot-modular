@@ -4,8 +4,8 @@ import org.dromara.x.file.storage.spring.EnableFileStorage;
 import org.springframework.context.annotation.Configuration;
 
 
-@EnableFileStorage
 @Configuration
+@EnableFileStorage
 public class FileStorageConfiguration {
 
 }

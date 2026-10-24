@@ -18,10 +18,10 @@ import java.io.Serializable;
 /**
  * 后台管理-更新个人资料
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminUpdateMyProfileRequest implements Serializable {
 
 

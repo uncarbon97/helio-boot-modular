@@ -41,9 +41,9 @@ import java.util.stream.Collectors;
 /**
  * 系统菜单
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysMenuServiceImpl implements SysMenuService {
 
     private static final String LOG_PREFIX = "[系统管理][菜单]";

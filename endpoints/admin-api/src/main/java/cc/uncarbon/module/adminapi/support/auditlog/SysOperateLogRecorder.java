@@ -31,9 +31,9 @@ import java.util.List;
  *
  * @author Uncarbon
  */
+@Slf4j
 @RequiredArgsConstructor
 @Component
-@Slf4j
 public class SysOperateLogRecorder implements ILogRecordDataService {
 
     private final SysOperateLogService sysOperateLogService;

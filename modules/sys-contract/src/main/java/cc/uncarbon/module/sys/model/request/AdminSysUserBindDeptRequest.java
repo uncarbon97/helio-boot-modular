@@ -13,10 +13,10 @@ import java.io.Serializable;
 /**
  * 系统用户-后台管理-调整用户部门
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminSysUserBindDeptRequest implements Serializable {
 
     @Schema(description = "部门ID；如果为空则视为解除部门绑定")

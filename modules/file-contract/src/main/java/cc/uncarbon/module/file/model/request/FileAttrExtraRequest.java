@@ -13,10 +13,10 @@ import java.io.Serializable;
  * 指定文件附加属性
  * 只在上传文件时有效
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class FileAttrExtraRequest implements Serializable {
 
     @Schema(description = "文件主分类", example = "id_card=身份证 driver_license=驾驶证")

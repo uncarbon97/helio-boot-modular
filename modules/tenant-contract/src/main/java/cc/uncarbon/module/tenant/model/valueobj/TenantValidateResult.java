@@ -14,9 +14,9 @@ import java.io.Serializable;
 /**
  * 租户校验结果
  */
-@Accessors(chain = true)
-@RequiredArgsConstructor
 @Data
+@RequiredArgsConstructor
+@Accessors(chain = true)
 public class TenantValidateResult implements Serializable {
 
     /**

@@ -14,10 +14,10 @@ import java.util.List;
 /**
  * 字典分类 - 由 {@link EnumDict} 注解生成的内置字典
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysDictBuiltinDTO implements Serializable {
 
     @Schema(description = "字典编码")

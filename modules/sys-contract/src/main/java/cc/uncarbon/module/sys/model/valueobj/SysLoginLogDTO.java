@@ -15,10 +15,10 @@ import java.time.Instant;
 /**
  * 系统登录日志
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysLoginLogDTO implements Serializable {
 
     @Schema(description = "主键ID")

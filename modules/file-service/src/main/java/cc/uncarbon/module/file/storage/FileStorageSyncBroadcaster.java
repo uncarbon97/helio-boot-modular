@@ -20,9 +20,9 @@ import java.util.UUID;
  *
  * @see DynamicFileStorageRegistrar
  */
+@Slf4j
 @RequiredArgsConstructor
 @Component
-@Slf4j
 public class FileStorageSyncBroadcaster {
 
     private static final String LOG_PREFIX = "[文件存储点集群同步广播器]";

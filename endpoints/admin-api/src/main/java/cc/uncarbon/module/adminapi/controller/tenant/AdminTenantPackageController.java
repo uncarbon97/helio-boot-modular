@@ -34,12 +34,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Set;
 
 
-@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "租户管理-" + AdminTenantPackageController.BIZ_TYPE)
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/tenant/package")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/tenant/package")
+@SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminTenantPackageController {
 
     private static final String PERMISSION_PREFIX = "tenant:package:";

@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 /**
  * 系统角色-可见菜单关联
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationService {
 
     private final SysRoleMenuRelationMapper sysRoleMenuRelationMapper;

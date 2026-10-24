@@ -5,8 +5,8 @@ import cn.hutool.core.codec.Hashids;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-@EnableConfigurationProperties(value = HashidsProperties.class)
 @Component
+@EnableConfigurationProperties(value = HashidsProperties.class)
 public class HashidsHelper {
 
     /**

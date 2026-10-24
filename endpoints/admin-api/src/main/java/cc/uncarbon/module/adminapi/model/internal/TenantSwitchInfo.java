@@ -14,10 +14,10 @@ import java.time.Instant;
  * 会话内租户切换标记
  * 与生效租户上下文分开存放于 sa-token 会话，避免污染 {@link TenantContext} 契约
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class TenantSwitchInfo implements Serializable {
 
     /**

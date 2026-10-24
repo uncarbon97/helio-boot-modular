@@ -13,10 +13,10 @@ import java.util.Collection;
 /**
  * 租户用户-绑定角色
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class TenantUserBindRoleRequest implements Serializable {
 
 

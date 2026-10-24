@@ -22,12 +22,12 @@ import java.io.Serial;
 /**
  * 系统菜单
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_menu")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysMenuEntity extends AbstractGenericEntity implements AuditingUserSource {
 
 	@Serial

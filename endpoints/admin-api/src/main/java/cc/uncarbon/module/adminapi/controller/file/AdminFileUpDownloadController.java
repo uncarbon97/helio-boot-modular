@@ -40,10 +40,10 @@ import java.util.Map;
 
 
 @Tag(name = "后台管理-文件上传、下载")
-@RequestMapping(value = ApiPathPrefix.ADMIN)
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN)
 public class AdminFileUpDownloadController {
 
     /**

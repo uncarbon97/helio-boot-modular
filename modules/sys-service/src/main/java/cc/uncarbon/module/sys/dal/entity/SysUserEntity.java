@@ -27,12 +27,12 @@ import java.time.Instant;
 /**
  * 系统用户
  */
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 @TableName(value = "sys_user", autoResultMap = true)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 public class SysUserEntity extends AbstractTenantGenericEntity implements AuditingUserSource {
 
     @Serial

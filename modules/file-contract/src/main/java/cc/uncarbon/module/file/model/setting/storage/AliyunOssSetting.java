@@ -8,10 +8,10 @@ import lombok.experimental.Accessors;
 /**
  * {@link org.dromara.x.file.storage.core.FileStorageProperties.AliyunOssConfig}
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AliyunOssSetting implements FileStorageSetting {
 
     private String accessKey;

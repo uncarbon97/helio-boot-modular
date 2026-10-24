@@ -44,9 +44,9 @@ import java.util.Set;
 /**
  * 系统角色
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class SysRoleServiceImpl implements SysRoleService {
 
     private static final String LOG_PREFIX = "[系统管理][角色管理]";

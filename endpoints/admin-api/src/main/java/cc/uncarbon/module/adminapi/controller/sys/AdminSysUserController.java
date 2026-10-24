@@ -41,12 +41,12 @@ import java.util.List;
 import java.util.Set;
 
 
-@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "后台管理-" + AdminSysUserController.BIZ_TYPE)
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/user")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/user")
+@SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysUserController {
 
     private static final String PERMISSION_PREFIX = "sys:user:";

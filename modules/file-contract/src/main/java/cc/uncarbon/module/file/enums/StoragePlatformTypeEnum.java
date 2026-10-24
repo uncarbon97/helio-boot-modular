@@ -14,8 +14,8 @@ import java.util.Locale;
  * 存储平台类型枚举
  */
 @EnumDict(name = "文件存储平台")
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum StoragePlatformTypeEnum implements BaseEnum<String> {
 
 //    UNKNOWN("unknown", "未知"),

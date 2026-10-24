@@ -41,9 +41,9 @@ import java.util.Set;
 /**
  * 文件存储点
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class FileStorageDataServiceImpl implements FileStorageDataService {
 
     private final FileStorageMapper fileStorageMapper;

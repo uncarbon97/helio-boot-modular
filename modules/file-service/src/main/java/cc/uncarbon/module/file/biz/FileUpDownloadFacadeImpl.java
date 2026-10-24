@@ -37,8 +37,8 @@ import java.time.LocalDate;
  * 文件上传下载门面
  */
 @Slf4j
-@Service
 @RequiredArgsConstructor
+@Service
 public class FileUpDownloadFacadeImpl implements FileUpDownloadFacade {
 
     private static final String LOG_PREFIX = "[文件上传下载门面]";

@@ -16,10 +16,10 @@ import java.time.Instant;
 /**
  * 系统用户基本信息
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysUserBasicProfileDTO implements Serializable {
 
     @Schema(description = "主键ID")

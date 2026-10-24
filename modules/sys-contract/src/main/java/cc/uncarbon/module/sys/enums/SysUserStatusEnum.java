@@ -11,8 +11,8 @@ import lombok.Getter;
  * 系统用户状态枚举
  */
 @EnumDict(name = "系统用户状态")
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public enum SysUserStatusEnum implements BaseEnum<Integer> {
 
     DISABLED(0, "禁用"),

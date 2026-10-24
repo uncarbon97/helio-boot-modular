@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
  *
  * @author Uncarbon
  */
-@EnableAsync
-@Component
 @Slf4j
+@Component
+@EnableAsync
 public class ApplicationAsyncConfigurer implements AsyncConfigurer {
 
     /**

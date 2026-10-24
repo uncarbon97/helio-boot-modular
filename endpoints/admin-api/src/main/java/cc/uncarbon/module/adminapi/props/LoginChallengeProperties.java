@@ -9,10 +9,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * 后台管理-登录挑战配置
  */
-@ConfigurationProperties(prefix = "admin-api.login-challenge")
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@ConfigurationProperties(prefix = "admin-api.login-challenge")
 public class LoginChallengeProperties {
 
     /**

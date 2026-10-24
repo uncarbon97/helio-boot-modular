@@ -23,9 +23,9 @@ import java.time.Duration;
  *
  * @author Uncarbon
  */
-@EnableConfigurationProperties(value = LoginFailureGuardProperties.class)
 @RequiredArgsConstructor
 @Component
+@EnableConfigurationProperties(value = LoginFailureGuardProperties.class)
 public class LoginFailureGuard {
 
     private final RedisTemplate<String, String> stringRedisTemplate;

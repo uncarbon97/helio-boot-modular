@@ -13,10 +13,10 @@ import java.util.Set;
 /**
  * 租户套餐-后台管理-绑定租户套餐菜单
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class AdminTenantPackageBindMenuRequest implements Serializable {
 
 

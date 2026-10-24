@@ -10,8 +10,8 @@ import java.util.List;
  *
  * @author Uncarbon
  */
-@ConfigurationProperties(prefix = AppApiProperties.PREFIX)
 @Data
+@ConfigurationProperties(prefix = AppApiProperties.PREFIX)
 public class AppApiProperties {
 
     public static final String PREFIX = "app-api";

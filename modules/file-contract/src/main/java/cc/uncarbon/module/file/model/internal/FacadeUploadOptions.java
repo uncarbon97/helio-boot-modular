@@ -9,10 +9,10 @@ import lombok.experimental.Accessors;
 /**
  * 通过门面上传时的额外选项参数
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class FacadeUploadOptions {
 
 

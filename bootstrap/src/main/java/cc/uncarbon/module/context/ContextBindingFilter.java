@@ -42,9 +42,9 @@ import java.util.List;
  *
  * @author Uncarbon
  */
-@Order(ServletFilterOrder.CONTEXT_BINDING_FILTER)
 @RequiredArgsConstructor
 @Component
+@Order(ServletFilterOrder.CONTEXT_BINDING_FILTER)
 public class ContextBindingFilter extends OncePerRequestFilter {
 
     private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();

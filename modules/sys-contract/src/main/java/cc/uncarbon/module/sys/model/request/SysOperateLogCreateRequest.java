@@ -14,10 +14,10 @@ import java.io.Serializable;
 /**
  * 系统操作日志-新增
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysOperateLogCreateRequest implements Serializable {
 
     @Schema(description = "业务类型")

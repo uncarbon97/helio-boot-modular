@@ -40,12 +40,12 @@ import java.util.List;
 import java.util.Set;
 
 
-@SaCheckLogin(type = StpLoginType.ADMIN)
 @Tag(name = "租户管理-" + AdminTenantMetaController.BIZ_TYPE)
-@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/tenant/meta")
+@Slf4j
 @RequiredArgsConstructor
 @RestController
-@Slf4j
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/tenant/meta")
+@SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminTenantMetaController {
 
     private static final String PERMISSION_PREFIX = "tenant:meta:";

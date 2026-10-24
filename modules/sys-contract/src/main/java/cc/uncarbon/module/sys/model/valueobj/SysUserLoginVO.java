@@ -15,10 +15,10 @@ import java.util.Collection;
  * 登录后返回的字段
  * 用于返回给前端
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysUserLoginVO implements Serializable {
 
     @Schema(description = "token值")

@@ -46,9 +46,9 @@ import java.util.Set;
 /**
  * 租户元数据
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class TenantServiceImpl implements TenantService {
 
     private static final String LOG_PREFIX = "[租户管理][租户管理]";

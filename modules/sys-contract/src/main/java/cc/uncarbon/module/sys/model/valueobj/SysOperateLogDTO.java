@@ -16,10 +16,10 @@ import java.time.Instant;
 /**
  * 系统操作日志
  */
-@Accessors(chain = true)
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
 public class SysOperateLogDTO implements Serializable, OperateLogUserDisplayAware {
 
     @Schema(description = "主键ID")

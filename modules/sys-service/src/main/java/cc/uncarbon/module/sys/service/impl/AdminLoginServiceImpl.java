@@ -43,9 +43,9 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class AdminLoginServiceImpl implements AdminLoginService {
 
 
