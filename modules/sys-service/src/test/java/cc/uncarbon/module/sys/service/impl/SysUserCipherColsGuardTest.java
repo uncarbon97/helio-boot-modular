@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.service.impl;
 
-import cc.uncarbon.framework.helium.fieldcrypto.annotation.BlindIndexOf;
-import cc.uncarbon.framework.helium.fieldcrypto.annotation.BlindIndexValueExtractors;
+import cc.uncarbon.framework.helium.db.fieldcrypto.annotation.BlindIndexOf;
+import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexValueExtractors;
 import cc.uncarbon.module.sys.constant.SysUserCipherCols;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import org.junit.jupiter.api.Assertions;
@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 class SysUserCipherColsGuardTest {
 
     private static final Pattern CIPHER_GETTER_IN_CONDITION = Pattern.compile(
-            "SysUserEntity::(getPhoneNo|getEmail)\\b[^;]*" +
+            "(?<!\\.set\\()SysUserEntity::(getPhoneNo|getEmail)\\b[^;]*" +
                     "|\\.(eq|ne|like|notLike|in|notIn|gt|ge|lt|le|having|orderBy)\\s*\\([^)]*SysUserEntity::(getPhoneNo|getEmail)\\b");
 
     private static final Pattern PLAIN_GETTER_REF = Pattern.compile("SysUserEntity::(getPhoneNo|getEmail)\\b");
@@ -66,7 +66,8 @@ class SysUserCipherColsGuardTest {
         Assertions.assertEquals(SysUserCipherCols.PHONE_TAIL4_PURPOSE, purposeOf("phoneNoTail4BlindIndex"));
         Assertions.assertEquals(SysUserCipherCols.EMAIL_FULL_PURPOSE, purposeOf("emailFullBlindIndex"));
         Assertions.assertEquals(BlindIndexValueExtractors.CleanTrim.class, extractorOf("phoneNoFullBlindIndex"));
-        Assertions.assertEquals(BlindIndexValueExtractors.TailDigits.class, extractorOf("phoneNoTail4BlindIndex"));
+        // 尾4位提取器为实体内置 Tail4Digits（先 CleanTrim 再取尾部4位）
+        Assertions.assertEquals(SysUserEntity.Tail4Digits.class, extractorOf("phoneNoTail4BlindIndex"));
         Assertions.assertEquals(BlindIndexValueExtractors.LowerTrim.class, extractorOf("emailFullBlindIndex"));
     }
 

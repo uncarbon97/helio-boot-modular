@@ -13,6 +13,7 @@ import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
+import cc.uncarbon.module.sys.model.valueobj.SysLoginLogDTO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
 import cc.uncarbon.module.sys.service.SysLoginLogService;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
@@ -103,14 +104,14 @@ class AdminAuthIT extends BaseIntegrationTest {
 
         // 成功与失败均已落登录日志
         // （TENANT_FIRST 日志均归属该租户；USER_FIRST 未定租户的失败日志兜底归属租户 0，故以忽略租户态计数；
-        //   账号不存在的失败日志按「尝试登录的 pin」落库，需分开统计）
+        //   账号不存在的失败日志按「尝试登录的 pin」落库，需分开统计。查询侧已无 pin 入参，改为内存按 userPin 归并统计）
         TenantContextHolder.runIgnored(() -> {
-            long known = sysLoginLogService.adminList(new AdminSysLoginLogListQuery()
-                    .setPageParam(new PageParam(1, 10)).setUserPin(adminPin)).getTotal();
+            List<SysLoginLogDTO> logs = sysLoginLogService.adminList(new AdminSysLoginLogListQuery()
+                    .setPageParam(new PageParam(1, 100))).getRecords();
+            long known = logs.stream().filter(l -> adminPin.equals(l.getUserPin())).count();
             Assertions.assertTrue(known >= 2, "应有至少 2 条登录日志（成功+密码错误）");
-            long unknownInternal = sysLoginLogService.adminList(new AdminSysLoginLogListQuery()
-                    .setPageParam(new PageParam(1, 10)).setUserPin("nosuch" + nano)).getTotal();
-            Assertions.assertTrue(unknownInternal >= 1, "账号不存在的尝试也应落登录日志");
+            Assertions.assertTrue(logs.stream().anyMatch(l -> ("nosuch" + nano).equals(l.getUserPin())),
+                    "账号不存在的尝试也应落登录日志");
         });
 
         cleanupTenant(tenantId, code);

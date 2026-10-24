@@ -1,4 +1,4 @@
-package cc.uncarbon.module.sys.config;
+package cc.uncarbon.module.sys.support;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;

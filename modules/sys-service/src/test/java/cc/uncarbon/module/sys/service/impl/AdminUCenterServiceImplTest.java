@@ -46,13 +46,14 @@ class AdminUCenterServiceImplTest {
     void getMyProfileCopiesBasicProfile() {
         Mockito.when(sysUserService.getNonnullBasicProfileById(3L)).thenReturn(
                 new SysUserBasicProfileDTO().setId(3L).setPin("u3").setNickname("n3")
-                        .setEmail("a@b.c").setPhoneNo("13800000000"));
+                        .setEmailMasked("al****@example.com").setPhoneNoMasked("189****8927"));
 
         MyProfileDTO ret = withUserReturn(3L, () -> service.getMyProfile());
 
         Assertions.assertEquals("u3", ret.getPin());
         Assertions.assertEquals("n3", ret.getNickname());
-        Assertions.assertEquals("a@b.c", ret.getEmail());
+        Assertions.assertEquals("al****@example.com", ret.getEmailMasked());
+        Assertions.assertEquals("189****8927", ret.getPhoneNoMasked());
     }
 
     @Test
@@ -107,7 +108,8 @@ class AdminUCenterServiceImplTest {
     @Test
     void updateMyProfileWritesCurrentUserId() {
         var request = new AdminUpdateMyProfileRequest()
-                .setNickname("新昵称").setGender(GenderEnum.MALE).setEmail("a@b.c").setPhoneNo("13800000000");
+                .setNickname("新昵称").setGender(GenderEnum.MALE)
+                .setEmail("  UPPER@Example.COM ").setPhoneNo("138 0000 0000");
 
         withUser(3L, () -> service.updateMyProfile(request));
 
@@ -115,6 +117,9 @@ class AdminUCenterServiceImplTest {
         Mockito.verify(sysUserMapper).updateById(captor.capture());
         Assertions.assertEquals(3L, captor.getValue().getId());
         Assertions.assertEquals("新昵称", captor.getValue().getNickname());
+        // 联系方式经 PII 归一化后入实体（密文/派生列由框架填充）
+        Assertions.assertEquals("13800000000", captor.getValue().getPhoneNo());
+        Assertions.assertEquals("upper@example.com", captor.getValue().getEmail());
     }
 
     @Test

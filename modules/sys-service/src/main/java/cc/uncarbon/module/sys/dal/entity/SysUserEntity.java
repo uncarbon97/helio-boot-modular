@@ -93,7 +93,7 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
 
     @Schema(description = "手机号全串盲索引")
     @TableField(value = "phone_no_full_blind_index", fill = FieldFill.INSERT_UPDATE)
-    @BlindIndexOf(value = "phoneNo", purpose = SysUserCipherCols.EMAIL_FULL_PURPOSE,
+    @BlindIndexOf(value = "phoneNo", purpose = SysUserCipherCols.PHONE_FULL_PURPOSE,
             extractor = BlindIndexValueExtractors.CleanTrim.class)
     private String phoneNoFullBlindIndex;
 
@@ -108,16 +108,16 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
     @TableFieldCrypto(columnPath = SysUserCipherCols.EMAIL_COLUMN_PATH)
     private String email;
 
+    @Schema(description = "邮箱脱敏冗余")
+    @TableField(value = "email_masked", fill = FieldFill.INSERT_UPDATE)
+    @MaskedOf(value = "email", masker = EmailFieldValueMasker.class)
+    private String emailMasked;
+
     @Schema(description = "邮箱全串盲索引")
     @TableField(value = "email_full_blind_index", fill = FieldFill.INSERT_UPDATE)
     @BlindIndexOf(value = "email", purpose = SysUserCipherCols.EMAIL_FULL_PURPOSE,
             extractor = BlindIndexValueExtractors.LowerTrim.class)
     private String emailFullBlindIndex;
-
-    @Schema(description = "邮箱脱敏冗余")
-    @TableField(value = "email_masked", fill = FieldFill.INSERT_UPDATE)
-    @MaskedOf(value = "email", masker = EmailFieldValueMasker.class)
-    private String emailMasked;
 
 
     /**
@@ -141,7 +141,7 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
 
         @Override
         public String extract(String rawValue) {
-            // 先与「手机号全串盲索引」的处理过程一致，走 CleanTrim
+            // 与「手机号全串盲索引」的处理过程一致，先走 CleanTrim
             final String cleaned = PiiContractNormalizer.cleanPhone(rawValue);
             return BlindIndexValueExtractors.TailDigits.of(4).extract(cleaned);
         }

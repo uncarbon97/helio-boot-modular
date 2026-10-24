@@ -23,7 +23,6 @@ import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
-import cc.uncarbon.module.sys.helper.UserRoleHelper;
 import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListRelatedUserQuery;
@@ -34,6 +33,7 @@ import cc.uncarbon.module.sys.model.valueobj.SysDeptDTO;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
+import cc.uncarbon.module.sys.support.UserRoleHelper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -215,6 +215,9 @@ class SysUserServiceImplTest {
         Assertions.assertEquals(SysUserStatusEnum.DISABLED, saved.getStatus());
         Assertions.assertTrue(saved.getPwd().startsWith("$argon2id$"));
         Assertions.assertNotEquals("init123456", saved.getPwd());
+        // 联系方式经 PII 归一化后入实体（密文/派生列由框架填充）
+        Assertions.assertEquals("13800000000", saved.getPhoneNo());
+        Assertions.assertEquals("a@b.c", saved.getEmail());
         Mockito.verify(sysUserDeptRelationService).cleanAndBind(123L, null);
     }
 
@@ -834,8 +837,11 @@ class SysUserServiceImplTest {
     }
 
     private AdminSysUserUpdateRequest updateRequest(Long id) {
-        return new AdminSysUserUpdateRequest()
-                .setId(id).setPin("tester01").setNickname("测试").setEmail("a@b.c").setPhoneNo("13800000000");
+        // 注意：父类链式 setter 返回父类型，子类字段单独赋值
+        AdminSysUserUpdateRequest ret = new AdminSysUserUpdateRequest();
+        ret.setId(id).setPin("tester01");
+        ret.setNickname("测试").setEmail("a@b.c").setPhoneNo("13800000000");
+        return ret;
     }
 
     private UserRoleScope normalScope(Long userId, List<Long> roleIds) {

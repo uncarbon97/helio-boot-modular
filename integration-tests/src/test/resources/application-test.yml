@@ -31,6 +31,20 @@ spring:
   login-mode: ${HELIUM_TENANT_LOGIN_MODE:TENANT_FIRST}
 
 ---
+# 敏感字段加密（sys_user 手机号/邮箱等）
+# 不配置则 FieldCipher/BlindIndexCalculator 不装配，依赖字段加密的 Bean（如密钥轮换服务）启动即失败
+# 根密钥取 configs/helium-all.yml 的默认值，便于兼容既有测试库中同根密钥的历史密文
+"helium.db.field-crypto":
+  data-root-key: VWXdGdmLstm8gRyjnUg9g39/753vIxJRs2O6hq9RnwY=
+  index-root-key: VUor7frshJ4XMA676d+B2gkv06slY5ILzzamwqv9UQY=
+  data-key-ids:
+    - k1
+  active-data-key-id: k1
+  canary:
+    # 测试库根密钥指纹不参与对账，避免与本地开发库的 canary 记录互相冲突
+    enabled: false
+
+---
 mybatis-plus:
   configuration:
     # 测试环境下打印 SQL，便于排查

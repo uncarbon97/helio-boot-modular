@@ -75,11 +75,12 @@ class SysLogIT extends BaseIntegrationTest {
             Assertions.assertNotNull(dto.getVisitorBrowser());
             Assertions.assertNotNull(dto.getVisitorOs());
 
-            // 账号筛选 + 结果状态筛选
+            // 结果状态筛选（查询侧已无 pin 入参，改为内存按 userPin 归并断言）
             var page = sysLoginLogService.adminList(new AdminSysLoginLogListQuery()
                     .setPageParam(new PageParam(1, 10))
-                    .setUserPin(pin).setResultStatus(LogResultStatusEnum.SUCCESS));
-            Assertions.assertTrue(page.getRecords().stream().anyMatch(l -> logId.equals(l.getId())));
+                    .setResultStatus(LogResultStatusEnum.SUCCESS));
+            Assertions.assertTrue(page.getRecords().stream()
+                    .anyMatch(l -> logId.equals(l.getId()) && pin.equals(l.getUserPin())));
         });
     }
 

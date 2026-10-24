@@ -11,7 +11,12 @@ import lombok.experimental.UtilityClass;
 public final class SQLSegment {
 
     /**
+     * ... LIMIT
+     */
+    public static final String LIMIT = " LIMIT ";
+
+    /**
      * ... LIMIT 1
      */
-    public static final String LIMIT_1 = " LIMIT 1";
+    public static final String LIMIT_1 = LIMIT + "1";
 }

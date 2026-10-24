@@ -1,4 +1,4 @@
-package cc.uncarbon.module.sys.config;
+package cc.uncarbon.module.sys.iplocation;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

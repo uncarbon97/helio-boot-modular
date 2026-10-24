@@ -1,8 +1,9 @@
-package cc.uncarbon.module.sys.config;
+package cc.uncarbon.module.sys.iplocation;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.module.commons.enumdict.EnumDictSpec;
+import cc.uncarbon.module.sys.support.DictContributor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

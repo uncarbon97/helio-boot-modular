@@ -4,15 +4,17 @@ import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.web.context.SimpleVisitorContext;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.iplocation.IPLocationResolver;
 import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.dal.entity.SysLoginLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysLoginLogMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import cc.uncarbon.module.sys.enums.LoginLogTypeEnum;
+import cc.uncarbon.module.sys.iplocation.IPLocationResolver;
 import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;
 import cc.uncarbon.module.sys.model.request.SysLoginLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysLoginLogDTO;
+import cc.uncarbon.module.sys.service.SysUserService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * {@link SysLoginLogServiceImpl} 查询条件分支、UA 截断、IP 归属地解析与租户ID透传测试
@@ -37,6 +40,10 @@ class SysLoginLogServiceImplTest {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
     @Mock
     private SysLoginLogMapper sysLoginLogMapper;
+    @Mock
+    private SysUserMapper sysUserMapper;
+    @Mock
+    private SysUserService sysUserService;
     @Mock
     private IPLocationResolver primaryResolver;
     @Mock
@@ -51,7 +58,8 @@ class SysLoginLogServiceImplTest {
     @BeforeEach
     void setUp() {
         // 构造器含 List<IPLocationResolver>，@InjectMocks 无法按泛型注入，参照 SysDictServiceImplTest 手动构造
-        service = new SysLoginLogServiceImpl(sysLoginLogMapper, List.of(primaryResolver, fallbackResolver));
+        service = new SysLoginLogServiceImpl(sysLoginLogMapper, sysUserMapper, sysUserService,
+                List.of(primaryResolver, fallbackResolver));
     }
 
 
@@ -70,9 +78,12 @@ class SysLoginLogServiceImplTest {
             return page;
         });
 
+        // 操作人过滤依赖 pin 映射：userIds -> userPins 并集，须在调用前打桩
+        Mockito.when(sysUserMapper.getPinMapByIds(List.of(2L))).thenReturn(Map.of(2L, "u1"));
+
         PageResult<SysLoginLogDTO> ret = service.adminList(new AdminSysLoginLogListQuery()
                 .setPageParam(new PageParam(1, 10))
-                .setUserPin("u1")
+                .setUserIds(List.of(2L))
                 .setResultStatus(LogResultStatusEnum.SUCCESS)
                 .setBeginAt(Instant.parse("2026-01-01T00:00:00Z"))
                 .setEndAt(Instant.parse("2026-02-01T00:00:00Z")));
@@ -84,13 +95,14 @@ class SysLoginLogServiceImplTest {
         Assertions.assertEquals("Chrome 120.0.0.0", dto.getVisitorBrowser());
         Assertions.assertEquals("Windows 10 or Windows Server 2016 10.0", dto.getVisitorOs());
 
-        // 传入全部条件时，查询片段应包含 账号模糊、状态等值、时间区间
+        // 传入全部条件时，查询片段应包含 操作人（userId+userPin 并集）、状态等值、时间区间
         @SuppressWarnings("unchecked")
         ArgumentCaptor<com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysLoginLogEntity>> wrapperCaptor =
                 ArgumentCaptor.forClass(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class);
         Mockito.verify(sysLoginLogMapper).selectPage(Mockito.any(), wrapperCaptor.capture());
         String sqlSegment = wrapperCaptor.getValue().getSqlSegment();
-        Assertions.assertTrue(sqlSegment.contains("user_pin LIKE"));
+        Assertions.assertTrue(sqlSegment.contains("user_id IN"));
+        Assertions.assertTrue(sqlSegment.contains("user_pin IN"));
         Assertions.assertTrue(sqlSegment.contains("result_status ="));
         Assertions.assertTrue(sqlSegment.contains("created_at BETWEEN"));
     }

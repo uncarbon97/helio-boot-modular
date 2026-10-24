@@ -21,12 +21,12 @@ class MaskUtilTest {
         Assertions.assertEquals("****", MaskUtil.maskPhone("138"));
         Assertions.assertEquals("****", MaskUtil.maskPhone("1380013"));
         // 边界：恰好 8 位
-        Assertions.assertEquals("138****8000", MaskUtil.maskPhone("13800800"));
+        Assertions.assertEquals("138****0800", MaskUtil.maskPhone("13800800"));
     }
 
     @Test
     void maskEmail() {
-        Assertions.assertEquals("al***@example.com", MaskUtil.maskEmail("alicealex@example.com"));
+        Assertions.assertEquals("al****@example.com", MaskUtil.maskEmail("alicealex@example.com"));
         Assertions.assertNull(MaskUtil.maskEmail(null));
         Assertions.assertNull(MaskUtil.maskEmail(""));
         // 本地部分过短，整体掩码本地部分
@@ -34,7 +34,7 @@ class MaskUtilTest {
         // 无域名，不按邮箱口径泄露
         Assertions.assertEquals("****", MaskUtil.maskEmail("alicealex"));
         // 边界：本地部分恰好 3 字符
-        Assertions.assertEquals("ab***@example.com", MaskUtil.maskEmail("abc@example.com"));
+        Assertions.assertEquals("ab****@example.com", MaskUtil.maskEmail("abc@example.com"));
     }
 
     @Test

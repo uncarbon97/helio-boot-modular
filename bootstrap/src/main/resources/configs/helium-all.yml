@@ -16,14 +16,20 @@
       enabled: true
   # 敏感字段加密
   field-crypto:
-    # 数据加密根密钥
-    data-root-key: ${FIELD_CRYPTO_DATA_ROOT_KEY:ggsW3SXKmnRvEYPYBt7lgvFqCWttwd+z3Yz1NUgpuHY=}
-    # 盲索引根密钥，长周期使用
-    index-root-key: ${FIELD_CRYPTO_INDEX_ROOT_KEY:IaYUq3c7/M6oaf5eTl/W0kcW0WjZA3gkdwRFU+H3dCc=}
-    # 可用 keyId，轮换时加入例如 k2、k3 等
+    # 数据根密钥，长周期使用；⭐生产环境下必须重新生成，并严格保管避免泄露
+    data-root-key: ${FIELD_CRYPTO_DATA_ROOT_KEY:VWXdGdmLstm8gRyjnUg9g39/753vIxJRs2O6hq9RnwY=}
+    # 盲索引根密钥，长周期使用；⭐生产环境下必须重新生成，并严格保管避免泄露
+    index-root-key: ${FIELD_CRYPTO_INDEX_ROOT_KEY:VUor7frshJ4XMA676d+B2gkv06slY5ILzzamwqv9UQY=}
+    # 数据加密可用 keyId，轮换时加入例如 k2、k3 等
     data-key-ids:
       - k1
-    active-data-key-id: ${FIELD_CRYPTO_ACTIVE_DATA_KEY_ID:k1}
+#    active-data-key-id: ${FIELD_CRYPTO_ACTIVE_DATA_KEY_ID}
+    # 数据根密钥泄露时，处置临时开启（成对配置，收尾即移除）：
+#    previous-data-root-key: ${FIELD_CRYPTO_PREVIOUS_DATA_ROOT_KEY}
+    # 不得与 data-key-ids 有交集（即存在相同的 keyId）
+#    previous-data-key-ids:
+#      - k1
+#      - k2
     canary:
       # 根密钥双指纹启动期对账，建议开启，避免错误的配置项，污染了 DB
       enabled: true

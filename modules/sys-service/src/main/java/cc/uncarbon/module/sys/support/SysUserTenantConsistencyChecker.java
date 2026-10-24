@@ -1,4 +1,4 @@
-package cc.uncarbon.module.sys.helper;
+package cc.uncarbon.module.sys.support;
 
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;

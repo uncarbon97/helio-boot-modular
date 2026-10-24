@@ -3,15 +3,16 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
-import cc.uncarbon.module.commons.iplocation.IPLocationResolver;
 import cc.uncarbon.module.sys.AuditNicknameFillerTestSupport;
 import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.dal.entity.SysOperateLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
+import cc.uncarbon.module.sys.iplocation.IPLocationResolver;
 import cc.uncarbon.module.sys.model.query.AdminSysOperateLogListQuery;
 import cc.uncarbon.module.sys.model.request.SysOperateLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysOperateLogDTO;
+import cc.uncarbon.module.sys.service.SysUserService;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,6 +38,8 @@ class SysOperateLogServiceImplTest {
     @Mock
     private SysOperateLogMapper sysOperateLogMapper;
     @Mock
+    private SysUserService sysUserService;
+    @Mock
     private IPLocationResolver primaryResolver;
     @Mock
     private IPLocationResolver fallbackResolver;
@@ -50,8 +53,8 @@ class SysOperateLogServiceImplTest {
     @BeforeEach
     void setUp() {
         // 构造器含 List<IPLocationResolver>，@InjectMocks 无法按泛型注入，参照 SysDictServiceImplTest 手动构造
-        service = new SysOperateLogServiceImpl(sysOperateLogMapper, List.of(primaryResolver, fallbackResolver),
-                AuditNicknameFillerTestSupport.passThrough());
+        service = new SysOperateLogServiceImpl(sysOperateLogMapper, sysUserService,
+                List.of(primaryResolver, fallbackResolver), AuditNicknameFillerTestSupport.passThrough());
     }
 
 
@@ -75,7 +78,7 @@ class SysOperateLogServiceImplTest {
                 .setBizType("sysUser")
                 .setBehavior("create")
                 .setBizNo("BIZ-1")
-                .setUserIds(1001L)
+                .setUserIds(List.of(1001L))
                 .setResultStatus(LogResultStatusEnum.SUCCESS)
                 .setBeginAt(Instant.parse("2026-01-01T00:00:00Z"))
                 .setEndAt(Instant.parse("2026-02-01T00:00:00Z")));
@@ -89,12 +92,12 @@ class SysOperateLogServiceImplTest {
         ArgumentCaptor<com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysOperateLogEntity>> wrapperCaptor =
                 ArgumentCaptor.forClass(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class);
         Mockito.verify(sysOperateLogMapper).selectPage(Mockito.any(), wrapperCaptor.capture());
-        // 三个模糊 + 两个等值 + 一个时间区间条件同时生效
+        // 三个模糊 + 操作人IN + 等值 + 一个时间区间条件同时生效
         String sqlSegment = wrapperCaptor.getValue().getSqlSegment();
         Assertions.assertTrue(sqlSegment.contains("biz_type LIKE"));
         Assertions.assertTrue(sqlSegment.contains("behavior LIKE"));
         Assertions.assertTrue(sqlSegment.contains("biz_no LIKE"));
-        Assertions.assertTrue(sqlSegment.contains("user_id ="));
+        Assertions.assertTrue(sqlSegment.contains("user_id IN"));
         Assertions.assertTrue(sqlSegment.contains("result_status ="));
         Assertions.assertTrue(sqlSegment.contains("created_at BETWEEN"));
     }
