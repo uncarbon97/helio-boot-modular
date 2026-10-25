@@ -24,14 +24,14 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Collection;
 import java.util.List;
@@ -109,8 +109,8 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
                 var settingInstance = JSON_MAPPER.readValue(
                         entity.getSettingJson(), entity.getPlatformType().getSettingClass());
                 ret.setSettingBody(settingInstance);
-            } catch (JsonProcessingException jpe) {
-                log.error("[文件存储点]反序列化配置属性类失败 >> {}", jpe.getMessage());
+            } catch (JacksonException je) {
+                log.error("[文件存储点]反序列化配置属性类失败 >> {}", je.getMessage());
             }
         }
     }

@@ -35,20 +35,25 @@
         <!-- 固定其他第三方依赖版本 -->
         <redisson.version>4.7.1-SNAPSHOT</redisson.version>
         <!-- 密码哈希 -->
-        <bouncycastle.version>1.84</bouncycastle.version>
+        <bouncycastle.version>1.86</bouncycastle.version>
         <!-- IP 地址归属地查询 -->
         <ip2region.version>3.3.7</ip2region.version>
         <!-- 文件上传 -->
         <x-file-storage.version>2.3.0</x-file-storage.version>
         <minio.version>8.5.17</minio.version>
-        <s3-sdk-v1.version>1.12.787</s3-sdk-v1.version>
-        <s3-sdk-v2.version>2.31.58</s3-sdk-v2.version>
+        <s3-sdk-v1.version>1.12.797</s3-sdk-v1.version>
+        <s3-sdk-v2.version>2.31.3</s3-sdk-v2.version>
         <aliyun-sdk-oss.version>3.18.5</aliyun-sdk-oss.version>
 
 
         <!-- 缓解第三方依赖漏洞 -->
         <commons-io.safe-version>2.14.0</commons-io.safe-version>
         <tika-core.safe-version>3.2.2</tika-core.safe-version>
+        <jackson2.safe-version>2.22.4</jackson2.safe-version>
+        <jackson3.safe-version>3.2.4</jackson3.safe-version>
+        <!-- https://repo1.maven.org/maven2/tools/jackson/jackson-bom/3.2.4/jackson-bom-3.2.4.pom -->
+        <jackson-annotations.compatible-version>2.22</jackson-annotations.compatible-version>
+
 
         <!--
             单元测试默认跳过（保持既有构建行为）；
@@ -140,6 +145,30 @@
                 <artifactId>tika-core</artifactId>
                 <version>${tika-core.safe-version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson2.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-cbor</artifactId>
+                <version>${jackson2.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson3.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson-annotations.compatible-version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -149,6 +178,21 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <!-- 屏蔽传递来的有缺陷依赖 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.minidev</groupId>
+                    <artifactId>json-smart</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
