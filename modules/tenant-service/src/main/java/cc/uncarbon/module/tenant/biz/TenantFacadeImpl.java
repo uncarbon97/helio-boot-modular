@@ -7,6 +7,7 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
 import cc.uncarbon.framework.helium.tenant.props.HeliumTenantProperties;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
+import cc.uncarbon.module.sys.util.SysUtil;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
@@ -83,7 +84,7 @@ public class TenantFacadeImpl implements TenantFacade {
         }
         try {
             return TenantContextHolder.callIgnored(() -> {
-                if (tenantUserRoleFacade.isSuperAdmin(userId)) {
+                if (SysUtil.isSuperAdmin(userId)) {
                     // 超级管理员：除平台自营域外的全部启用租户
                     return tenantService.listEnabled().stream()
                             .filter(meta -> !Objects.equals(meta.getId(), TenantConstant.PLATFORM_TENANT_ID))
@@ -132,9 +133,26 @@ public class TenantFacadeImpl implements TenantFacade {
         return meta.toTenantContext();
     }
 
+    @Nullable
+    @Override
+    public Long getTenantAdminUserId(Long tenantId) {
+        if (tenantId == null) {
+            return null;
+        }
+        try {
+            return TenantContextHolder.callIgnored(() -> {
+                TenantMetaDTO meta = tenantService.getById(tenantId, false);
+                return meta == null ? null : meta.getAdminUserId();
+            });
+        } catch (Exception e) {
+            log.error(LOG_PREFIX + " 取租户主管理员用户ID失败 >> tenantId={}", tenantId, e);
+            return null;
+        }
+    }
+
     @Override
     public void assertSwitchable(Long userId, Long targetTenantId) {
-        if (userId != null && tenantUserRoleFacade.isSuperAdmin(userId)) {
+        if (userId != null && SysUtil.isSuperAdmin(userId)) {
             return;
         }
         if (userId != null && targetTenantId != null

@@ -41,6 +41,14 @@ public interface TenantFacade {
     TenantContext resolveSwitchTarget(String tenantCode);
 
     /**
+     * 取指定租户的主管理员用户ID
+     *
+     * @return 租户不存在时返回 null
+     */
+    @Nullable
+    Long getTenantAdminUserId(Long tenantId);
+
+    /**
      * 断言指定用户可以切入目标租户
      * <p>超级管理员可切入任意租户；USER_FIRST 下普通用户可切入本人启用关联租户（平台自营域除外）</p>
      */

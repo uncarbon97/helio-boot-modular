@@ -23,17 +23,20 @@ import cc.uncarbon.module.sys.service.SysRoleService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
+import cc.uncarbon.module.sys.util.SysUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -149,48 +152,25 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
         if (userId == null) {
             return List.of();
         }
-        return TenantContextHolder.callIgnored(() -> sysUserTenantRelationMapper.selectList(
-                        new LambdaQueryWrapper<SysUserTenantRelationEntity>()
-                                .select(SysUserTenantRelationEntity::getTenantId)
-                                .eq(SysUserTenantRelationEntity::getUserId, userId)
-                                .orderByAsc(SysUserTenantRelationEntity::getId))
+        return sysUserTenantRelationMapper.selectList(new LambdaQueryWrapper<SysUserTenantRelationEntity>()
+                        .select(SysUserTenantRelationEntity::getTenantId)
+                        .eq(SysUserTenantRelationEntity::getUserId, userId)
+                        .orderByAsc(SysUserTenantRelationEntity::getId))
                 .stream()
                 .map(SysUserTenantRelationEntity::getTenantId)
-                .toList());
+                .toList();
     }
 
     @SneakyThrows
     @Override
     public void rememberActiveTenant(Long userId, Long tenantId) {
-        if (userId == null || tenantId == null || isSuperAdmin(userId)) {
+        if (userId == null || tenantId == null || SysUtil.isSuperAdmin(userId)) {
             return;
         }
         TenantContextHolder.callIgnored(() -> {
-            sysUserMapper.update(new SysUserEntity(), new LambdaUpdateWrapper<SysUserEntity>()
-                    .set(SysUserEntity::getTenantId, tenantId)
-                    .eq(SysUserEntity::getId, userId));
+            sysUserMapper.updateTenantId(userId, tenantId);
             return null;
         });
-    }
-
-    @SneakyThrows
-    @Override
-    public boolean isSuperAdmin(Long userId) {
-        if (userId == null) {
-            return false;
-        }
-        if (Objects.equals(userId, SysConstant.SUPER_ADMIN_USER_ID)) {
-            return true;
-        }
-        // 按归属租户解析角色，超管切入其他租户视角后判断不受行级过滤影响
-        Long homeTenantId = getUserHomeTenantId(userId);
-        if (homeTenantId == null) {
-            return TenantContextHolder.callIgnored(() ->
-                    userRoleHelper.getSpecifiedUserRole(userId).isSuperAdmin());
-        }
-        return TenantContextHolder.callWithContext(
-                new SimpleTenantContext(homeTenantId, null, null),
-                () -> userRoleHelper.getSpecifiedUserRole(userId).isSuperAdmin());
     }
 
     @SneakyThrows

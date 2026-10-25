@@ -24,4 +24,35 @@ public interface SysRoleMenuRelationMapper extends BaseMapper<SysRoleMenuRelatio
         return delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
                 .in(SysRoleMenuRelationEntity::getRoleId, roleIds));
     }
+
+    /**
+     * 根据角色ID，删除关联
+     */
+    default int deleteByRoleId(Long roleId) {
+        if (roleId == null) {
+            return 0;
+        }
+        return delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+                .eq(SysRoleMenuRelationEntity::getRoleId, roleId));
+    }
+
+    /**
+     * 根据角色ID，删除不在指定菜单ID集合内的关联
+     */
+    default int deleteByRoleIdAndMenuIdNotIn(Long roleId, Collection<Long> menuIds) {
+        return delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+                .eq(SysRoleMenuRelationEntity::getRoleId, roleId)
+                .notIn(SysRoleMenuRelationEntity::getMenuId, menuIds));
+    }
+
+    /**
+     * 根据菜单IDs，删除关联
+     */
+    default int deleteByMenuIds(Collection<Long> menuIds) {
+        if (CollUtil.isEmpty(menuIds)) {
+            return 0;
+        }
+        return delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+                .in(SysRoleMenuRelationEntity::getMenuId, menuIds));
+    }
 }

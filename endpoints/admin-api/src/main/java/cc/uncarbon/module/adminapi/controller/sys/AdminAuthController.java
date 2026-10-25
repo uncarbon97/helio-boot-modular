@@ -20,7 +20,6 @@ import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
-import cc.uncarbon.module.sys.model.valueobj.AdminLoginTenantUIConfigVO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
@@ -127,12 +126,6 @@ public class AdminAuthController {
             return ApiResult.success(AdminAuthChallengeVO.noChallenge());
         }
         return ApiResult.success(strategy.generate());
-    }
-
-    @Operation(summary = "获取租户相关UI配置")
-    @PostMapping(value = "/tenant-ui-config")
-    public ApiResult<AdminLoginTenantUIConfigVO> tenantUIConfig() {
-        return ApiResult.success(adminLoginService.getTenantUIConfig());
     }
 
     /*

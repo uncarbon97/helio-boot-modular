@@ -22,13 +22,14 @@ import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.request.SysLoginLogCreateRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
-import cc.uncarbon.module.sys.model.valueobj.AdminLoginTenantUIConfigVO;
+import cc.uncarbon.module.sys.model.valueobj.AdminLoginUIConfigVO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
 import cc.uncarbon.module.sys.service.SysLoginLogService;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
 import cc.uncarbon.module.sys.util.PwdUtil;
+import cc.uncarbon.module.sys.util.SysUtil;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
@@ -149,11 +150,12 @@ public class AdminLoginServiceImpl implements AdminLoginService {
             ref.userEntity = TenantContextHolder.callIgnored(() -> sysUserMapper.getByPin(request.getPin()));
             checkUserEntity(request, ref.userEntity);
 
-            // 候选顺序：记忆版租户优先，其余按 relation ID ASC（加入先后）
+            // 候选顺序：记忆版租户优先（仅当仍在本人启用关联集合内，防投影列漂移/已被移出租户），
+            // 其余按 relation ID ASC（加入先后）
             List<Long> candidateTenantIds =
                     new ArrayList<>(tenantUserRoleFacade.listEnabledTenantIdsByUser(ref.userEntity.getId()));
             Long rememberedTenantId = ref.userEntity.getTenantId();
-            if (rememberedTenantId != null) {
+            if (rememberedTenantId != null && candidateTenantIds.contains(rememberedTenantId)) {
                 candidateTenantIds.remove(rememberedTenantId);
                 candidateTenantIds.addFirst(rememberedTenantId);
             }
@@ -167,7 +169,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
             if (activatedContext == null) {
                 // 无可用租户：未归属任何租户 / 归属租户均已不可用
                 throw new BusinessException(candidateTenantIds.isEmpty()
-                        ? SysErrorCodeEnum.A01008 : TenantErrorCodeEnum.A03006);
+                        ? SysErrorCodeEnum.A01007 : TenantErrorCodeEnum.A03006);
             }
             ref.activatedTenantId = activatedContext.getTenantId();
 
@@ -242,7 +244,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
 
     @Override
     public @Nullable UserContext buildSessionUserContext(Long userId, TenantContext tenantContext) {
-        if (userId == null || tenantContext == null || tenantUserRoleFacade.isSuperAdmin(userId)) {
+        if (userId == null || tenantContext == null || SysUtil.isSuperAdmin(userId)) {
             // 超管权限与视角解耦：始终按归属租户解析本人快照
             return buildSessionUserContext(userId);
         }
@@ -265,10 +267,10 @@ public class AdminLoginServiceImpl implements AdminLoginService {
     }
 
     @Override
-    public AdminLoginTenantUIConfigVO getTenantUIConfig() {
+    public AdminLoginUIConfigVO getUIConfig() {
         boolean tenantEnabled = tenantFacade.isTenantEnabled();
         TenantLoginModeEnum loginMode = tenantFacade.getLoginMode();
-        return new AdminLoginTenantUIConfigVO()
+        return new AdminLoginUIConfigVO()
                 .setShowTenantCodeInputFlag(tenantEnabled && TenantLoginModeEnum.TENANT_FIRST == loginMode);
     }
 

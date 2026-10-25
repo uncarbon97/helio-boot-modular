@@ -5,6 +5,7 @@ import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
+import cc.uncarbon.module.tenant.constant.TenantConstant;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -58,7 +60,11 @@ public class SysUserTenantConsistencyChecker {
             long driftCount = users.stream()
                     .filter(user -> {
                         Set<Long> related = tenantIdsByUser.get(user.getId());
-                        return related == null || !related.contains(user.getTenantId());
+                        if (related == null || related.isEmpty()) {
+                            // 无任何租户关联（USER_FIRST 下被移出全部租户）：投影列须回落平台自营域
+                            return !Objects.equals(user.getTenantId(), TenantConstant.PLATFORM_TENANT_ID);
+                        }
+                        return !related.contains(user.getTenantId());
                     })
                     .count();
 

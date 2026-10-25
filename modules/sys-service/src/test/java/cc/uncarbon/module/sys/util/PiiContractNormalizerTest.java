@@ -11,12 +11,12 @@ import org.junit.jupiter.api.Test;
 class PiiContractNormalizerTest {
 
     @Test
-    void cleanPhone() {
-        Assertions.assertEquals("13800001111", PiiContractNormalizer.cleanPhone("138 0000 1111"));
-        Assertions.assertEquals("13800001111", PiiContractNormalizer.cleanPhone("  13800001111\t"));
-        Assertions.assertNull(PiiContractNormalizer.cleanPhone(null));
-        Assertions.assertNull(PiiContractNormalizer.cleanPhone(""));
-        Assertions.assertNull(PiiContractNormalizer.cleanPhone("  "));
+    void normalizePhone() {
+        Assertions.assertEquals("13800001111", PiiContractNormalizer.normalizePhone("138 0000 1111"));
+        Assertions.assertEquals("13800001111", PiiContractNormalizer.normalizePhone("  13800001111\t"));
+        Assertions.assertNull(PiiContractNormalizer.normalizePhone(null));
+        Assertions.assertNull(PiiContractNormalizer.normalizePhone(""));
+        Assertions.assertNull(PiiContractNormalizer.normalizePhone("  "));
     }
 
     @Test

@@ -8,6 +8,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexCalculator;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -33,23 +34,25 @@ import cc.uncarbon.module.sys.model.response.SysUserBindRoleResult;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserBasicProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
-import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
-import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
-import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
-import cc.uncarbon.module.sys.service.SysUserService;
+import cc.uncarbon.module.sys.service.*;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
+import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cc.uncarbon.module.tenant.util.TenantUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.util.*;
 
@@ -69,15 +72,24 @@ public class SysUserServiceImpl implements SysUserService {
 
     private final SysUserMapper sysUserMapper;
     private final SysRoleMapper sysRoleMapper;
-    private final SysDeptServiceImpl sysDeptService;
+    private final SysUserTenantRelationMapper sysUserTenantRelationMapper;
+    private final SysDeptService sysDeptService;
     private final SysUserDeptRelationService sysUserDeptRelationService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
+    // 规避循环依赖
+    private final ObjectProvider<TenantFacade> tenantFacadeProvider;
     private final UserRoleHelper userRoleHelper;
-    private final SysUserTenantRelationMapper sysUserTenantRelationMapper;
     private final AuditNicknameFiller auditNicknameFiller;
     private final BlindIndexCalculator blindIndexCalculator;
 
+    private TenantFacade tenantFacade;
+
+    @PostConstruct
+    public void init() {
+        tenantFacade = tenantFacadeProvider.getObject();
+        Assert.notNull(tenantFacade, "inject TenantFacade failed");
+    }
 
     @Override
     public PageResult<SysUserDTO> adminList(AdminSysUserListQuery query) {
@@ -163,6 +175,10 @@ public class SysUserServiceImpl implements SysUserService {
 
         sysUserMapper.insert(entity);
         sysUserDeptRelationService.cleanAndBind(entity.getId(), request.getDeptId());
+        // 双写：relation 为唯一真源；tenant_id 投影列由 INSERT 自动填充，
+        // 未启用租户隔离（strategy=NONE）时无上下文可填，回落平台自营域与列默认值对齐
+        sysUserTenantRelationMapper.insert(SysUserTenantRelationEntity.of(
+                Objects.requireNonNullElse(entity.getTenantId(), TenantConstant.PLATFORM_TENANT_ID), entity.getId()));
         return entity.getId();
     }
 
@@ -201,8 +217,7 @@ public class SysUserServiceImpl implements SysUserService {
         ids.forEach(id -> {
             sysUserDeptRelationService.cleanAndBind(id, null);  // null = 解除全部部门绑定
             sysUserRoleRelationService.cleanAndBindByUser(id, null);  // 空集 = 解除全部角色绑定
-            sysUserTenantRelationMapper.delete(new LambdaQueryWrapper<SysUserTenantRelationEntity>()
-                    .eq(SysUserTenantRelationEntity::getUserId, id));
+            sysUserTenantRelationMapper.deleteByUserId(id);
         });
         sysUserMapper.deleteByIds(ids);
     }
@@ -381,20 +396,28 @@ public class SysUserServiceImpl implements SysUserService {
 
     /**
      * 检查是否存在重复
-     *
-     * <p>六审：手机号/邮箱均不做唯一性约束，查重仅剩账号 pin（全局唯一）。</p>
      */
+    @SneakyThrows
     private void checkRepeat(AdminSysUserUpdateRequest request) {
-        var entity = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUserEntity>()
+        LambdaQueryWrapper<SysUserEntity> qw = new LambdaQueryWrapper<SysUserEntity>()
                 .select(SysUserEntity::getId)
                 // 并非原地更新
                 .ne(Objects.nonNull(request.getId()), SysUserEntity::getId, request.getId())
                 .eq(SysUserEntity::getPin, request.getPin())
-                .last(SQLSegment.LIMIT_1)
-        );
+                .last(SQLSegment.LIMIT_1);
+        var entity = isUserFirstLoginMode()
+                ? TenantContextHolder.callIgnored(() -> sysUserMapper.selectOne(qw))
+                : sysUserMapper.selectOne(qw);
         if (entity != null) {
             throw new HasRepeatRecordException(SysErrorCodeEnum.A01030);
         }
+    }
+
+    /**
+     * 是否用户优先登录模式
+     */
+    private boolean isUserFirstLoginMode() {
+        return TenantLoginModeEnum.USER_FIRST == tenantFacade.getLoginMode();
     }
 
     /**
@@ -462,6 +485,10 @@ public class SysUserServiceImpl implements SysUserService {
      * 删除前检查
      */
     void checkBeforeDelete(Collection<Long> ids) {
+        // USER_FIRST 租户域内「删除」语义实为移出本租户，须走 tenant-expel；全局删人仅平台自营域可执行
+        if (isUserFirstLoginMode() && !TenantUtil.isPlatformDomain(TenantContextHolder.getTenantId())) {
+            throw new BusinessException(SysErrorCodeEnum.A01053);
+        }
         if (CollUtil.contains(ids, UserContextHolder.getUserId())) {
             // 不能动自身用户
             throw new BusinessException(SysErrorCodeEnum.A01020);
@@ -543,8 +570,8 @@ public class SysUserServiceImpl implements SysUserService {
                 Set<Long> requestedRoleIds = new HashSet<>(CollUtil.emptyIfNull(request.getRoleIds()));
                 Set<Long> existingRoleIds = CollUtil.isEmpty(requestedRoleIds) ? Set.of()
                         : sysRoleMapper.selectByIds(requestedRoleIds).stream()
-                                .map(SysRoleEntity::getId)
-                                .collect(java.util.stream.Collectors.toSet());
+                        .map(SysRoleEntity::getId)
+                        .collect(java.util.stream.Collectors.toSet());
                 if (!existingRoleIds.containsAll(requestedRoleIds)) {
                     throw new BusinessException(SysErrorCodeEnum.A01022);
                 }

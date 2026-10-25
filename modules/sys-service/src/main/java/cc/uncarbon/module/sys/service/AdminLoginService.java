@@ -5,7 +5,7 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
-import cc.uncarbon.module.sys.model.valueobj.AdminLoginTenantUIConfigVO;
+import cc.uncarbon.module.sys.model.valueobj.AdminLoginUIConfigVO;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -39,6 +39,6 @@ public interface AdminLoginService {
     /**
      * 后台管理-登录页，控制前端租户相关 UI
      */
-    AdminLoginTenantUIConfigVO getTenantUIConfig();
+    AdminLoginUIConfigVO getUIConfig();
 
 }

@@ -16,9 +16,8 @@ A01002: The user is disabled or locked
 A01003: The two passwords do not match
 A01004: The original password is incorrect
 A01005: The current user has no available role
-A01006: The current role has no available menu
-A01007: The new password cannot be the same as the old one
-A01008: The current account does not belong to any tenant and cannot log in
+A01006: The new password cannot be the same as the old one
+A01007: The current account does not belong to any tenant and cannot log in
 A01010: the {} cannot be used as a role code
 A01011: Special roles cannot be deleted
 A01012: You cannot delete your own role
@@ -46,6 +45,14 @@ A01041: The parent menu cannot be itself or one of its own sub-menus
 A01042: This menu contains sub-menus and cannot be deleted
 A01043: This dictionary category still has dictionary items and cannot be deleted
 A01044: The parent menu has been disabled
+A01045: This operation is only supported in user-first mode
+A01046: The account does not exist or is not available
+A01047: Superadmin cannot be added to a tenant
+A01048: The account is already a member of this tenant
+A01049: The tenant primary administrator cannot be removed
+A01051: Either the account name or the full phone number must be provided
+A01052: This operation is not supported in the platform domain
+A01053: In user-first mode, users cannot be deleted within a tenant; use remove-from-tenant instead
 B01001: Login component error, please contact the administrator
 B01002: The current login mode is not yet available, please contact the administrator
 
@@ -58,7 +65,7 @@ A03005: The same tenant code already exists
 A03006: The tenant has been disabled
 A03007: This tenant still has users and cannot be deleted
 A03008: Some tenants are still using this package, it cannot be deleted
-A03009: Menus visible only to the super administrator cannot be bound to tenant packages
+A03009: Menus visible only to superadmin cannot be bound to tenant packages
 A03010: The tenant code does not match the account's tenant
 A03011: Please enter the tenant code
 A03012: No permission to switch to this tenant

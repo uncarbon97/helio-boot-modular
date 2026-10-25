@@ -88,4 +88,13 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
         }
         update(new SysUserEntity().setId(userId), uw);
     }
+
+    /**
+     * 仅更新用户记忆租户
+     */
+    default void updateTenantId(long userId, Long tenantId) {
+        SysUserEntity entity = new SysUserEntity().setId(userId);
+        entity.setTenantId(tenantId);
+        updateById(entity);
+    }
 }

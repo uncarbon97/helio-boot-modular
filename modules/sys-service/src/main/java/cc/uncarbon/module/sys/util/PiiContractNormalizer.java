@@ -18,7 +18,7 @@ public class PiiContractNormalizer {
     /**
      * @return 归一化手机号；空白入参返回 null
      */
-    public static String cleanPhone(String raw) {
+    public static String normalizePhone(String raw) {
         String cleaned = raw == null ? null : PHONE.extract(raw);
         return cleaned == null || cleaned.isBlank() ? null : cleaned;
     }

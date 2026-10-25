@@ -7,6 +7,9 @@ import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexCalculator;
+import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
@@ -17,6 +20,7 @@ import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysDeptEntity;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
+import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
@@ -34,6 +38,7 @@ import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
+import cc.uncarbon.module.tenant.facade.TenantFacade;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -43,6 +48,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.List;
 import java.util.Set;
@@ -77,6 +83,8 @@ class SysUserServiceImplTest {
     private BlindIndexCalculator blindIndexCalculator;
     @Mock
     private SysUserTenantRelationMapper sysUserTenantRelationMapper;
+    @Mock
+    private ObjectProvider<TenantFacade> tenantFacadeProvider;
     @Spy
     private AuditNicknameFiller auditNicknameFiller = AuditNicknameFillerTestSupport.passThrough();
 
@@ -219,6 +227,41 @@ class SysUserServiceImplTest {
         Assertions.assertEquals("13800000000", saved.getPhoneNo());
         Assertions.assertEquals("a@b.c", saved.getEmail());
         Mockito.verify(sysUserDeptRelationService).cleanAndBind(123L, null);
+    }
+
+    @Test
+    void adminCreateDoubleWritesRelationRow() {
+        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
+        Mockito.when(sysUserMapper.insert(Mockito.any(SysUserEntity.class))).thenAnswer(inv -> {
+            var entity = inv.getArgument(0, SysUserEntity.class);
+            entity.setId(123L);
+            // 模拟 INSERT 时自动填充的租户投影列
+            entity.setTenantId(10L);
+            return 1;
+        });
+
+        service.adminCreate(createRequest(null));
+
+        // relation 为唯一真源，须与 sys_user 同事务双写
+        ArgumentCaptor<SysUserTenantRelationEntity> captor =
+                ArgumentCaptor.forClass(SysUserTenantRelationEntity.class);
+        Mockito.verify(sysUserTenantRelationMapper).insert(captor.capture());
+        Assertions.assertEquals(10L, captor.getValue().getTenantId());
+        Assertions.assertEquals(123L, captor.getValue().getUserId());
+    }
+
+    @Test
+    void adminCreateUserFirstDuplicatePinChecksGlobally() {
+        TenantFacade tenantFacade = Mockito.mock(TenantFacade.class);
+        Mockito.when(tenantFacadeProvider.getObject()).thenReturn(tenantFacade);
+        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        // USER_FIRST 下 pin 全局唯一，绕过行级过滤也应能查出他租户同名账号
+        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(new SysUserEntity().setId(1L));
+
+        var ex = Assertions.assertThrows(HasRepeatRecordException.class,
+                () -> withUser(0L, () -> service.adminCreate(createRequest(null))));
+        Assertions.assertEquals(SysErrorCodeEnum.A01030, ex.getErrorCode());
     }
 
     @Test
@@ -367,6 +410,34 @@ class SysUserServiceImplTest {
         Mockito.verify(sysUserDeptRelationService).cleanAndBind(8L, null);
         Mockito.verify(sysUserRoleRelationService).cleanAndBindByUser(8L, null);
         Mockito.verify(sysUserTenantRelationMapper).delete(Mockito.any());
+        Mockito.verify(sysUserMapper).deleteByIds(List.of(8L));
+    }
+
+    @Test
+    void adminDeleteUserFirstTenantDomainRejected() {
+        TenantFacade tenantFacade = Mockito.mock(TenantFacade.class);
+        Mockito.when(tenantFacadeProvider.getObject()).thenReturn(tenantFacade);
+        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+
+        var ex = Assertions.assertThrows(BusinessException.class, () -> withUser(7L, () ->
+                TenantContextHolder.runWithContext(new SimpleTenantContext(10L, "T10", "t10"),
+                        () -> service.adminDelete(List.of(8L)))));
+        Assertions.assertEquals(SysErrorCodeEnum.A01053, ex.getErrorCode());
+        Mockito.verify(sysUserMapper, Mockito.never()).deleteByIds(Mockito.anyCollection());
+    }
+
+    @Test
+    void adminDeleteUserFirstPlatformDomainAllowed() {
+        TenantFacade tenantFacade = Mockito.mock(TenantFacade.class);
+        Mockito.when(tenantFacadeProvider.getObject()).thenReturn(tenantFacade);
+        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(8L)).thenReturn(normalScope(8L, List.of(5L)));
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+
+        // 平台自营域（无租户上下文）保留全局删除
+        withUser(0L, () -> service.adminDelete(List.of(8L)));
+
         Mockito.verify(sysUserMapper).deleteByIds(List.of(8L));
     }
 

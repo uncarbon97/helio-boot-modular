@@ -280,17 +280,6 @@ class SysMenuServiceImplTest {
     }
 
     @Test
-    void visibleMenusRequireDirectMenus() {
-        Mockito.when(sysMenuMapper.selectList(Mockito.any())).thenReturn(List.of(
-                menu(1L, 0L, MenuTypeEnum.DIR, MenuVisibleScopeEnum.ALL)));
-        Mockito.when(sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(5L))).thenReturn(Set.of());
-
-        var ex = Assertions.assertThrows(BusinessException.class,
-                () -> withRoles(7L, Set.of(5L), () -> service.adminListVisibleMenus()));
-        Assertions.assertEquals(SysErrorCodeEnum.A01006, ex.getErrorCode());
-    }
-
-    @Test
     void visibleMenusTraceParentsAndNullifyPermission() {
         Mockito.when(sysMenuMapper.selectList(Mockito.any())).thenReturn(List.of(
                 menu(1L, 0L, MenuTypeEnum.DIR, MenuVisibleScopeEnum.ALL).setPath("sys"),

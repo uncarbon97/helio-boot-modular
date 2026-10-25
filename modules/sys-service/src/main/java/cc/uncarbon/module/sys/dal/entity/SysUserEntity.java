@@ -124,7 +124,7 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
      * 归一化手机号后赋值
      */
     public SysUserEntity setCleanPhoneNo(String raw) {
-        return setPhoneNo(PiiContractNormalizer.cleanPhone(raw));
+        return setPhoneNo(PiiContractNormalizer.normalizePhone(raw));
     }
 
     /**
@@ -142,7 +142,7 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
         @Override
         public String extract(String rawValue) {
             // 与「手机号全串盲索引」的处理过程一致，先走 CleanTrim
-            final String cleaned = PiiContractNormalizer.cleanPhone(rawValue);
+            final String cleaned = PiiContractNormalizer.normalizePhone(rawValue);
             return BlindIndexValueExtractors.TailDigits.of(4).extract(cleaned);
         }
     }

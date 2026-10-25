@@ -102,7 +102,7 @@ class AdminUCenterServiceImplTest {
         Mockito.verify(sysUserMapper).updateEncryptedPwd(
                 Mockito.eq(3L), pwdCaptor.capture(), Mockito.eq(YesOrNoEnum.NO));
         Assertions.assertTrue(pwdCaptor.getValue().startsWith("$argon2id$"));
-        // 注：A01007（新旧密码相同）依赖哈希碰撞，随机盐下不可达，不测试
+        // 注：A01006（新旧密码相同）依赖哈希碰撞，随机盐下不可达，不测试
     }
 
     @Test

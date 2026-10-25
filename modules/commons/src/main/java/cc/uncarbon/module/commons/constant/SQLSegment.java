@@ -19,4 +19,10 @@ public final class SQLSegment {
      * ... LIMIT 1
      */
     public static final String LIMIT_1 = LIMIT + "1";
+
+    /**
+     * ... LIMIT 5
+     */
+    public static final String LIMIT_5 = LIMIT + "5";
+
 }

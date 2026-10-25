@@ -11,13 +11,12 @@ import java.io.Serializable;
 
 /**
  * 后台管理-登录页，控制前端租户相关 UI
- * 禁止前端本地硬编码开关常量
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class AdminLoginTenantUIConfigVO implements Serializable {
+public class AdminLoginUIConfigVO implements Serializable {
 
     @Schema(description = "是否显示租户编码输入框")
     private boolean showTenantCodeInputFlag = false;

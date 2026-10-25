@@ -52,7 +52,7 @@ public class AdminUCenterServiceImpl implements AdminUCenterService {
         }
         final String encryptPwd = PwdUtil.hash(request.getNeo());
         if (entity.getPwd().equals(encryptPwd)) {
-            throw new BusinessException(SysErrorCodeEnum.A01007);
+            throw new BusinessException(SysErrorCodeEnum.A01006);
         }
         sysUserMapper.updateEncryptedPwd(userId, encryptPwd, YesOrNoEnum.NO);
     }

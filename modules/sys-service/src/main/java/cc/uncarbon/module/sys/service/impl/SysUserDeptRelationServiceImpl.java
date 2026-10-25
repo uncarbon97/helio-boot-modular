@@ -59,9 +59,7 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void cleanAndBind(Long userId, @Nullable Long deptId) {
-        sysUserDeptRelationMapper.delete(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
-                .eq(SysUserDeptRelationEntity::getUserId, userId)
-        );
+        sysUserDeptRelationMapper.deleteByUserId(userId);
 
         if (Objects.nonNull(deptId)) {
             // 需要绑定部门
@@ -71,8 +69,6 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
 
     @Override
     public void cleanAllBindings(long deptId) {
-        sysUserDeptRelationMapper.delete(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
-                .eq(SysUserDeptRelationEntity::getDeptId, deptId)
-        );
+        sysUserDeptRelationMapper.deleteByDeptId(deptId);
     }
 }

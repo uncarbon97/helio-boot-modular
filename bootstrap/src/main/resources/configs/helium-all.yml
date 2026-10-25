@@ -8,7 +8,7 @@
       # 雪花ID-数据中心ID
       datacenter-id: ${DATACENTER_ID:0}
       # 雪花ID-起始日期-可以选用项目开工的日期-这个一旦确定就不要改动了
-      epoch-date: '2026-07-17'
+      epoch-date: '2026-10-01'
   # Mybatis-plus
   mybatis-plus:
     optimistic-lock:
@@ -16,14 +16,14 @@
       enabled: true
   # 敏感字段加密
   field-crypto:
-    # 数据根密钥，长周期使用；⭐生产环境下必须重新生成，并严格保管避免泄露
+    # 数据根密钥，长周期使用；⭐生产环境下必须重新生成（参考命令  openssl rand -base64 32），并严格保管避免泄露
     data-root-key: ${FIELD_CRYPTO_DATA_ROOT_KEY:VWXdGdmLstm8gRyjnUg9g39/753vIxJRs2O6hq9RnwY=}
-    # 盲索引根密钥，长周期使用；⭐生产环境下必须重新生成，并严格保管避免泄露
+    # 盲索引根密钥，长周期使用；⭐生产环境下必须重新生成（参考命令  openssl rand -base64 32），并严格保管避免泄露
     index-root-key: ${FIELD_CRYPTO_INDEX_ROOT_KEY:VUor7frshJ4XMA676d+B2gkv06slY5ILzzamwqv9UQY=}
     # 数据加密可用 keyId，轮换时加入例如 k2、k3 等
     data-key-ids:
       - k1
-#    active-data-key-id: ${FIELD_CRYPTO_ACTIVE_DATA_KEY_ID}
+    active-data-key-id: ${FIELD_CRYPTO_ACTIVE_DATA_KEY_ID:k1}
     # 数据根密钥泄露时，处置临时开启（成对配置，收尾即移除）：
 #    previous-data-root-key: ${FIELD_CRYPTO_PREVIOUS_DATA_ROOT_KEY}
     # 不得与 data-key-ids 有交集（即存在相同的 keyId）
@@ -77,5 +77,3 @@
     # 个人敏感信息
     - email
     - phoneNo
-    # 昵称（P0 后仍明文，bizlog/日志脱敏先行覆盖，§5.5 / §7）
-    - nickname

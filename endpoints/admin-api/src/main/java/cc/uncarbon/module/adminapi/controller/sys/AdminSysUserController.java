@@ -18,7 +18,9 @@ import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
+import cc.uncarbon.module.sys.model.valueobj.TenantUserLookupVO;
 import cc.uncarbon.module.sys.service.SysDeptService;
+import cc.uncarbon.module.sys.service.SysUserFirstTenantService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
@@ -53,6 +55,7 @@ public class AdminSysUserController {
     static final String BIZ_TYPE = "系统用户管理";
 
     private final SysUserService sysUserService;
+    private final SysUserFirstTenantService sysUserFirstTenantService;
     private final SysDeptService sysDeptService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final ApplicationEventPublisher eventPublisher;
@@ -189,6 +192,37 @@ public class AdminSysUserController {
         // 防止跨租户/越权枚举用户关联角色
         sysUserService.checkUserQueryAccess(request.getId());
         return ApiResult.success(sysUserRoleRelationService.listRoleIdsByUser(request.getId()));
+    }
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @Operation(summary = "全局找人（仅用户优先模式）")
+    @PostMapping(value = "/lookup")
+    public ApiResult<List<TenantUserLookupVO>> lookup(@RequestBody @Valid TenantUserLookupRequest request) {
+        return ApiResult.success(sysUserFirstTenantService.lookupUsers(request));
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "拉入本租户", bizNo = "{{#request.pin}}",
+            success = "拉入本租户：{{#request.pin}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "join")
+    @Operation(summary = "拉入本租户（仅用户优先模式）")
+    @PostMapping(value = "/tenant-join")
+    public ApiResult<Void> tenantJoin(@RequestBody @Valid TenantUserJoinRequest request) {
+        sysUserFirstTenantService.joinTenant(request);
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "移出本租户", bizNo = "{{#old.pin}}",
+            success = "移出本租户：{{#old.pin}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "join")
+    @Operation(summary = "移出本租户（仅用户优先模式）")
+    @PostMapping(value = "/tenant-expel")
+    public ApiResult<Void> tenantExpel(@RequestBody @Valid TenantUserExpelRequest request) {
+        var old = sysUserFirstTenantService.expelTenantMember(request);
+        // 成员资格变更后强制下线，按剩余关联租户重新登录
+        kickOutAsync(request.getUserId());
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
     }
 
     /*

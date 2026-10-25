@@ -5,6 +5,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
 import cc.uncarbon.framework.helium.tenant.props.HeliumTenantProperties;
+import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.facade.TenantUserRoleFacade;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
@@ -130,12 +131,11 @@ class TenantFacadeImplTest {
 
     @Test
     void listSelectableTenantsSuperAdminExcludesPlatform() {
-        Mockito.when(tenantUserRoleFacade.isSuperAdmin(1L)).thenReturn(true);
         Mockito.when(tenantService.listEnabled()).thenReturn(List.of(
                 meta(TenantConstant.PLATFORM_TENANT_ID, EnabledStatusEnum.ENABLED),
                 meta(5L, EnabledStatusEnum.ENABLED)));
 
-        var ret = facade.listSelectableTenants(1L);
+        var ret = facade.listSelectableTenants(SysConstant.SUPER_ADMIN_USER_ID);
 
         Assertions.assertEquals(1, ret.size());
         Assertions.assertEquals(5L, ret.get(0).getTenantId());
@@ -143,7 +143,6 @@ class TenantFacadeImplTest {
 
     @Test
     void listSelectableTenantsUserFirstExpandsRelations() {
-        Mockito.when(tenantUserRoleFacade.isSuperAdmin(2L)).thenReturn(false);
         Mockito.when(props.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         Mockito.when(tenantUserRoleFacade.listEnabledTenantIdsByUser(2L)).thenReturn(List.of(5L, 0L, 9L));
         Mockito.when(tenantService.getById(5L, false)).thenReturn(meta(5L, EnabledStatusEnum.ENABLED));
@@ -159,7 +158,6 @@ class TenantFacadeImplTest {
 
     @Test
     void listSelectableTenantsTenantFirstYieldsHomeOnly() {
-        Mockito.when(tenantUserRoleFacade.isSuperAdmin(2L)).thenReturn(false);
         Mockito.when(props.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
         Mockito.when(tenantUserRoleFacade.getUserHomeTenantId(2L)).thenReturn(5L);
         Mockito.when(tenantService.getById(5L, false)).thenReturn(meta(5L, EnabledStatusEnum.ENABLED));
@@ -172,7 +170,6 @@ class TenantFacadeImplTest {
 
     @Test
     void listSelectableTenantsSwallowsFailure() {
-        Mockito.when(tenantUserRoleFacade.isSuperAdmin(2L)).thenReturn(false);
         Mockito.when(props.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
         Mockito.when(tenantUserRoleFacade.getUserHomeTenantId(2L)).thenThrow(new RuntimeException("x"));
 
@@ -208,11 +205,10 @@ class TenantFacadeImplTest {
     @Test
     void assertSwitchableBranches() {
         // 超管通行
-        Mockito.when(tenantUserRoleFacade.isSuperAdmin(1L)).thenReturn(true);
-        Assertions.assertDoesNotThrow(() -> facade.assertSwitchable(1L, 5L));
+        Assertions.assertDoesNotThrow(() ->
+                facade.assertSwitchable(SysConstant.SUPER_ADMIN_USER_ID, 5L));
 
         // USER_FIRST 关联租户可切
-        Mockito.when(tenantUserRoleFacade.isSuperAdmin(2L)).thenReturn(false);
         Mockito.when(props.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         Mockito.when(tenantUserRoleFacade.listEnabledTenantIdsByUser(2L)).thenReturn(List.of(5L));
         Assertions.assertDoesNotThrow(() -> facade.assertSwitchable(2L, 5L));

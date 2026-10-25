@@ -39,15 +39,12 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
 
         if (CollUtil.isEmpty(roleIds)) {
             // 清除绑定，直接删除所有关联关系就行
-            sysUserRoleRelationMapper.delete(roleIdsQuery);
+            sysUserRoleRelationMapper.deleteByUserId(userId);
             return;
         }
 
         // 先删除不再需要的关联关系
-        sysUserRoleRelationMapper.delete(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
-                .eq(SysUserRoleRelationEntity::getUserId, userId)
-                .notIn(SysUserRoleRelationEntity::getRoleId, roleIds)
-        );
+        sysUserRoleRelationMapper.deleteByUserIdAndRoleIdNotIn(userId, roleIds);
 
         // 深拷贝，取出需要增量更新的部分
         List<Long> needAppendedIds = new ArrayList<>(roleIds);
@@ -78,10 +75,6 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteByRoleIds(Collection<Long> roleIds) {
-        if (CollUtil.isEmpty(roleIds)) {
-            return;
-        }
-        sysUserRoleRelationMapper.delete(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
-                .in(SysUserRoleRelationEntity::getRoleId, roleIds));
+        sysUserRoleRelationMapper.deleteByRoleIds(roleIds);
     }
 }

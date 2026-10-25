@@ -251,9 +251,7 @@ public class SysDictServiceImpl implements SysDictService {
     @Override
     public void adminDeleteItem(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除字典项 >> {}", ids);
-        sysDictItemMapper.delete(new LambdaQueryWrapper<SysDictItemEntity>()
-                .in(SysDictItemEntity::getId, ids)
-        );
+        sysDictItemMapper.deleteByIds(ids);
     }
 
     @Override

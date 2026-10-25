@@ -206,7 +206,7 @@ class AdminLoginServiceImplTest {
 
         var ex = Assertions.assertThrows(BusinessException.class,
                 () -> service.passwordLogin(request(RAW_PWD), visitor()));
-        Assertions.assertEquals(SysErrorCodeEnum.A01008, ex.getErrorCode());
+        Assertions.assertEquals(SysErrorCodeEnum.A01007, ex.getErrorCode());
     }
 
     @Test
@@ -221,6 +221,26 @@ class AdminLoginServiceImplTest {
         var ex = Assertions.assertThrows(BusinessException.class,
                 () -> service.passwordLogin(request(RAW_PWD), visitor()));
         Assertions.assertEquals(TenantErrorCodeEnum.A03006, ex.getErrorCode());
+    }
+
+    @Test
+    void userFirstStaleRememberedTenantIgnored() {
+        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        // 记忆租户 99 不在启用关联集合内（如已被移出租户），候选只剩 7
+        SysUserEntity u2 = user();
+        u2.setTenantId(99L);
+        Mockito.when(sysUserMapper.getByPin("u2")).thenReturn(u2);
+        Mockito.when(tenantUserRoleFacade.listEnabledTenantIdsByUser(USER_ID)).thenReturn(List.of(7L));
+        Mockito.when(tenantFacade.resolveEnabledTenant(7L)).thenReturn(ctx(7L));
+        Mockito.when(userRoleHelper.getSpecifiedUserRole(USER_ID)).thenReturn(roleScope());
+        Mockito.when(sysMenuService.getPermissionsByRole(Mockito.anyCollection()))
+                .thenReturn(Map.of(5L, Set.of("p1")));
+        Mockito.when(tenantFacade.listSelectableTenants(USER_ID)).thenReturn(List.of(ctx(7L)));
+
+        SysUserLoginResult ret = service.passwordLogin(request(RAW_PWD), visitor());
+
+        Assertions.assertEquals(7L, ret.getTenantContext().getTenantId());
+        Mockito.verify(tenantFacade, Mockito.never()).resolveEnabledTenant(99L);
     }
 
     @Test
@@ -289,16 +309,16 @@ class AdminLoginServiceImplTest {
     }
 
     @Test
-    void getTenantUIConfigBranches() {
+    void getUIConfigBranches() {
         Mockito.when(tenantFacade.isTenantEnabled()).thenReturn(false);
         Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
-        Assertions.assertFalse(service.getTenantUIConfig().isShowTenantCodeInputFlag());
+        Assertions.assertFalse(service.getUIConfig().isShowTenantCodeInputFlag());
 
         Mockito.when(tenantFacade.isTenantEnabled()).thenReturn(true);
-        Assertions.assertTrue(service.getTenantUIConfig().isShowTenantCodeInputFlag());
+        Assertions.assertTrue(service.getUIConfig().isShowTenantCodeInputFlag());
 
         Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
-        Assertions.assertFalse(service.getTenantUIConfig().isShowTenantCodeInputFlag());
+        Assertions.assertFalse(service.getUIConfig().isShowTenantCodeInputFlag());
     }
 
 

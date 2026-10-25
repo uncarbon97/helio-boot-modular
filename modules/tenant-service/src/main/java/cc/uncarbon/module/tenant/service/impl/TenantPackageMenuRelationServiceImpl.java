@@ -47,15 +47,12 @@ public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRe
                 .eq(TenantPackageMenuRelationEntity::getPackageId, packageId);
 
         if (CollUtil.isEmpty(menuIds)) {
-            tenantPackageMenuRelationMapper.delete(menuIdsQuery);
+            tenantPackageMenuRelationMapper.deleteByPackageId(packageId);
             return;
         }
 
         // 先删除不再需要的关联关系
-        tenantPackageMenuRelationMapper.delete(new LambdaQueryWrapper<TenantPackageMenuRelationEntity>()
-                .eq(TenantPackageMenuRelationEntity::getPackageId, packageId)
-                .notIn(TenantPackageMenuRelationEntity::getMenuId, menuIds)
-        );
+        tenantPackageMenuRelationMapper.deleteByPackageIdAndMenuIdNotIn(packageId, menuIds);
 
         // 取出需要增量更新的部分
         Set<Long> existingMenuIds = tenantPackageMenuRelationMapper.selectList(menuIdsQuery)

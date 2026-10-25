@@ -189,6 +189,7 @@ INSERT INTO `sys_menu` VALUES (105, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, 
 INSERT INTO `sys_menu` VALUES (106, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改部门', 10, 2, 1, '', 'sys:user:bind-dept', 1, '', 4, NULL, '');
 INSERT INTO `sys_menu` VALUES (107, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '重置密码', 10, 2, 1, '', 'sys:user:reset-password', 1, '', 4, NULL, '');
 INSERT INTO `sys_menu` VALUES (108, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '踢下线', 10, 2, 1, '', 'sys:user:kick-out', 1, '', 4, NULL, '');
+INSERT INTO `sys_menu` VALUES (109, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '租户成员管理', 10, 2, 1, '', 'sys:user:join', 1, '', 5, NULL, '');
 INSERT INTO `sys_menu` VALUES (111, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 11, 2, 1, '', 'sys:role:read', 1, '', 1, NULL, '');
 INSERT INTO `sys_menu` VALUES (112, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 11, 2, 1, '', 'sys:role:create', 1, '', 2, NULL, '');
 INSERT INTO `sys_menu` VALUES (113, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 11, 2, 1, '', 'sys:role:update', 1, '', 3, NULL, '');

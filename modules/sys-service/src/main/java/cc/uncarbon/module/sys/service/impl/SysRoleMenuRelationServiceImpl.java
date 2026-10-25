@@ -68,15 +68,12 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
 
         if (CollUtil.isEmpty(menuIds)) {
             // 清除绑定，直接删除所有关联关系就行
-            sysRoleMenuRelationMapper.delete(menuIdsQuery);
+            sysRoleMenuRelationMapper.deleteByRoleId(roleId);
             return;
         }
 
         // 先删除不再需要的关联关系
-        sysRoleMenuRelationMapper.delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
-                .eq(SysRoleMenuRelationEntity::getRoleId, roleId)
-                .notIn(SysRoleMenuRelationEntity::getMenuId, menuIds)
-        );
+        sysRoleMenuRelationMapper.deleteByRoleIdAndMenuIdNotIn(roleId, menuIds);
 
         // 深拷贝，取出需要增量更新的部分
         List<Long> needAppendedIds = new ArrayList<>(menuIds);
@@ -96,20 +93,12 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteByRoleIds(Collection<Long> roleIds) {
-        if (CollUtil.isEmpty(roleIds)) {
-            return;
-        }
-        sysRoleMenuRelationMapper.delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
-                .in(SysRoleMenuRelationEntity::getRoleId, roleIds));
+        sysRoleMenuRelationMapper.deleteByRoleIds(roleIds);
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void deleteByMenuIds(Collection<Long> menuIds) {
-        if (CollUtil.isEmpty(menuIds)) {
-            return;
-        }
-        sysRoleMenuRelationMapper.delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
-                .in(SysRoleMenuRelationEntity::getMenuId, menuIds));
+        sysRoleMenuRelationMapper.deleteByMenuIds(menuIds);
     }
 }

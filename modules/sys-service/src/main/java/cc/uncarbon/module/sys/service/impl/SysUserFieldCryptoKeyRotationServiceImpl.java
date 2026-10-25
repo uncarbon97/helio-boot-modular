@@ -1,7 +1,6 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexCalculator;
-import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexValueExtractors;
 import cc.uncarbon.framework.helium.db.fieldcrypto.constant.FieldCryptoConstant;
 import cc.uncarbon.framework.helium.db.fieldcrypto.field.FieldCipher;
 import cc.uncarbon.framework.helium.db.fieldcrypto.field.FieldCipherContext;
@@ -15,6 +14,7 @@ import cc.uncarbon.module.sys.model.internal.RootKeyRotationOptions;
 import cc.uncarbon.module.sys.model.internal.RotationOptions;
 import cc.uncarbon.module.sys.model.internal.RotationResult;
 import cc.uncarbon.module.sys.service.SysUserFieldCryptoKeyRotationService;
+import cc.uncarbon.module.sys.util.PiiContractNormalizer;
 import cn.hutool.core.thread.ThreadUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
@@ -341,7 +341,7 @@ public class SysUserFieldCryptoKeyRotationServiceImpl implements SysUserFieldCry
         List<String> bad = new ArrayList<>(3);
         if (row.getPhoneNo() != null) {
             String expectFull = blindIndexCalculator.compute(SysUserCipherCols.PHONE_FULL_PURPOSE,
-                    new BlindIndexValueExtractors.CleanTrim().extract(row.getPhoneNo()));
+                    PiiContractNormalizer.normalizePhone(row.getPhoneNo()));
             if (!Objects.equals(expectFull, row.getPhoneNoFullBlindIndex())) {
                 bad.add(SysUserCipherCols.PHONE_FULL_PURPOSE);
             }
@@ -353,7 +353,7 @@ public class SysUserFieldCryptoKeyRotationServiceImpl implements SysUserFieldCry
         }
         if (row.getEmail() != null) {
             String expectEmail = blindIndexCalculator.compute(SysUserCipherCols.EMAIL_FULL_PURPOSE,
-                    new BlindIndexValueExtractors.LowerTrim().extract(row.getEmail()));
+                    PiiContractNormalizer.normalizeEmail(row.getEmail()));
             if (!Objects.equals(expectEmail, row.getEmailFullBlindIndex())) {
                 bad.add(SysUserCipherCols.EMAIL_FULL_PURPOSE);
             }
