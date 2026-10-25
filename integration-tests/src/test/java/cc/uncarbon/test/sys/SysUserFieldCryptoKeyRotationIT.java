@@ -181,6 +181,7 @@ class SysUserFieldCryptoKeyRotationIT extends BaseIntegrationTest {
         profileCipher = FieldCipherContext.getRequired();
         // 清理历史中断运行可能残留的同前缀测试行，保证 processedRows 断言确定
         TenantContextHolder.runIgnored(() -> sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                        .select(SysUserEntity::getId)
                         .likeRight(SysUserEntity::getPin, PIN_PREFIX))
                 .forEach(u -> sysUserMapper.deleteById(u.getId())));
     }
@@ -194,6 +195,7 @@ class SysUserFieldCryptoKeyRotationIT extends BaseIntegrationTest {
     void cleanup() {
         FieldCipherContext.register(profileCipher);
         TenantContextHolder.runIgnored(() -> sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                        .select(SysUserEntity::getId)
                         .likeRight(SysUserEntity::getPin, PIN_PREFIX))
                 .forEach(u -> sysUserMapper.deleteById(u.getId())));
     }

@@ -7,7 +7,7 @@ import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.valueobj.AdminLoginUIConfigVO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
-import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.util.TenantUtil;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminUIConfigController {
 
     private final AdminLoginService adminLoginService;
-    private final TenantFacade tenantFacade;
+    private final TenantConfigFacade tenantConfigFacade;
 
 
     @Operation(summary = "获取租户相关UI配置")
@@ -47,7 +47,7 @@ public class AdminUIConfigController {
     @PostMapping(value = "/sys-user")
     public ApiResult<AdminSysUserUIConfigVO> sysUserUIConfig() {
         boolean platformDomainFlag = TenantUtil.isPlatformDomain(TenantContextHolder.getTenantId());
-        return ApiResult.success(AdminSysUserUIConfigVO.of(tenantFacade.getLoginMode(), platformDomainFlag));
+        return ApiResult.success(AdminSysUserUIConfigVO.of(tenantConfigFacade.getLoginMode(), platformDomainFlag));
     }
 
 }

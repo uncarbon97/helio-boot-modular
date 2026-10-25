@@ -5,7 +5,7 @@ import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
 import cc.uncarbon.module.adminapi.constant.AdminCacheKeyConstant;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
 import cc.uncarbon.module.adminapi.props.LoginFailureGuardProperties;
-import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cn.hutool.core.text.CharSequenceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -30,7 +30,7 @@ public class LoginFailureGuard {
 
     private final RedisTemplate<String, String> stringRedisTemplate;
     private final LoginFailureGuardProperties props;
-    private final TenantFacade tenantFacade;
+    private final TenantConfigFacade tenantConfigFacade;
 
 
     /**
@@ -67,7 +67,7 @@ public class LoginFailureGuard {
      */
     private String cacheKey(String tenantCode, String pin) {
         String normalizedPin = CharSequenceUtil.nullToEmpty(pin);
-        TenantLoginModeEnum loginMode = tenantFacade.getLoginMode();
+        TenantLoginModeEnum loginMode = tenantConfigFacade.getLoginMode();
         if (loginMode == TenantLoginModeEnum.TENANT_FIRST) {
             // 租户优先：按「租户编码+账号」计数
             return String.format(AdminCacheKeyConstant.LOGIN_CHALLENGE_FAIL_COUNT,

@@ -1,5 +1,6 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
+import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
 import cc.uncarbon.module.adminapi.support.loginchallenge.strategy.LoginChallengeStrategy;
@@ -27,7 +28,8 @@ class AdminAuthControllerTest {
                 Mockito.mock(AdminLoginService.class),
                 new LoginChallengeProperties(),
                 List.of(),
-                Mockito.mock(LoginFailureGuard.class));
+                Mockito.mock(LoginFailureGuard.class),
+                Mockito.mock(RolePermissionCacheHelper.class));
 
         var ret = controller.challenge();
 
@@ -45,7 +47,7 @@ class AdminAuthControllerTest {
 
         AdminAuthController controller = new AdminAuthController(
                 Mockito.mock(AdminLoginService.class), props, List.of(strategy),
-                Mockito.mock(LoginFailureGuard.class));
+                Mockito.mock(LoginFailureGuard.class), Mockito.mock(RolePermissionCacheHelper.class));
 
         var ret = controller.challenge();
 
@@ -59,7 +61,7 @@ class AdminAuthControllerTest {
 
         AdminAuthController controller = new AdminAuthController(
                 Mockito.mock(AdminLoginService.class), props, List.of(),
-                Mockito.mock(LoginFailureGuard.class));
+                Mockito.mock(LoginFailureGuard.class), Mockito.mock(RolePermissionCacheHelper.class));
 
         Assertions.assertThrows(IllegalStateException.class, controller::validateChallengeStrategyConfig);
     }

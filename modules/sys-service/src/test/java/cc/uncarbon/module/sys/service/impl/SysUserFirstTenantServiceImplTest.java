@@ -24,11 +24,14 @@ import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.model.valueobj.TenantUserLookupVO;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
+import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -68,10 +71,17 @@ class SysUserFirstTenantServiceImplTest {
     @Mock
     private TenantFacade tenantFacade;
     @Mock
+    private TenantConfigFacade tenantConfigFacade;
+    @Mock
     private BlindIndexCalculator blindIndexCalculator;
 
     @InjectMocks
     private SysUserFirstTenantServiceImpl service;
+
+    @BeforeEach
+    void stubUserFirstMode() {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+    }
 
 
     /*
@@ -83,7 +93,7 @@ class SysUserFirstTenantServiceImplTest {
     @Test
     void lookupByPinReturnsMaskedProfileAndMemberFlag() {
         Mockito.when(sysUserMapper.getByPin("u66")).thenReturn(enabledUser());
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(true);
 
         List<TenantUserLookupVO> ret = withTenantContext(() ->
                 service.lookupUsers(new TenantUserLookupRequest().setPin("u66")));
@@ -101,7 +111,7 @@ class SysUserFirstTenantServiceImplTest {
         Mockito.when(blindIndexCalculator.compute(Mockito.eq(SysUserCipherCols.PHONE_FULL_PURPOSE),
                 Mockito.eq("13800000000"))).thenReturn("IDX");
         Mockito.when(sysUserMapper.selectList(Mockito.any())).thenReturn(List.of(enabledUser()));
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(false);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(false);
 
         List<TenantUserLookupVO> ret = withTenantContext(() ->
                 service.lookupUsers(new TenantUserLookupRequest().setPhoneNo("13800000000")));
@@ -120,7 +130,7 @@ class SysUserFirstTenantServiceImplTest {
                 enabledUser(),
                 enabledUser().setId(67L).setPin("u67").setNickname("n67"),
                 enabledUser().setId(68L).setPin("u68").setStatus(SysUserStatusEnum.DISABLED)));
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(false);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(false);
 
         List<TenantUserLookupVO> ret = withTenantContext(() ->
                 service.lookupUsers(new TenantUserLookupRequest().setPhoneNo("13800000000")));
@@ -176,7 +186,7 @@ class SysUserFirstTenantServiceImplTest {
 
     @Test
     void joinTenantFirstModeRejected() {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
 
         var ex = Assertions.assertThrows(BusinessException.class, () -> withTenantContext(() ->
                 service.joinTenant(new TenantUserJoinRequest().setPin("u66"))));
@@ -198,7 +208,7 @@ class SysUserFirstTenantServiceImplTest {
         mockUserFirstMode();
         Mockito.when(tenantFacade.resolveEnabledTenant(TENANT_ID)).thenReturn(tenantContext());
         Mockito.when(sysUserMapper.getByPin("u66")).thenReturn(enabledUser());
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(true);
 
         var ex = Assertions.assertThrows(BusinessException.class, () -> withTenantContext(() ->
                 service.joinTenant(new TenantUserJoinRequest().setPin("u66"))));
@@ -222,7 +232,7 @@ class SysUserFirstTenantServiceImplTest {
         mockUserFirstMode();
         Mockito.when(tenantFacade.resolveEnabledTenant(TENANT_ID)).thenReturn(tenantContext());
         Mockito.when(sysUserMapper.getByPin("u66")).thenReturn(enabledUser());
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(false);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(false);
 
         withTenantContext(() -> service.joinTenant(
                 new TenantUserJoinRequest().setPin("u66").setRoleIds(List.of(91L))));
@@ -241,7 +251,7 @@ class SysUserFirstTenantServiceImplTest {
         mockUserFirstMode();
         Mockito.when(tenantFacade.resolveEnabledTenant(TENANT_ID)).thenReturn(tenantContext());
         Mockito.when(sysUserMapper.getByPin("u66")).thenReturn(enabledUser());
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(false);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(false);
 
         withTenantContext(() -> service.joinTenant(new TenantUserJoinRequest().setPin("u66")));
 
@@ -281,14 +291,15 @@ class SysUserFirstTenantServiceImplTest {
     void expelNonMemberIdempotent() {
         mockUserFirstMode();
         Mockito.when(sysUserMapper.selectById(66L)).thenReturn(enabledUser());
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(false);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(false);
 
         SysUserDTO ret = withTenantContext(() ->
                 service.expelTenantMember(new TenantUserExpelRequest().setUserId(66L)));
 
         // 仍返回被操作用户，供操作日志展示 pin
         Assertions.assertEquals("u66", ret.getPin());
-        Mockito.verify(sysUserTenantRelationMapper, Mockito.never()).delete(Mockito.any());
+        Mockito.verify(sysUserTenantRelationMapper, Mockito.never())
+                .deleteByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong());
         Mockito.verify(sysUserRoleRelationService, Mockito.never())
                 .cleanAndBindByUser(Mockito.any(), Mockito.any());
     }
@@ -297,7 +308,7 @@ class SysUserFirstTenantServiceImplTest {
     void expelRepairsProjectionWhenPointingHere() {
         mockUserFirstMode();
         Mockito.when(sysUserMapper.selectById(66L)).thenReturn(enabledUser());
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(true);
         Mockito.when(tenantUserRoleFacade.getUserHomeTenantId(66L)).thenReturn(TENANT_ID);
         Mockito.when(tenantUserRoleFacade.listEnabledTenantIdsByUser(66L)).thenReturn(List.of(7L, 8L));
 
@@ -305,38 +316,39 @@ class SysUserFirstTenantServiceImplTest {
                 service.expelTenantMember(new TenantUserExpelRequest().setUserId(66L)));
 
         Assertions.assertEquals("u66", ret.getPin());
-        Mockito.verify(sysUserTenantRelationMapper).delete(Mockito.any());
+        Mockito.verify(sysUserTenantRelationMapper).deleteByTenantIdAndUserId(TENANT_ID, 66L);
         // 清理本租户内角色/部门关系
         Mockito.verify(sysUserRoleRelationService).cleanAndBindByUser(66L, null);
         Mockito.verify(sysUserDeptRelationService).cleanAndBind(66L, null);
         // 投影列改指首个剩余启用租户
-        Mockito.verify(sysUserMapper).update(Mockito.any(), Mockito.any());
+        Mockito.verify(sysUserMapper).updateTenantId(66L, 7L);
     }
 
     @Test
     void expelKeepsProjectionWhenPointingElsewhere() {
         mockUserFirstMode();
         Mockito.when(sysUserMapper.selectById(66L)).thenReturn(enabledUser());
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(true);
         Mockito.when(tenantUserRoleFacade.getUserHomeTenantId(66L)).thenReturn(99L);
 
         withTenantContext(() -> service.expelTenantMember(new TenantUserExpelRequest().setUserId(66L)));
 
-        Mockito.verify(sysUserTenantRelationMapper).delete(Mockito.any());
-        Mockito.verify(sysUserMapper, Mockito.never()).update(Mockito.any(), Mockito.any());
+        Mockito.verify(sysUserTenantRelationMapper).deleteByTenantIdAndUserId(TENANT_ID, 66L);
+        Mockito.verify(sysUserMapper, Mockito.never())
+                .updateTenantId(Mockito.anyLong(), Mockito.any());
     }
 
     @Test
     void expelFallsBackToPlatformWhenNoRemaining() {
         mockUserFirstMode();
         Mockito.when(sysUserMapper.selectById(66L)).thenReturn(enabledUser());
-        Mockito.when(sysUserTenantRelationMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(sysUserTenantRelationMapper.existsByTenantIdAndUserId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(true);
         Mockito.when(tenantUserRoleFacade.getUserHomeTenantId(66L)).thenReturn(TENANT_ID);
         Mockito.when(tenantUserRoleFacade.listEnabledTenantIdsByUser(66L)).thenReturn(List.of());
 
         withTenantContext(() -> service.expelTenantMember(new TenantUserExpelRequest().setUserId(66L)));
 
-        Mockito.verify(sysUserMapper).update(Mockito.any(), Mockito.any());
+        Mockito.verify(sysUserMapper).updateTenantId(66L, TenantConstant.PLATFORM_TENANT_ID);
     }
 
     @Test
@@ -356,7 +368,7 @@ class SysUserFirstTenantServiceImplTest {
      */
 
     private void mockUserFirstMode() {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
     }
 
     private SimpleTenantContext tenantContext() {

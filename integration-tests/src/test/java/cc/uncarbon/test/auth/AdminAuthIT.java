@@ -17,7 +17,7 @@ import cc.uncarbon.module.sys.model.valueobj.SysLoginLogDTO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
 import cc.uncarbon.module.sys.service.SysLoginLogService;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
-import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.service.TenantService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
@@ -59,7 +59,7 @@ class AdminAuthIT extends BaseIntegrationTest {
     @Resource
     private SysLoginLogMapper loginLogMapper;
     @Resource
-    private TenantFacade tenantFacade;
+    private TenantConfigFacade tenantConfigFacade;
     @Resource
     private TenantMetaMapper tenantMetaMapper;
 
@@ -74,7 +74,7 @@ class AdminAuthIT extends BaseIntegrationTest {
                 .setTenantAdminPin(adminPin).setTenantAdminPwd(PWD)
                 .setTenantAdminEmail("it@a.b.c").setTenantAdminPhoneNo("13800001111"));
 
-        boolean tenantFirst = tenantFacade.getLoginMode() == TenantLoginModeEnum.TENANT_FIRST;
+        boolean tenantFirst = tenantConfigFacade.getLoginMode() == TenantLoginModeEnum.TENANT_FIRST;
 
         // 成功登录：租户管理员角色与租户上下文
         SysUserLoginResult ok = adminLoginService.passwordLogin(

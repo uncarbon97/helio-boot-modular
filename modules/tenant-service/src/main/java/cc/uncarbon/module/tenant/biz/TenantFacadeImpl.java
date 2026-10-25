@@ -68,16 +68,6 @@ public class TenantFacadeImpl implements TenantFacade {
     }
 
     @Override
-    public boolean isTenantEnabled() {
-        return props.doesTenantEnabled();
-    }
-
-    @Override
-    public TenantLoginModeEnum getLoginMode() {
-        return props.getLoginMode();
-    }
-
-    @Override
     public List<TenantContext> listSelectableTenants(@Nullable Long userId) {
         if (userId == null) {
             return List.of();

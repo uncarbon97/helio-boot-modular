@@ -27,6 +27,7 @@ import cc.uncarbon.module.sys.util.PiiContractNormalizer;
 import cc.uncarbon.module.sys.util.SysUtil;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.util.TenantUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -58,6 +59,7 @@ public class SysUserFirstTenantServiceImpl implements SysUserFirstTenantService 
     private final SysUserDeptRelationService sysUserDeptRelationService;
     private final TenantUserRoleFacade tenantUserRoleFacade;
     private final TenantFacade tenantFacade;
+    private final TenantConfigFacade tenantConfigFacade;
     private final BlindIndexCalculator blindIndexCalculator;
 
 
@@ -65,11 +67,14 @@ public class SysUserFirstTenantServiceImpl implements SysUserFirstTenantService 
     public List<TenantUserLookupVO> lookupUsers(TenantUserLookupRequest request) {
         assertUserFirstMode();
         long tenantId = currentTenantId();
-        List<SysUserEntity> users = findGlobalUsers(request);
-        if (users.stream().anyMatch(this::isUnusableLookupTarget)) {
+        // 同一手机号可对应多账号，仅保留可用候选人
+        List<SysUserEntity> usableUsers = findGlobalUsers(request).stream()
+                .filter(user -> !isUnusableLookupTarget(user))
+                .toList();
+        if (usableUsers.isEmpty()) {
             throw new BusinessException(SysErrorCodeEnum.A01046);
         }
-        List<TenantUserLookupVO> ret = users.stream().map(user -> new TenantUserLookupVO()
+        List<TenantUserLookupVO> ret = usableUsers.stream().map(user -> new TenantUserLookupVO()
                         .setUserId(user.getId())
                         .setPin(user.getPin())
                         .setNickname(user.getNickname())
@@ -94,8 +99,11 @@ public class SysUserFirstTenantServiceImpl implements SysUserFirstTenantService 
         }
 
         SysUserEntity user = TenantContextHolder.callIgnored(() -> sysUserMapper.getByPin(request.getPin()));
-        if (isUnusableLookupTarget(user)) {
+        if (user == null || SysUserStatusEnum.DISABLED == user.getStatus()) {
             throw new BusinessException(SysErrorCodeEnum.A01046);
+        }
+        if (SysUtil.isSuperAdmin(user.getId())) {
+            throw new BusinessException(SysErrorCodeEnum.A01047);
         }
         if (existsRelation(tenantId, user.getId())) {
             throw new BusinessException(SysErrorCodeEnum.A01048);
@@ -164,7 +172,7 @@ public class SysUserFirstTenantServiceImpl implements SysUserFirstTenantService 
      */
 
     private void assertUserFirstMode() {
-        if (TenantLoginModeEnum.USER_FIRST != tenantFacade.getLoginMode()) {
+        if (TenantLoginModeEnum.USER_FIRST != tenantConfigFacade.getLoginMode()) {
             throw new BusinessException(SysErrorCodeEnum.A01045);
         }
     }
@@ -209,11 +217,8 @@ public class SysUserFirstTenantServiceImpl implements SysUserFirstTenantService 
                 || SysUtil.isSuperAdmin(user.getId());
     }
 
-    @SneakyThrows
     private boolean existsRelation(long tenantId, long userId) {
-        return sysUserTenantRelationMapper.exists(new LambdaQueryWrapper<SysUserTenantRelationEntity>()
-                .eq(SysUserTenantRelationEntity::getTenantId, tenantId)
-                .eq(SysUserTenantRelationEntity::getUserId, userId));
+        return sysUserTenantRelationMapper.existsByTenantIdAndUserId(tenantId, userId);
     }
 
     /**

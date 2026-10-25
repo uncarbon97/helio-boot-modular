@@ -53,6 +53,7 @@ public interface TenantUserRoleFacade {
 
     /**
      * 系统管理 - 取租户用户IDs
+     * <p>USER_FIRST 模式下成员真源在 sys_user_tenant_relation（含拉入成员）；TENANT_FIRST 模式下按 sys_user.tenant_id 投影列取
      *
      * @param tenantId    租户ID
      * @param statusEnums 仅保留符合指定状态的，可以为null

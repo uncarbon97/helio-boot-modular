@@ -71,10 +71,8 @@ class SysUserMapperClearPiiContactTest {
         ArgumentCaptor<LambdaUpdateWrapper<SysUserEntity>> wrapperCaptor =
                 ArgumentCaptor.forClass(LambdaUpdateWrapper.class);
         Mockito.verify(mapper).update(Mockito.any(SysUserEntity.class), wrapperCaptor.capture());
-
-        ArgumentCaptor<SysUserEntity> entityCaptor = ArgumentCaptor.forClass(SysUserEntity.class);
-        Mockito.verify(mapper).update(entityCaptor.capture(), Mockito.any());
-        Assertions.assertEquals(5L, entityCaptor.getValue().getId());
+        // update(entity, wrapper) 的 WHERE 只来自 wrapper 条件
+        Assertions.assertTrue(wrapperCaptor.getValue().getSqlSegment().contains("id"));
 
         return wrapperCaptor.getValue().getSqlSet();
     }

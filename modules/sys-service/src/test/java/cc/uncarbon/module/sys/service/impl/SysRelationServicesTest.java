@@ -50,7 +50,7 @@ class SysRelationServicesTest {
     void userRoleCleanAndBindEmptyRolesDeletesAll() {
         userRoleService.cleanAndBindByUser(1L, null);
 
-        Mockito.verify(userRoleMapper).delete(Mockito.any());
+        Mockito.verify(userRoleMapper).deleteByUserId(1L);
         Mockito.verify(userRoleMapper, Mockito.never()).insert(Mockito.anyList());
     }
 
@@ -62,7 +62,7 @@ class SysRelationServicesTest {
 
         userRoleService.cleanAndBindByUser(1L, List.of(5L, 6L, 6L));
 
-        Mockito.verify(userRoleMapper).delete(Mockito.any());
+        Mockito.verify(userRoleMapper).deleteByUserIdAndRoleIdNotIn(Mockito.eq(1L), Mockito.anyCollection());
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<SysUserRoleRelationEntity>> captor = ArgumentCaptor.forClass(List.class);
         Mockito.verify(userRoleMapper).insert(captor.capture());
@@ -86,7 +86,9 @@ class SysRelationServicesTest {
     void userRoleDeleteByRoleIdsSkipsEmpty() {
         userRoleService.deleteByRoleIds(List.of());
 
-        Mockito.verifyNoInteractions(userRoleMapper);
+        // 空集合仍委托封装方法，由 Mapper default 方法内部短路，不产生真实 delete
+        Mockito.verify(userRoleMapper).deleteByRoleIds(List.of());
+        Mockito.verify(userRoleMapper, Mockito.never()).delete(Mockito.any());
     }
 
 
@@ -114,7 +116,7 @@ class SysRelationServicesTest {
     void roleMenuCleanAndBindEmptyDeletes() {
         roleMenuService.cleanAndBind(1L, null);
 
-        Mockito.verify(roleMenuMapper).delete(Mockito.any());
+        Mockito.verify(roleMenuMapper).deleteByRoleId(1L);
         Mockito.verify(roleMenuMapper, Mockito.never()).insert(Mockito.anyList());
     }
 
@@ -126,7 +128,7 @@ class SysRelationServicesTest {
         // 入参含重复 11 → 去重后与已存在 10 求差集，仅增量插入 11
         roleMenuService.cleanAndBind(1L, List.of(10L, 11L, 11L));
 
-        Mockito.verify(roleMenuMapper).delete(Mockito.any());
+        Mockito.verify(roleMenuMapper).deleteByRoleIdAndMenuIdNotIn(Mockito.eq(1L), Mockito.anyCollection());
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<SysRoleMenuRelationEntity>> captor = ArgumentCaptor.forClass(List.class);
         Mockito.verify(roleMenuMapper).insert(captor.capture());
@@ -141,7 +143,7 @@ class SysRelationServicesTest {
 
         roleMenuService.cleanAndBind(1L, List.of(10L, 11L));
 
-        Mockito.verify(roleMenuMapper).delete(Mockito.any());
+        Mockito.verify(roleMenuMapper).deleteByRoleIdAndMenuIdNotIn(Mockito.eq(1L), Mockito.anyCollection());
         Mockito.verify(roleMenuMapper, Mockito.never()).insert(Mockito.anyList());
     }
 
@@ -150,21 +152,24 @@ class SysRelationServicesTest {
         roleMenuService.deleteByMenuIds(null);
         roleMenuService.deleteByRoleIds(List.of());
 
-        Mockito.verifyNoInteractions(roleMenuMapper);
+        // 空集合仍委托封装方法，由 Mapper default 方法内部短路，不产生真实 delete
+        Mockito.verify(roleMenuMapper).deleteByMenuIds(null);
+        Mockito.verify(roleMenuMapper).deleteByRoleIds(List.of());
+        Mockito.verify(roleMenuMapper, Mockito.never()).delete(Mockito.any());
     }
 
     @Test
     void roleMenuDeleteByMenuIdsDeletes() {
         roleMenuService.deleteByMenuIds(List.of(10L, 11L));
 
-        Mockito.verify(roleMenuMapper).delete(Mockito.any());
+        Mockito.verify(roleMenuMapper).deleteByMenuIds(List.of(10L, 11L));
     }
 
     @Test
     void roleMenuDeleteByRoleIdsDeletes() {
         roleMenuService.deleteByRoleIds(List.of(1L, 2L));
 
-        Mockito.verify(roleMenuMapper).delete(Mockito.any());
+        Mockito.verify(roleMenuMapper).deleteByRoleIds(List.of(1L, 2L));
     }
 
 
@@ -193,7 +198,7 @@ class SysRelationServicesTest {
     void userDeptCleanAndBindNullDeptOnlyUnbinds() {
         userDeptService.cleanAndBind(3L, null);
 
-        Mockito.verify(userDeptMapper).delete(Mockito.any());
+        Mockito.verify(userDeptMapper).deleteByUserId(3L);
         Mockito.verify(userDeptMapper, Mockito.never()).insert(Mockito.any(SysUserDeptRelationEntity.class));
     }
 
@@ -201,7 +206,7 @@ class SysRelationServicesTest {
     void userDeptCleanAndBindRebinds() {
         userDeptService.cleanAndBind(3L, 88L);
 
-        Mockito.verify(userDeptMapper).delete(Mockito.any());
+        Mockito.verify(userDeptMapper).deleteByUserId(3L);
         ArgumentCaptor<SysUserDeptRelationEntity> captor = ArgumentCaptor.forClass(SysUserDeptRelationEntity.class);
         Mockito.verify(userDeptMapper).insert(captor.capture());
         Assertions.assertEquals(3L, captor.getValue().getUserId());
@@ -212,6 +217,6 @@ class SysRelationServicesTest {
     void userDeptCleanAllBindings() {
         userDeptService.cleanAllBindings(88L);
 
-        Mockito.verify(userDeptMapper).delete(Mockito.any());
+        Mockito.verify(userDeptMapper).deleteByDeptId(88L);
     }
 }

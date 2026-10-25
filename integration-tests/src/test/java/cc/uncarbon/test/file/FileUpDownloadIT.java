@@ -18,7 +18,7 @@ import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.*;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
-import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.service.TenantService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
@@ -53,7 +53,7 @@ class FileUpDownloadIT extends BaseIntegrationTest {
     @Resource
     private TenantService tenantService;
     @Resource
-    private TenantFacade tenantFacade;
+    private TenantConfigFacade tenantConfigFacade;
 
     @Resource
     private FileMetaMapper fileMetaMapper;
@@ -81,7 +81,7 @@ class FileUpDownloadIT extends BaseIntegrationTest {
     @Test
     void uploadIndexAndDownload() throws Exception {
         String nano = String.valueOf(System.nanoTime() % 1_000_000_000L);
-        boolean tenantEnabled = tenantFacade.isTenantEnabled();
+        boolean tenantEnabled = tenantConfigFacade.isTenantEnabled();
         if (tenantEnabled) {
             tenantCode = "itfs" + nano;
             tenantId = tenantService.adminCreate(new AdminTenantCreateRequest()

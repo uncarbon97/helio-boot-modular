@@ -25,6 +25,7 @@ import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.valueobj.TenantMetaDTO;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
@@ -65,6 +66,8 @@ class AdminLoginServiceImplTest {
     private UserRoleHelper userRoleHelper;
     @Mock
     private TenantFacade tenantFacade;
+    @Mock
+    private TenantConfigFacade tenantConfigFacade;
     @Mock
     private TenantUserRoleFacade tenantUserRoleFacade;
     @Mock
@@ -154,7 +157,7 @@ class AdminLoginServiceImplTest {
 
     @Test
     void tenantFirstInvalidTenantRejectedBeforeUserLookup() {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
         Mockito.when(tenantFacade.validateByCode(TENANT_CODE))
                 .thenReturn(TenantValidateResult.fail(TenantErrorCodeEnum.A03001));
 
@@ -175,7 +178,7 @@ class AdminLoginServiceImplTest {
 
     @Test
     void userFirstHappyPathRemembersTenantFirst() {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         // 记忆租户 8 + 关联 7：候选顺序应为 [8, 7]；8 不可用则激活 7
         SysUserEntity u2 = user();
         u2.setTenantId(8L);
@@ -198,7 +201,7 @@ class AdminLoginServiceImplTest {
 
     @Test
     void userFirstNoTenantRelationRejected() {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         SysUserEntity u2 = user();
         u2.setTenantId(null);
         Mockito.when(sysUserMapper.getByPin("u2")).thenReturn(u2);
@@ -211,7 +214,7 @@ class AdminLoginServiceImplTest {
 
     @Test
     void userFirstAllTenantsUnavailableRejected() {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         SysUserEntity u2 = user();
         u2.setTenantId(null);
         Mockito.when(sysUserMapper.getByPin("u2")).thenReturn(u2);
@@ -225,7 +228,7 @@ class AdminLoginServiceImplTest {
 
     @Test
     void userFirstStaleRememberedTenantIgnored() {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         // 记忆租户 99 不在启用关联集合内（如已被移出租户），候选只剩 7
         SysUserEntity u2 = user();
         u2.setTenantId(99L);
@@ -245,7 +248,7 @@ class AdminLoginServiceImplTest {
 
     @Test
     void userFirstWrongPwdRejected() {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         Mockito.when(sysUserMapper.getByPin("u2")).thenReturn(user());
 
         var ex = Assertions.assertThrows(BusinessException.class,
@@ -310,14 +313,14 @@ class AdminLoginServiceImplTest {
 
     @Test
     void getUIConfigBranches() {
-        Mockito.when(tenantFacade.isTenantEnabled()).thenReturn(false);
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
+        Mockito.when(tenantConfigFacade.isTenantEnabled()).thenReturn(false);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
         Assertions.assertFalse(service.getUIConfig().isShowTenantCodeInputFlag());
 
-        Mockito.when(tenantFacade.isTenantEnabled()).thenReturn(true);
+        Mockito.when(tenantConfigFacade.isTenantEnabled()).thenReturn(true);
         Assertions.assertTrue(service.getUIConfig().isShowTenantCodeInputFlag());
 
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         Assertions.assertFalse(service.getUIConfig().isShowTenantCodeInputFlag());
     }
 
@@ -329,7 +332,7 @@ class AdminLoginServiceImplTest {
      */
 
     private void stubTenantFirstValid() {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
         TenantMetaDTO meta = new TenantMetaDTO().setId(TENANT_ID).setCode(TENANT_CODE).setName("租户五");
         Mockito.when(tenantFacade.validateByCode(TENANT_CODE)).thenReturn(TenantValidateResult.pass(meta));
     }

@@ -4,7 +4,7 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
 import cc.uncarbon.module.adminapi.props.LoginFailureGuardProperties;
-import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ class LoginFailureGuardTest {
     @Mock
     private ValueOperations<String, String> valueOperations;
     @Mock
-    private TenantFacade tenantFacade;
+    private TenantConfigFacade tenantConfigFacade;
 
     private LoginFailureGuard guard;
 
@@ -40,7 +40,7 @@ class LoginFailureGuardTest {
     @BeforeEach
     void setUp() {
         Mockito.doReturn(valueOperations).when(stringRedisTemplate).opsForValue();
-        guard = new LoginFailureGuard(stringRedisTemplate, new LoginFailureGuardProperties(), tenantFacade);
+        guard = new LoginFailureGuard(stringRedisTemplate, new LoginFailureGuardProperties(), tenantConfigFacade);
     }
 
     @Test
@@ -128,6 +128,6 @@ class LoginFailureGuardTest {
      */
 
     private void stubMode(TenantLoginModeEnum mode) {
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(mode);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(mode);
     }
 }

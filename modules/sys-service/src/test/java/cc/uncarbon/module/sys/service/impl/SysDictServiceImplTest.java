@@ -212,7 +212,7 @@ class SysDictServiceImplTest {
     void deleteItems() {
         service.adminDeleteItem(List.of(1L, 2L));
 
-        Mockito.verify(itemMapper).delete(Mockito.any());
+        Mockito.verify(itemMapper).deleteByIds(List.of(1L, 2L));
     }
 
     /**

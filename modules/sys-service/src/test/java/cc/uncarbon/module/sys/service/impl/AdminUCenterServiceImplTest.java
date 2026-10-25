@@ -126,10 +126,7 @@ class AdminUCenterServiceImplTest {
     void updateMyAvatarWritesCurrentUserId() {
         withUser(3L, () -> service.updateMyAvatar("https://cdn/x.png"));
 
-        ArgumentCaptor<SysUserEntity> captor = ArgumentCaptor.forClass(SysUserEntity.class);
-        Mockito.verify(sysUserMapper).updateById(captor.capture());
-        Assertions.assertEquals(3L, captor.getValue().getId());
-        Assertions.assertEquals("https://cdn/x.png", captor.getValue().getAvatarUrl());
+        Mockito.verify(sysUserMapper).updateAvatarUrl(3L, "https://cdn/x.png");
     }
 
 

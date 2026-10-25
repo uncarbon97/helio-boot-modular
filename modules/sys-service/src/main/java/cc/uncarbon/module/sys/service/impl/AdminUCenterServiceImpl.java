@@ -69,8 +69,6 @@ public class AdminUCenterServiceImpl implements AdminUCenterService {
 
     @Override
     public void updateMyAvatar(String url) {
-        var entity = new SysUserEntity().setId(UserContextHolder.getUserId())
-                .setAvatarUrl(url);
-        sysUserMapper.updateById(entity);
+        sysUserMapper.updateAvatarUrl(UserContextHolder.getUserId(), url);
     }
 }

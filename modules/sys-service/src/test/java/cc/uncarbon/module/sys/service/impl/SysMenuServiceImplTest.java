@@ -271,12 +271,13 @@ class SysMenuServiceImplTest {
      */
 
     @Test
-    void visibleMenusRequireRoles() {
+    void visibleMenusNoRolesReturnsEmpty() {
         Mockito.when(sysMenuMapper.selectList(Mockito.any())).thenReturn(List.of());
 
-        var ex = Assertions.assertThrows(BusinessException.class,
-                () -> withRoles(7L, Set.of(), () -> service.adminListVisibleMenus()));
-        Assertions.assertEquals(SysErrorCodeEnum.A01005, ex.getErrorCode());
+        // 无角色不再报错，直接返回空集合
+        List<SysMenuDTO> ret = withRolesReturn(7L, Set.of(), service::adminListVisibleMenus);
+
+        Assertions.assertEquals(List.of(), ret);
     }
 
     @Test

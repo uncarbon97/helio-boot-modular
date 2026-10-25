@@ -3,11 +3,14 @@ package cc.uncarbon.module.adminapi.controller.sys;
 
 import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
 import cc.uncarbon.framework.helium.base.context.UserContext;
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
 import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
+import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
+import cc.uncarbon.module.adminapi.model.valueobj.AdminSessionPermissionVO;
 import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
 import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
 import cc.uncarbon.module.adminapi.support.loginchallenge.strategy.LoginChallengeStrategy;
@@ -49,6 +52,7 @@ public class AdminAuthController {
     private final LoginChallengeProperties loginChallengeProperties;
     private final List<LoginChallengeStrategy> loginChallengeStrategies;
     private final LoginFailureGuard loginFailureGuard;
+    private final RolePermissionCacheHelper rolePermissionCacheHelper;
 
 
     /**
@@ -116,6 +120,16 @@ public class AdminAuthController {
         final StpLogic stpUtil = StpKit.ADMIN;
         stpUtil.logout();
         return ApiResult.success();
+    }
+
+    @SaCheckLogin(type = StpLoginType.ADMIN)
+    @Operation(summary = "获取当前会话角色与权限")
+    @PostMapping(value = "/permissions")
+    public ApiResult<AdminSessionPermissionVO> permissions() {
+        UserContext context = UserContextHolder.getContext();
+        return ApiResult.success(new AdminSessionPermissionVO()
+                .setRoles(context == null ? List.of() : context.getRoleCodes())
+                .setPermissions(rolePermissionCacheHelper.getCurrentUserPermissions()));
     }
 
     @Operation(summary = "获取登录挑战")

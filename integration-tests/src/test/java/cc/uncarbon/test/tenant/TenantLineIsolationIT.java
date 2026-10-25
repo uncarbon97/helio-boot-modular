@@ -84,7 +84,9 @@ class TenantLineIsolationIT extends BaseIntegrationTest {
     @AfterEach
     void cleanup() {
         TenantContextHolder.runIgnored(() -> {
+            // 只取 id/pin，避免残留的异密钥密文行在结果映射时解密爆炸
             sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                            .select(SysUserEntity::getId, SysUserEntity::getPin)
                             .likeRight(SysUserEntity::getPin, "it"))
                     .forEach(user -> sysUserMapper.deleteById(user.getId()));
         });

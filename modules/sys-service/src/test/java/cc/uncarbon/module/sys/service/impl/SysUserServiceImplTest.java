@@ -38,17 +38,17 @@ import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
-import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.beans.factory.ObjectProvider;
 
 import java.util.List;
 import java.util.Set;
@@ -84,12 +84,17 @@ class SysUserServiceImplTest {
     @Mock
     private SysUserTenantRelationMapper sysUserTenantRelationMapper;
     @Mock
-    private ObjectProvider<TenantFacade> tenantFacadeProvider;
+    private TenantConfigFacade tenantConfigFacade;
     @Spy
     private AuditNicknameFiller auditNicknameFiller = AuditNicknameFillerTestSupport.passThrough();
 
     @InjectMocks
     private SysUserServiceImpl service;
+
+    @BeforeEach
+    void initService() {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
+    }
 
 
     /*
@@ -130,6 +135,66 @@ class SysUserServiceImplTest {
         Assertions.assertEquals(1, ret.getRecords().size());
         Assertions.assertEquals(5L, ret.getRecords().get(0).getDeptId());
         Assertions.assertEquals("研发部", ret.getRecords().get(0).getDeptName());
+    }
+
+    @Test
+    void adminListUserFirstTenantDomainReturnsJoinedMembers() throws Exception {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        // 拉入成员 66 投影列指向他租户，仅存在于成员关系表
+        Mockito.when(sysUserTenantRelationMapper.listUserIdsByTenantId(55L)).thenReturn(Set.of(66L));
+        Mockito.when(sysUserMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysUserEntity> page = inv.getArgument(0);
+            page.setRecords(List.of(new SysUserEntity().setId(66L).setPin("u66").setNickname("n66")));
+            page.setTotal(1);
+            return page;
+        });
+
+        var ret = TenantContextHolder.callWithContext(new SimpleTenantContext(55L, null, null),
+                () -> service.adminList(new AdminSysUserListQuery().setPageParam(new PageParam(1, 10))));
+
+        Assertions.assertEquals(1, ret.getTotal());
+        Assertions.assertEquals(66L, ret.getRecords().getFirst().getId());
+        Mockito.verify(sysUserMapper).selectPage(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void adminListUserFirstTenantDomainWithoutMembersReturnsEmpty() throws Exception {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(sysUserTenantRelationMapper.listUserIdsByTenantId(55L)).thenReturn(Set.of());
+
+        var ret = TenantContextHolder.callWithContext(new SimpleTenantContext(55L, null, null),
+                () -> service.adminList(new AdminSysUserListQuery().setPageParam(new PageParam(1, 10))));
+
+        Assertions.assertTrue(ret.getRecords().isEmpty());
+        Mockito.verify(sysUserMapper, Mockito.never()).selectPage(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void getOperableByIdUserFirstNonMemberRejected() throws Exception {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserTenantRelationMapper.listUserIdsByTenantId(55L)).thenReturn(Set.of(1L));
+
+        var ex = Assertions.assertThrows(BusinessException.class,
+                () -> TenantContextHolder.callWithContext(new SimpleTenantContext(55L, null, null),
+                        () -> service.getOperableById(9L)));
+        Assertions.assertEquals(SysErrorCodeEnum.A01021, ex.getErrorCode());
+        Mockito.verify(sysUserMapper, Mockito.never()).selectById(Mockito.anyLong());
+    }
+
+    @Test
+    void getOperableByIdUserFirstMemberReadable() throws Exception {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserTenantRelationMapper.listUserIdsByTenantId(55L)).thenReturn(Set.of(9L));
+        Mockito.when(sysUserMapper.selectById(9L)).thenReturn(new SysUserEntity().setId(9L).setPin("u9").setNickname("n9"));
+
+        var ret = TenantContextHolder.callWithContext(new SimpleTenantContext(55L, null, null),
+                () -> service.getOperableById(9L));
+
+        Assertions.assertNotNull(ret);
+        Assertions.assertEquals("u9", ret.getPin());
     }
 
     @Test
@@ -253,9 +318,7 @@ class SysUserServiceImplTest {
 
     @Test
     void adminCreateUserFirstDuplicatePinChecksGlobally() {
-        TenantFacade tenantFacade = Mockito.mock(TenantFacade.class);
-        Mockito.when(tenantFacadeProvider.getObject()).thenReturn(tenantFacade);
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         // USER_FIRST 下 pin 全局唯一，绕过行级过滤也应能查出他租户同名账号
         Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(new SysUserEntity().setId(1L));
 
@@ -409,15 +472,13 @@ class SysUserServiceImplTest {
 
         Mockito.verify(sysUserDeptRelationService).cleanAndBind(8L, null);
         Mockito.verify(sysUserRoleRelationService).cleanAndBindByUser(8L, null);
-        Mockito.verify(sysUserTenantRelationMapper).delete(Mockito.any());
+        Mockito.verify(sysUserTenantRelationMapper).deleteByUserId(8L);
         Mockito.verify(sysUserMapper).deleteByIds(List.of(8L));
     }
 
     @Test
     void adminDeleteUserFirstTenantDomainRejected() {
-        TenantFacade tenantFacade = Mockito.mock(TenantFacade.class);
-        Mockito.when(tenantFacadeProvider.getObject()).thenReturn(tenantFacade);
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
 
         var ex = Assertions.assertThrows(BusinessException.class, () -> withUser(7L, () ->
                 TenantContextHolder.runWithContext(new SimpleTenantContext(10L, "T10", "t10"),
@@ -428,9 +489,7 @@ class SysUserServiceImplTest {
 
     @Test
     void adminDeleteUserFirstPlatformDomainAllowed() {
-        TenantFacade tenantFacade = Mockito.mock(TenantFacade.class);
-        Mockito.when(tenantFacadeProvider.getObject()).thenReturn(tenantFacade);
-        Mockito.when(tenantFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
         Mockito.when(userRoleHelper.getSpecifiedUserRole(8L)).thenReturn(normalScope(8L, List.of(5L)));
         Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());

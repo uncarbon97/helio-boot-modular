@@ -19,6 +19,10 @@ import java.util.stream.Collectors;
 
 /**
  * 系统用户
+ *
+ * <p>派生列（masked/盲索引）未声明 fill，由框架 FieldCryptoDerivedColumnInnerInterceptor 在 getBoundSql 前
+ * 按实体是否携带明文来源回填：携带来源才重算进 SET，局部更新不携带来源则派生列不参与 SET、不误清存量。
+ * wrapper 更新传空实体，仅借 fill 补盖 updated_at/updated_by</p>
  */
 @Mapper
 public interface SysUserMapper extends BaseMapper<SysUserEntity> {
@@ -42,10 +46,14 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
      * 更新最后一次登录时刻
      */
     default void updateLastLoginAt(long userId, Instant lastLoginAt) {
-        SysUserEntity update = new SysUserEntity();
-        update.setLastLoginAt(lastLoginAt)
-                .setId(userId);
-        updateById(update);
+        updateById(new SysUserEntity().setId(userId).setLastLoginAt(lastLoginAt));
+    }
+
+    /**
+     * 更新头像URL
+     */
+    default void updateAvatarUrl(long userId, String avatarUrl) {
+        updateById(new SysUserEntity().setId(userId).setAvatarUrl(avatarUrl));
     }
 
     default void updateEncryptedPwd(long userId, String encryptedPwd, YesOrNoEnum pwdMustChange) {
@@ -74,7 +82,8 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
         if (!clearPhone && !clearEmail) {
             throw new IllegalArgumentException("至少需要清空手机号或邮箱之一");
         }
-        var uw = new LambdaUpdateWrapper<SysUserEntity>();
+        var uw = new LambdaUpdateWrapper<SysUserEntity>()
+                .eq(SysUserEntity::getId, userId);
         if (clearPhone) {
             uw.set(SysUserEntity::getPhoneNo, null)
                     .set(SysUserEntity::getPhoneNoMasked, null)
@@ -86,7 +95,7 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
                     .set(SysUserEntity::getEmailMasked, null)
                     .set(SysUserEntity::getEmailFullBlindIndex, null);
         }
-        update(new SysUserEntity().setId(userId), uw);
+        update(new SysUserEntity(), uw);
     }
 
     /**

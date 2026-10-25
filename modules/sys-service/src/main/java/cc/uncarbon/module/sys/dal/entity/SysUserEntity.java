@@ -16,7 +16,10 @@ import cc.uncarbon.module.sys.dal.fieldcrypto.PhoneEncryptedTypeHandler;
 import cc.uncarbon.module.sys.dal.fieldcrypto.PhoneFieldValueMasker;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.util.PiiContractNormalizer;
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -87,18 +90,18 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
     private String phoneNo;
 
     @Schema(description = "手机号脱敏冗余")
-    @TableField(value = "phone_no_masked", fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "phone_no_masked")
     @MaskedOf(value = "phoneNo", masker = PhoneFieldValueMasker.class)
     private String phoneNoMasked;
 
     @Schema(description = "手机号全串盲索引")
-    @TableField(value = "phone_no_full_blind_index", fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "phone_no_full_blind_index")
     @BlindIndexOf(value = "phoneNo", purpose = SysUserCipherCols.PHONE_FULL_PURPOSE,
             extractor = BlindIndexValueExtractors.CleanTrim.class)
     private String phoneNoFullBlindIndex;
 
     @Schema(description = "手机号后4位盲索引")
-    @TableField(value = "phone_no_tail4_blind_index", fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "phone_no_tail4_blind_index")
     @BlindIndexOf(value = "phoneNo", purpose = SysUserCipherCols.PHONE_TAIL4_PURPOSE, extractor = Tail4Digits.class)
     private String phoneNoTail4BlindIndex;
 
@@ -109,12 +112,12 @@ public class SysUserEntity extends AbstractTenantGenericEntity implements Auditi
     private String email;
 
     @Schema(description = "邮箱脱敏冗余")
-    @TableField(value = "email_masked", fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "email_masked")
     @MaskedOf(value = "email", masker = EmailFieldValueMasker.class)
     private String emailMasked;
 
     @Schema(description = "邮箱全串盲索引")
-    @TableField(value = "email_full_blind_index", fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "email_full_blind_index")
     @BlindIndexOf(value = "email", purpose = SysUserCipherCols.EMAIL_FULL_PURPOSE,
             extractor = BlindIndexValueExtractors.LowerTrim.class)
     private String emailFullBlindIndex;

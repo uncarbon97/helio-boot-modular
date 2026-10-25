@@ -60,24 +60,6 @@ public class AdminTenantSwitchController {
         return ApiResult.success(tenantFacade.listSelectableTenants(UserContextHolder.getUserId()));
     }
 
-    /**
-     * 按当前会话状态构造租户信息视图
-     */
-    private static AdminTenantContextVO toContext(SaSession session) {
-        TenantContext t = readTenantContext(session);
-        TenantSwitchInfo info = session.get(TenantSwitchInfo.CAMEL_NAME) instanceof TenantSwitchInfo i ? i : null;
-
-        // TENANT_FIRST 下超管登录即平台自营域，处于 0 号租户且未切换 = 平台视角
-        boolean platformView = t != null && info == null
-                && Objects.equals(TenantConstant.PLATFORM_TENANT_ID, t.getTenantId());
-
-        return new AdminTenantContextVO()
-                .setTenantCode(t == null ? null : t.getTenantCode())
-                .setTenantName(t == null ? null : t.getTenantName())
-                .setPlatformView(platformView)
-                .setSwitched(info != null);
-    }
-
     @Operation(summary = "当前会话租户信息")
     @PostMapping(value = "/current")
     public ApiResult<AdminTenantContextVO> current() {
@@ -132,28 +114,6 @@ public class AdminTenantSwitchController {
         return current();
     }
 
-    /*
-    ----------------------------------------------------------------
-                        私有方法
-    ----------------------------------------------------------------
-     */
-
-    /**
-     * 视角切换后按生效租户原位刷新会话权限快照；刷新失败（用户已不存在/被禁用）保留原快照并告警
-     */
-    private void refreshSessionUserContext(SaSession session, Long loginId, TenantContext tenantContext) {
-        UserContext refreshed = adminLoginService.buildSessionUserContext(loginId, tenantContext);
-        if (refreshed != null) {
-            session.set(UserContext.CAMEL_NAME, refreshed);
-        } else {
-            log.warn("[{}] 切换后重建用户会话上下文失败，保留原快照 >> userId={}", BIZ_TYPE, loginId);
-        }
-    }
-
-    private static TenantContext readTenantContext(SaSession session) {
-        return session.get(TenantContext.CAMEL_NAME) instanceof TenantContext t ? t : null;
-    }
-
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "退出切换租户",
             success = "退出切换租户（{{#fromTenantId}} → {{#toTenantId}}）")
     @Operation(summary = "退出切换租户")
@@ -203,6 +163,46 @@ public class AdminTenantSwitchController {
             tenantSwitchHelper.register(restore.getTenantId(), loginId);
         }
         return current();
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 视角切换后按生效租户原位刷新会话权限快照；刷新失败（用户已不存在/被禁用）保留原快照并告警
+     */
+    private void refreshSessionUserContext(SaSession session, Long loginId, TenantContext tenantContext) {
+        UserContext refreshed = adminLoginService.buildSessionUserContext(loginId, tenantContext);
+        if (refreshed != null) {
+            session.set(UserContext.CAMEL_NAME, refreshed);
+        } else {
+            log.warn("[{}] 切换后重建用户会话上下文失败，保留原快照 >> userId={}", BIZ_TYPE, loginId);
+        }
+    }
+
+    private static TenantContext readTenantContext(SaSession session) {
+        return session.get(TenantContext.CAMEL_NAME) instanceof TenantContext t ? t : null;
+    }
+
+    /**
+     * 按当前会话状态构造租户信息视图
+     */
+    private static AdminTenantContextVO toContext(SaSession session) {
+        TenantContext t = readTenantContext(session);
+        TenantSwitchInfo info = session.get(TenantSwitchInfo.CAMEL_NAME) instanceof TenantSwitchInfo i ? i : null;
+
+        // TENANT_FIRST 下超管登录即平台自营域，处于 0 号租户且未切换 = 平台视角
+        boolean platformView = t != null && info == null
+                && Objects.equals(TenantConstant.PLATFORM_TENANT_ID, t.getTenantId());
+
+        return new AdminTenantContextVO()
+                .setTenantCode(t == null ? null : t.getTenantCode())
+                .setTenantName(t == null ? null : t.getTenantName())
+                .setPlatformView(platformView)
+                .setSwitched(info != null);
     }
 
 }

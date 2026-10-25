@@ -31,6 +31,7 @@ import cc.uncarbon.module.sys.support.UserRoleHelper;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cc.uncarbon.module.sys.util.SysUtil;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import cn.hutool.core.bean.BeanUtil;
@@ -55,6 +56,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
     private final SysLoginLogService sysLoginLogService;
     private final UserRoleHelper userRoleHelper;
     private final TenantFacade tenantFacade;
+    private final TenantConfigFacade tenantConfigFacade;
     private final TenantUserRoleFacade tenantUserRoleFacade;
     private final SysUserRoleRelationService sysUserRoleRelationService;
 
@@ -62,7 +64,7 @@ public class AdminLoginServiceImpl implements AdminLoginService {
     @Override
     public SysUserLoginResult passwordLogin(AdminAuthPasswordLoginRequest request, VisitorContext visitorContext) {
         // 登录模式分支内聚：切换 USER_FIRST 时仅需补充对应分支实现，不散落 if-else
-        return switch (tenantFacade.getLoginMode()) {
+        return switch (tenantConfigFacade.getLoginMode()) {
             case TENANT_FIRST -> tenantFirstPasswordLogin(request, visitorContext);
             case USER_FIRST -> userFirstPasswordLogin(request, visitorContext);
         };
@@ -268,8 +270,8 @@ public class AdminLoginServiceImpl implements AdminLoginService {
 
     @Override
     public AdminLoginUIConfigVO getUIConfig() {
-        boolean tenantEnabled = tenantFacade.isTenantEnabled();
-        TenantLoginModeEnum loginMode = tenantFacade.getLoginMode();
+        boolean tenantEnabled = tenantConfigFacade.isTenantEnabled();
+        TenantLoginModeEnum loginMode = tenantConfigFacade.getLoginMode();
         return new AdminLoginUIConfigVO()
                 .setShowTenantCodeInputFlag(tenantEnabled && TenantLoginModeEnum.TENANT_FIRST == loginMode);
     }

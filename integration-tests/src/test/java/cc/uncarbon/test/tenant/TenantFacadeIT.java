@@ -7,6 +7,7 @@ import cc.uncarbon.module.sys.dal.mapper.*;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantMetaMapper;
 import cc.uncarbon.module.tenant.errorcode.TenantErrorCodeEnum;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.model.request.AdminTenantCreateRequest;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
@@ -24,6 +25,8 @@ class TenantFacadeIT extends BaseIntegrationTest {
 
     @Resource
     private TenantFacade tenantFacade;
+    @Resource
+    private TenantConfigFacade tenantConfigFacade;
     @Resource
     private TenantService tenantService;
 
@@ -43,7 +46,7 @@ class TenantFacadeIT extends BaseIntegrationTest {
 
     @Test
     void facadeBranches() {
-        Assumptions.assumeTrue(tenantFacade.isTenantEnabled(), "多租户未启用时跳过");
+        Assumptions.assumeTrue(tenantConfigFacade.isTenantEnabled(), "多租户未启用时跳过");
 
         long nano = System.nanoTime() % 1_000_000_000L;
         String code = "itf" + nano;
@@ -87,7 +90,7 @@ class TenantFacadeIT extends BaseIntegrationTest {
 
     @Test
     void validatePassesWhenTenantDisabled() {
-        Assumptions.assumeFalse(tenantFacade.isTenantEnabled(), "多租户启用时跳过本用例");
+        Assumptions.assumeFalse(tenantConfigFacade.isTenantEnabled(), "多租户启用时跳过本用例");
 
         Assertions.assertTrue(tenantFacade.validateByCode(null).isValid());
     }

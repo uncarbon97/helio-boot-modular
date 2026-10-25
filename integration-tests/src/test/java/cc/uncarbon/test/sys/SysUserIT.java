@@ -21,11 +21,13 @@ import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
@@ -101,11 +103,52 @@ class SysUserIT extends BaseIntegrationTest {
     }
 
 
+    /**
+     * 局部更新端到端回归：派生列（masked/盲索引）不携带来源时不得被 NULL 覆写，
+     * 且 updated_at 照常盖章——曾因派生列 fill 无条件拼接进 SET，登录即触发派生列被抹
+     */
+    @Test
+    void partialUpdateKeepsDerivedColumns() {
+        String pin = "itu" + (System.nanoTime() % 1_000_000_000L);
+        Long userId = create(pin, "13800003333");
+
+        SysUserEntity before = selectUser(userId);
+        Assertions.assertNotNull(before.getPhoneNoMasked());
+        Assertions.assertNotNull(before.getPhoneNoFullBlindIndex());
+        Assertions.assertNotNull(before.getPhoneNoTail4BlindIndex());
+        Assertions.assertNull(before.getUpdatedAt(), "创建时不应盖 updated_at（由更新路径盖章）");
+
+        // 登录路径：updateById 部分实体
+        TenantContextHolder.runIgnored(() -> sysUserMapper.updateLastLoginAt(userId, Instant.now()));
+        // 状态路径：空实体 + wrapper 局部更新
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
+                () -> sysUserService.adminSetStatus(new AdminSetStatusRequest<Long, SysUserStatusEnum>()
+                        .setId(userId).setNewStatus(SysUserStatusEnum.ENABLED)));
+
+        SysUserEntity after = selectUser(userId);
+        Assertions.assertEquals(before.getPhoneNo(), after.getPhoneNo());
+        Assertions.assertEquals(before.getPhoneNoMasked(), after.getPhoneNoMasked());
+        Assertions.assertEquals(before.getPhoneNoFullBlindIndex(), after.getPhoneNoFullBlindIndex());
+        Assertions.assertEquals(before.getPhoneNoTail4BlindIndex(), after.getPhoneNoTail4BlindIndex());
+        Assertions.assertEquals(before.getEmail(), after.getEmail());
+        Assertions.assertEquals(before.getEmailMasked(), after.getEmailMasked());
+        Assertions.assertEquals(before.getEmailFullBlindIndex(), after.getEmailFullBlindIndex());
+        Assertions.assertNotNull(after.getLastLoginAt());
+        Assertions.assertEquals(SysUserStatusEnum.ENABLED, after.getStatus());
+        Assertions.assertNotNull(after.getUpdatedAt(), "局部更新应照常盖 updated_at");
+    }
+
+
     /*
     ----------------------------------------------------------------
                         私有方法
     ----------------------------------------------------------------
      */
+
+    @SneakyThrows
+    private SysUserEntity selectUser(Long userId) {
+        return TenantContextHolder.callIgnored(() -> sysUserMapper.selectById(userId));
+    }
 
     private Long create(String pin, String phoneNo) {
         var ref = new Object() {
@@ -138,7 +181,9 @@ class SysUserIT extends BaseIntegrationTest {
     @AfterEach
     void cleanup() {
         TenantContextHolder.runIgnored(() -> {
+            // 只取 id，避免残留的异密钥密文行在结果映射时解密爆炸
             sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                            .select(SysUserEntity::getId)
                             .likeRight(SysUserEntity::getPin, "itu"))
                     .forEach(u -> sysUserMapper.deleteById(u.getId()));
             sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()

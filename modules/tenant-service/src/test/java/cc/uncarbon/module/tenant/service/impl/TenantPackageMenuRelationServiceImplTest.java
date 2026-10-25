@@ -45,19 +45,20 @@ class TenantPackageMenuRelationServiceImplTest {
     void cleanAndBindEmptyDeletesAll() {
         service.cleanAndBind(5L, Set.of());
 
-        Mockito.verify(mapper).delete(Mockito.any());
+        Mockito.verify(mapper).deleteByPackageId(5L);
+        Mockito.verify(mapper, Mockito.never()).deleteByPackageIdAndMenuIdNotIn(Mockito.anyLong(), Mockito.anyCollection());
         Mockito.verify(mapper, Mockito.never()).insert(Mockito.anyList());
     }
 
     @Test
     void cleanAndBindAppendsOnlyMissing() {
         Mockito.when(mapper.selectList(Mockito.any()))
-                .thenReturn(List.of(TenantPackageMenuRelationEntity.of(5L, 1L)))
-                .thenReturn(List.of());
+                .thenReturn(List.of(TenantPackageMenuRelationEntity.of(5L, 1L)));
 
         service.cleanAndBind(5L, Set.of(1L, 2L));
 
-        Mockito.verify(mapper).delete(Mockito.any());
+        Mockito.verify(mapper).deleteByPackageIdAndMenuIdNotIn(5L, Set.of(1L, 2L));
+        Mockito.verify(mapper, Mockito.never()).deleteByPackageId(Mockito.anyLong());
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<TenantPackageMenuRelationEntity>> captor = ArgumentCaptor.forClass(List.class);
         Mockito.verify(mapper).insert(captor.capture());

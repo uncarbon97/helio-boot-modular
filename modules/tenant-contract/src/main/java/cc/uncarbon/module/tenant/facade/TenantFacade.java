@@ -1,7 +1,6 @@
 package cc.uncarbon.module.tenant.facade;
 
 import cc.uncarbon.framework.helium.tenant.context.TenantContext;
-import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
 import cc.uncarbon.module.tenant.model.valueobj.TenantValidateResult;
 import org.jspecify.annotations.Nullable;
 
@@ -16,16 +15,6 @@ public interface TenantFacade {
      * 校验传入的租户编码
      */
     TenantValidateResult validateByCode(@Nullable String tenantCode);
-
-    /**
-     * 是否启用多租户隔离
-     */
-    boolean isTenantEnabled();
-
-    /**
-     * 当前登录模式
-     */
-    TenantLoginModeEnum getLoginMode();
 
     /**
      * 列举指定用户可切换到的租户

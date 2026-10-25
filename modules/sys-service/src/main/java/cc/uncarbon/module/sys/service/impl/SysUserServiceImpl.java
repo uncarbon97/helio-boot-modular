@@ -38,30 +38,24 @@ import cc.uncarbon.module.sys.service.*;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
-import cc.uncarbon.module.tenant.facade.TenantFacade;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.util.TenantUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
 import java.util.*;
 
 
 /**
  * 系统用户
- *
- * <p>PII 加密写路径收口：各写入口统一经实体 + 注解自动填充，显式清空走 {@link SysUserMapper#clearPiiContact}；
- * 列表查询排除 *_encrypted 列（零解密，直读 masked 列），完整明文仅详情接口解密返回。</p>
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -77,42 +71,53 @@ public class SysUserServiceImpl implements SysUserService {
     private final SysUserDeptRelationService sysUserDeptRelationService;
     private final SysUserRoleRelationService sysUserRoleRelationService;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
-    // 规避循环依赖
-    private final ObjectProvider<TenantFacade> tenantFacadeProvider;
+    private final TenantConfigFacade tenantConfigFacade;
     private final UserRoleHelper userRoleHelper;
     private final AuditNicknameFiller auditNicknameFiller;
     private final BlindIndexCalculator blindIndexCalculator;
 
-    private TenantFacade tenantFacade;
 
-    @PostConstruct
-    public void init() {
-        tenantFacade = tenantFacadeProvider.getObject();
-        Assert.notNull(tenantFacade, "inject TenantFacade failed");
-    }
-
+    @SneakyThrows
     @Override
     public PageResult<SysUserDTO> adminList(AdminSysUserListQuery query) {
+        final PageParam pageParam = Objects.requireNonNullElseGet(query.getPageParam(), PageParam::new);
+
         // 预处理：根据【手动选择的部门】筛选用户
         Set<Long> userIdsByDept = Set.of();
         if (query.needFilterBySelectedDeptId()) {
             userIdsByDept = sysUserDeptRelationService.listUserIdsByDepts(Set.of(query.getSelectedDeptId()));
             if (CollUtil.isEmpty(userIdsByDept)) {
                 // 【手动选择的部门】没有任何用户ID，直接返回空列表
-                return new PageResult<>(Objects.requireNonNullElseGet(query.getPageParam(), PageParam::new));
+                return new PageResult<>(pageParam);
+            }
+        }
+
+        // USER_FIRST 租户域内成员真源在 sys_user_tenant_relation；sys_user.tenant_id 投影列只反映最近记忆租户，
+        // 行级过滤会漏掉拉入成员，改按成员ID集合取全局用户
+        Set<Long> memberUserIds = Set.of();
+        boolean byTenantMember = needTenantMemberScope();
+        if (byTenantMember) {
+            memberUserIds = sysUserTenantRelationMapper.listUserIdsByTenantId(TenantContextHolder.getTenantId());
+            if (CollUtil.isEmpty(memberUserIds)) {
+                // 本租户没有任何成员，直接返回空列表
+                return new PageResult<>(pageParam);
             }
         }
 
         Set<Long> hiddenUserIds = userRoleHelper.listHiddenUserIds();
-        Page<SysUserEntity> entityPage = sysUserMapper.selectPage(
-                new Page<>(query.getPageNum(), query.getPageSize()),
+        // 与实体侧 @BlindIndexOf(Tail4Digits) 同一归一化口径，否则索引对不上
+        String phoneTail4BlindIndex = CharSequenceUtil.isBlank(query.getPhoneNoTail4()) ? null
+                : blindIndexCalculator.compute(SysUserCipherCols.PHONE_TAIL4_PURPOSE,
+                        new SysUserEntity.Tail4Digits().extract(query.getPhoneNoTail4()));
+        Page<SysUserEntity> entityPage = selectUserPage(pageParam.getPageNum(), pageParam.getPageSize(),
                 new LambdaQueryWrapper<SysUserEntity>()
                         // 手机号尾号
-                        .eq(CharSequenceUtil.isNotBlank(query.getPhoneNoTail4()),
-                                SysUserEntity::getPhoneNoTail4BlindIndex,
-                                blindIndexCalculator.compute(SysUserCipherCols.PHONE_TAIL4_PURPOSE, query.getPhoneNoTail4()))
+                        .eq(phoneTail4BlindIndex != null,
+                                SysUserEntity::getPhoneNoTail4BlindIndex, phoneTail4BlindIndex)
                         // 根据【手动选择的部门ID】筛选用户
                         .in(CollUtil.isNotEmpty(userIdsByDept), SysUserEntity::getId, userIdsByDept)
+                        // USER_FIRST 租户域内限定本租户成员
+                        .in(byTenantMember, SysUserEntity::getId, memberUserIds)
                         // 不显示特定用户
                         .notIn(CollUtil.isNotEmpty(hiddenUserIds), SysUserEntity::getId, hiddenUserIds)
                         // 排序
@@ -134,8 +139,8 @@ public class SysUserServiceImpl implements SysUserService {
 
         String keyword = CharSequenceUtil.cleanBlank(query.getKeyword());
         Set<Long> hiddenUserIds = userRoleHelper.listHiddenUserIds();
-        Page<SysUserEntity> entityPage = sysUserMapper.selectPage(
-                new Page<>(query.getPageNum(), query.getPageSize()),
+        // 角色关联表本身租户隔离，ID 集合已限定本租户；USER_FIRST 租户域内成员投影列可能指向他租户，忽略行级隔离取数
+        Page<SysUserEntity> entityPage = selectUserPage(query.getPageNum(), query.getPageSize(),
                 new LambdaQueryWrapper<SysUserEntity>()
                         // 关键词(账号/昵称)
                         .and(CharSequenceUtil.isNotBlank(keyword), w -> w
@@ -196,7 +201,7 @@ public class SysUserServiceImpl implements SysUserService {
                 .setCleanPhoneNo(request.getPhoneNo())
                 .setCleanEmail(request.getEmail());
 
-        sysUserMapper.updateById(entity);
+        updateUserByCurrentScope(() -> sysUserMapper.updateById(entity));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -205,7 +210,7 @@ public class SysUserServiceImpl implements SysUserService {
         log.info(LOG_PREFIX + "修改状态 >> {}", request);
         checkExistence(request.getId());
         checkBeforeSetStatus(request.getId(), request.getNewStatus());
-        sysUserMapper.updateStatusBatch(List.of(request.getId()), request.getNewStatus());
+        updateUserByCurrentScope(() -> sysUserMapper.updateStatusBatch(List.of(request.getId()), request.getNewStatus()));
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -227,7 +232,7 @@ public class SysUserServiceImpl implements SysUserService {
         if (id == null) return null;
         checkUserOperationAccess(Set.of(id));
 
-        var entity = sysUserMapper.selectById(id);
+        var entity = selectUserByCurrentScope(id);
         var ret = auditNicknameFiller.fillOne(entity, this::convertEntity);
         if (ret != null) {
             fillDept(List.of(ret));
@@ -242,7 +247,7 @@ public class SysUserServiceImpl implements SysUserService {
 
     @Override
     public SysUserBasicProfileDTO getNonnullBasicProfileById(Long id) throws NoRecordException {
-        var entity = NoRecordException.throwIfNull(sysUserMapper.selectById(id));
+        var entity = NoRecordException.throwIfNull(selectUserByCurrentScope(id));
         var ret = new SysUserBasicProfileDTO();
         BeanUtil.copyProperties(entity, ret);
         return ret;
@@ -269,9 +274,9 @@ public class SysUserServiceImpl implements SysUserService {
     public void adminResetPassword(AdminSysUserResetPasswordRequest request) {
         checkBeforeUpdate(request.getUserId());
         checkExistence(request.getUserId());
-        var user = sysUserMapper.selectById(request.getUserId());
-        sysUserMapper.updateEncryptedPwd(user.getId(),
-                PwdUtil.hash(request.getRandomPassword()), request.getPwdMustChange());
+        var user = selectUserByCurrentScope(request.getUserId());
+        updateUserByCurrentScope(() -> sysUserMapper.updateEncryptedPwd(user.getId(),
+                PwdUtil.hash(request.getRandomPassword()), request.getPwdMustChange()));
     }
 
     @Override
@@ -417,19 +422,22 @@ public class SysUserServiceImpl implements SysUserService {
      * 是否用户优先登录模式
      */
     private boolean isUserFirstLoginMode() {
-        return TenantLoginModeEnum.USER_FIRST == tenantFacade.getLoginMode();
+        return TenantLoginModeEnum.USER_FIRST == tenantConfigFacade.getLoginMode();
     }
 
     /**
      * 检查是否存在
      */
+    @SneakyThrows
     private void checkExistence(Long id) {
-        boolean exists = sysUserMapper.exists(
-                new LambdaQueryWrapper<SysUserEntity>()
-                        .select(SysUserEntity::getId)
-                        .eq(SysUserEntity::getId, id)
-                        .last(SQLSegment.LIMIT_1)
-        );
+        LambdaQueryWrapper<SysUserEntity> qw = new LambdaQueryWrapper<SysUserEntity>()
+                .select(SysUserEntity::getId)
+                .eq(SysUserEntity::getId, id)
+                .last(SQLSegment.LIMIT_1);
+        boolean exists = needTenantMemberScope()
+                // USER_FIRST 租户域内成员投影列可能指向他租户，忽略行级过滤按ID判定
+                ? TenantContextHolder.callIgnored(() -> sysUserMapper.exists(qw))
+                : sysUserMapper.exists(qw);
         NoRecordException.throwIfFalse(exists);
     }
 
@@ -663,13 +671,66 @@ public class SysUserServiceImpl implements SysUserService {
 
     /**
      * 检查当前用户，是否有操作特定用户的权限
-     * 可见范围由 sys_user 行级租户隔离兜底，跨租户/已删除用户按记录不存在处理
+     * <p>USER_FIRST 租户域内行级隔离不再是可见范围依据（拉入成员投影列指向他租户），改为显式校验成员关系；
+     * 其余场景可见范围仍由 sys_user 行级租户隔离兜底，跨租户/已删除用户按记录不存在处理
      */
     private void checkUserOperationAccess(Collection<Long> specifiedUserIds) {
         Set<Long> hiddenUserIds = userRoleHelper.listHiddenUserIds();
         if (CollUtil.isNotEmpty(hiddenUserIds) && CollUtil.containsAny(hiddenUserIds, specifiedUserIds)) {
             throw new BusinessException(SysErrorCodeEnum.A01021);
         }
+        if (needTenantMemberScope()) {
+            // 非本租户成员不可见、不可操作，按越权处理
+            Set<Long> memberUserIds = sysUserTenantRelationMapper.listUserIdsByTenantId(TenantContextHolder.getTenantId());
+            if (!CollUtil.containsAll(memberUserIds, specifiedUserIds)) {
+                throw new BusinessException(SysErrorCodeEnum.A01021);
+            }
+        }
+    }
+
+    /**
+     * USER_FIRST 模式且当前处于租户域（非平台自营域）时，成员真源在 sys_user_tenant_relation，
+     * sys_user 行级隔离不可作为可见范围依据
+     */
+    private boolean needTenantMemberScope() {
+        return isUserFirstLoginMode() && !TenantUtil.isPlatformDomain(TenantContextHolder.getTenantId());
+    }
+
+    /**
+     * 按当前作用域读取用户
+     * <p>USER_FIRST 租户域内成员投影列可能指向他租户，行级过滤会漏读，改为忽略隔离按ID直读
+     * （可见性由 {@link #checkUserOperationAccess} 成员关系校验兜底）
+     */
+    @SneakyThrows
+    private SysUserEntity selectUserByCurrentScope(Long id) {
+        if (needTenantMemberScope()) {
+            return TenantContextHolder.callIgnored(() -> sysUserMapper.selectById(id));
+        }
+        return sysUserMapper.selectById(id);
+    }
+
+    /**
+     * 按当前作用域分页读取用户
+     * <p>USER_FIRST 租户域内忽略行级隔离取数，调用方须以显式 ID 集合限定范围
+     */
+    @SneakyThrows
+    private Page<SysUserEntity> selectUserPage(long pageNum, long pageSize, LambdaQueryWrapper<SysUserEntity> qw) {
+        if (needTenantMemberScope()) {
+            return TenantContextHolder.callIgnored(() -> sysUserMapper.selectPage(new Page<>(pageNum, pageSize), qw));
+        }
+        return sysUserMapper.selectPage(new Page<>(pageNum, pageSize), qw);
+    }
+
+    /**
+     * 按当前作用域写用户
+     * <p>USER_FIRST 租户域内成员投影列指向他租户，行级过滤会使 UPDATE 落空，忽略隔离按ID写
+     */
+    private void updateUserByCurrentScope(Runnable writeOp) {
+        if (needTenantMemberScope()) {
+            TenantContextHolder.runIgnored(writeOp);
+            return;
+        }
+        writeOp.run();
     }
 
 }

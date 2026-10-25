@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.biz;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
 import cc.uncarbon.module.sys.MybatisPlusTestSupport;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
@@ -22,8 +23,10 @@ import cc.uncarbon.module.sys.service.SysRoleService;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
+import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -65,9 +69,16 @@ class TenantUserRoleFacadeImplTest {
     private SysUserTenantRelationMapper sysUserTenantRelationMapper;
     @Mock
     private UserRoleHelper userRoleHelper;
+    @Mock
+    private TenantConfigFacade tenantConfigFacade;
 
     @InjectMocks
     private TenantUserRoleFacadeImpl facade;
+
+    @BeforeEach
+    void initFacade() {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
+    }
 
 
     @Test
@@ -158,6 +169,29 @@ class TenantUserRoleFacadeImplTest {
     }
 
     @Test
+    void listUserIdsByTenantUserFirstReadsRelationTable() {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        // 成员真源在关联表：含投影列指向他租户的拉入成员 66，超管 0 排除
+        Mockito.when(sysUserTenantRelationMapper.listUserIdsByTenantId(10L))
+                .thenReturn(new LinkedHashSet<>(List.of(0L, 1L, 66L)));
+
+        Assertions.assertEquals(List.of(1L, 66L), facade.listUserIdsByTenant(10L, null));
+        Mockito.verify(sysUserMapper, Mockito.never()).selectList(Mockito.any());
+    }
+
+    @Test
+    void listUserIdsByTenantUserFirstFiltersStatusGlobally() throws Exception {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(sysUserTenantRelationMapper.listUserIdsByTenantId(10L)).thenReturn(Set.of(1L, 66L));
+        Mockito.when(sysUserMapper.selectList(Mockito.any())).thenReturn(List.of(
+                new SysUserEntity().setId(66L)));
+
+        var ret = facade.listUserIdsByTenant(10L, List.of(EnabledStatusEnum.ENABLED));
+
+        Assertions.assertEquals(List.of(66L), ret);
+    }
+
+    @Test
     void listEnabledTenantIdsByUserBranches() {
         Assertions.assertEquals(List.of(), facade.listEnabledTenantIdsByUser(null));
 
@@ -174,10 +208,11 @@ class TenantUserRoleFacadeImplTest {
         facade.rememberActiveTenant(null, 5L);
         facade.rememberActiveTenant(66L, null);
         facade.rememberActiveTenant(0L, 5L);   // 超管归属平台自营域，不落投影列
-        Mockito.verify(sysUserMapper, Mockito.never()).update(Mockito.any(), Mockito.any());
+        Mockito.verify(sysUserMapper, Mockito.never())
+                .updateTenantId(Mockito.anyLong(), Mockito.any());
 
         facade.rememberActiveTenant(66L, 5L);
-        Mockito.verify(sysUserMapper).update(Mockito.any(), Mockito.any());
+        Mockito.verify(sysUserMapper).updateTenantId(66L, 5L);
     }
 
     @Test

@@ -108,15 +108,6 @@ class TenantFacadeImplTest {
         Assertions.assertEquals(TenantErrorCodeEnum.B03001, ret.getErrorCode());
     }
 
-    @Test
-    void featureFlagDelegates() {
-        Mockito.when(props.doesTenantEnabled()).thenReturn(true);
-        Mockito.when(props.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
-
-        Assertions.assertTrue(facade.isTenantEnabled());
-        Assertions.assertEquals(TenantLoginModeEnum.USER_FIRST, facade.getLoginMode());
-    }
-
 
     /*
     ----------------------------------------------------------------
