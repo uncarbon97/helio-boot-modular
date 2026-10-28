@@ -15,7 +15,7 @@ public final class MaskUtil {
 
 
     /**
-     * 手机号脱敏：18967038927 -> 189****8927
+     * 手机号脱敏：18967038927 -> 189******27
      *
      * <p>位数不足 8 位时整体掩码，避免短号码泄露面过大</p>
      */
@@ -27,7 +27,7 @@ public final class MaskUtil {
         if (trimmed.length() < 8) {
             return STAR_4;
         }
-        return trimmed.substring(0, 3) + STAR_4 + trimmed.substring(trimmed.length() - 4);
+        return trimmed.substring(0, 3) + "*".repeat(trimmed.length() - 5) + trimmed.substring(trimmed.length() - 2);
     }
 
     /**

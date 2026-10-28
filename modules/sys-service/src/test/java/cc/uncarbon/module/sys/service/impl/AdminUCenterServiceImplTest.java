@@ -46,14 +46,14 @@ class AdminUCenterServiceImplTest {
     void getMyProfileCopiesBasicProfile() {
         Mockito.when(sysUserService.getNonnullBasicProfileById(3L)).thenReturn(
                 new SysUserBasicProfileDTO().setId(3L).setPin("u3").setNickname("n3")
-                        .setEmailMasked("al****@example.com").setPhoneNoMasked("189****8927"));
+                        .setEmailMasked("al****@example.com").setPhoneNoMasked("189******27"));
 
         MyProfileDTO ret = withUserReturn(3L, () -> service.getMyProfile());
 
         Assertions.assertEquals("u3", ret.getPin());
         Assertions.assertEquals("n3", ret.getNickname());
         Assertions.assertEquals("al****@example.com", ret.getEmailMasked());
-        Assertions.assertEquals("189****8927", ret.getPhoneNoMasked());
+        Assertions.assertEquals("189******27", ret.getPhoneNoMasked());
     }
 
     @Test

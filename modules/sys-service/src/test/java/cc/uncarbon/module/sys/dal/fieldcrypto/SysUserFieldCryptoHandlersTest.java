@@ -54,7 +54,7 @@ class SysUserFieldCryptoHandlersTest {
 
     @Test
     void maskersDelegateToMaskUtil() {
-        Assertions.assertEquals("189****8927", new PhoneFieldValueMasker().mask("18967038927"));
+        Assertions.assertEquals("189******27", new PhoneFieldValueMasker().mask("18967038927"));
         Assertions.assertEquals("al****@example.com", new EmailFieldValueMasker().mask("alicealex@example.com"));
     }
 

@@ -13,7 +13,7 @@ class MaskUtilTest {
 
     @Test
     void maskPhone() {
-        Assertions.assertEquals("189****8927", MaskUtil.maskPhone("18967038927"));
+        Assertions.assertEquals("189******27", MaskUtil.maskPhone("18967038927"));
         Assertions.assertNull(MaskUtil.maskPhone(null));
         Assertions.assertNull(MaskUtil.maskPhone(""));
         Assertions.assertNull(MaskUtil.maskPhone("  "));
@@ -21,7 +21,7 @@ class MaskUtilTest {
         Assertions.assertEquals("****", MaskUtil.maskPhone("138"));
         Assertions.assertEquals("****", MaskUtil.maskPhone("1380013"));
         // 边界：恰好 8 位
-        Assertions.assertEquals("138****0800", MaskUtil.maskPhone("13800800"));
+        Assertions.assertEquals("138***00", MaskUtil.maskPhone("13800800"));
     }
 
     @Test
