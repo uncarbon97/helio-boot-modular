@@ -2,8 +2,8 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.db.fieldcrypto.annotation.BlindIndexOf;
 import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexValueExtractors;
-import cc.uncarbon.module.sys.constant.SysUserCipherCols;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
+import cc.uncarbon.module.sys.dal.fieldcrypto.SysUserCipherCols;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

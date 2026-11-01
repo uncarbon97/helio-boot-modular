@@ -3,7 +3,6 @@ package cc.uncarbon.module.sys.dal.fieldcrypto;
 import cc.uncarbon.framework.helium.db.fieldcrypto.exception.FieldCryptoException;
 import cc.uncarbon.framework.helium.db.fieldcrypto.field.FieldCipher;
 import cc.uncarbon.framework.helium.db.fieldcrypto.field.FieldCipherContext;
-import cc.uncarbon.module.sys.constant.SysUserCipherCols;
 import org.apache.ibatis.type.JdbcType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;

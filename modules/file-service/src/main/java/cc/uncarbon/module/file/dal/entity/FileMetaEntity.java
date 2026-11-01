@@ -1,7 +1,6 @@
 package cc.uncarbon.module.file.dal.entity;
 
 
-import cc.uncarbon.framework.helium.db.constant.EntityField;
 import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.framework.helium.db.entity.TenantEntity;
 import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
@@ -36,13 +35,6 @@ public class FileMetaEntity extends AbstractTenantGenericEntity implements Tenan
     @Schema(description = "主键ID")
     @TableId(type = IdType.AUTO)
     private Long id;
-
-    /**
-     * 兼容多租户特性
-     */
-    @Schema(description = "租户ID")
-    @TableField(value = EntityField.TENANT_ID_COLUMN)
-    private Long tenantId;
 
     @Schema(description = "原始存储点ID")
     @TableField(value = "storage_id")

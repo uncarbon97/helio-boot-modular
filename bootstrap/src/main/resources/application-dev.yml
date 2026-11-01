@@ -1,6 +1,8 @@
 spring:
   datasource:
     dynamic:
+      # 下方同时给出了 MySQL 数据源与 PG 数据源的写法示例
+      # 如果实际用的是 PG 数据源，要改成 primary: postgres
       primary: mysql
       datasource:
         # MySQL 数据源
@@ -15,6 +17,7 @@ spring:
           url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:helium}?reWriteBatchedInserts=true&TimeZone=${DB_TIMEZONE}
           username: ${DB_USERNAME:helium}
           password: ${DB_PASSWORD:helium}
+          # 设置 true 则不会在工程启动时就初始化数据源
           lazy: true
   data:
     redis:

@@ -1,6 +1,8 @@
 BEGIN;
 
 SET NAMES utf8mb4;
+-- 会话时区，按北京时间墙钟
+SET SESSION time_zone = '+08:00';
 -- 允许 id=0 落库：默认模式下 AUTO_INCREMENT 列遇 0 会改为自动生成
 SET SESSION sql_mode = CONCAT(IFNULL(@@SESSION.sql_mode, ''), ',NO_AUTO_VALUE_ON_ZERO');
 SET FOREIGN_KEY_CHECKS = 0;
@@ -38,7 +40,10 @@ CREATE TABLE `file_meta`  (
   `digest_sha256` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'SHA256',
   `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '文件主分类',
   `direct_url` varchar(510) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '对象存储直链',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_file_meta_storage_code`(`storage_code`) USING BTREE,
+  INDEX `idx_file_meta_digest_sha256`(`digest_sha256`) USING BTREE,
+  INDEX `idx_file_meta_created_at`(`created_at`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件元数据' ROW_FORMAT = Dynamic;
 
 
@@ -56,7 +61,8 @@ CREATE TABLE `file_storage`  (
   `platform_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0' COMMENT '存储平台类型',
   `setting_json` varchar(3000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '{}' COMMENT '配置属性',
   `primary_flag` smallint(6) NOT NULL DEFAULT 0 COMMENT '主存储点标识',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_file_storage_code`(`code`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '文件存储点' ROW_FORMAT = Dynamic;
 
 
@@ -82,7 +88,8 @@ CREATE TABLE `sys_dept`  (
   `parent_id` bigint(20) NOT NULL DEFAULT 0 COMMENT '上级部门ID(根部门设置为0)',
   `sort` int(11) NOT NULL DEFAULT 1 COMMENT '排序',
   `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '状态',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_sys_dept_parent_id`(`parent_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '部门' ROW_FORMAT = Dynamic;
 
 
@@ -99,7 +106,8 @@ CREATE TABLE `sys_dict_category`  (
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '字典名称',
   `status` tinyint(4) NOT NULL DEFAULT 1 COMMENT '状态',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '字典描述',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_sys_dict_category_code`(`code`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '字典分类' ROW_FORMAT = Dynamic;
 
 
@@ -119,7 +127,8 @@ CREATE TABLE `sys_dict_item`  (
   `status` tinyint(4) NOT NULL DEFAULT 1 COMMENT '状态',
   `sort` int(11) NOT NULL DEFAULT 1 COMMENT '排序',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '字典项描述',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_sys_dict_item_category_id_sort`(`category_id`, `sort`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '字典项' ROW_FORMAT = Dynamic;
 
 
@@ -139,7 +148,10 @@ CREATE TABLE `sys_login_log`  (
   `visitor_ip_location` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'IP地址归属地',
   `result_status` int(11) NOT NULL DEFAULT 0 COMMENT '结果状态',
   `failed_msg` varchar(3000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '失败原因文本',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_sys_login_log_created_at`(`created_at`) USING BTREE,
+  INDEX `idx_sys_login_log_user_id`(`user_id`) USING BTREE,
+  INDEX `idx_sys_login_log_user_pin`(`user_pin`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统登录日志' ROW_FORMAT = Dynamic;
 
 
@@ -247,7 +259,9 @@ CREATE TABLE `sys_operate_log`  (
   `visitor_ip_location` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'IP地址归属地',
   `result_status` int(11) NOT NULL DEFAULT 0 COMMENT '结果状态',
   `failed_msg` varchar(3000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '失败原因文本',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_sys_operate_log_created_at`(`created_at`) USING BTREE,
+  INDEX `idx_sys_operate_log_user_id`(`user_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统操作日志' ROW_FORMAT = Dynamic;
 
 
@@ -265,7 +279,8 @@ CREATE TABLE `sys_role`  (
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色描述',
   `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '状态',
   `flags` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色特殊标记',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_sys_role_code`(`code`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统角色' ROW_FORMAT = Dynamic;
 
 INSERT INTO `sys_role` VALUES (0, 0, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, 'SuperAdmin', '超级管理员', '', 1, 'builtin');
@@ -279,7 +294,8 @@ CREATE TABLE `sys_role_menu_relation`  (
   `role_id` bigint(20) NOT NULL COMMENT '角色ID',
   `menu_id` bigint(20) NOT NULL COMMENT '菜单ID',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk__tenant_role_menu`(`tenant_id`, `role_id`, `menu_id`) USING BTREE
+  UNIQUE INDEX `uk_sys_role_menu_relation_role_id_menu_id`(`role_id`, `menu_id`) USING BTREE,
+  INDEX `idx_sys_role_menu_relation_menu_id`(`menu_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统角色-菜单关联关系' ROW_FORMAT = Dynamic;
 
 
@@ -308,7 +324,10 @@ CREATE TABLE `sys_user`  (
   `email` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '邮箱',
   `email_masked` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '邮箱脱敏冗余',
   `email_full_blind_index` char(24) CHARACTER SET ascii COLLATE ascii_bin NULL DEFAULT NULL COMMENT '邮箱全串盲索引',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_sys_user_pin`(`pin`) USING BTREE,
+  INDEX `idx_sys_user_phone_full_blind_index`(`phone_no_full_blind_index`) USING BTREE,
+  INDEX `idx_sys_user_phone_tail4_blind_index`(`phone_no_tail4_blind_index`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统用户' ROW_FORMAT = Dynamic;
 
 INSERT INTO `sys_user` VALUES (0, 0, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, 'admin', '$argon2id$v=19$m=19456,t=2,p=1$N5zOuCYckX+BVAFvVE4dQA$fidoxVwyp/UgRt9HtUCTLEO6WTp+yRWXiZH1vJQjL9M', '2026-10-01 00:00:00', 0, '超级管理员', 0, 1, '2026-10-01 00:00:00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -322,7 +341,8 @@ CREATE TABLE `sys_user_dept_relation`  (
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
   `dept_id` bigint(20) NOT NULL COMMENT '部门ID',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk__tenant_user_dept`(`tenant_id`, `user_id`, `dept_id`) USING BTREE
+  UNIQUE INDEX `uk_sys_user_dept_relation_user_id_dept_id`(`user_id`, `dept_id`) USING BTREE,
+  INDEX `idx_sys_user_dept_relation_dept_id`(`dept_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统用户-部门关联关系' ROW_FORMAT = Dynamic;
 
 
@@ -335,7 +355,8 @@ CREATE TABLE `sys_user_role_relation`  (
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
   `role_id` bigint(20) NOT NULL COMMENT '角色ID',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk__tenant_user_role`(`tenant_id`, `user_id`, `role_id`) USING BTREE
+  UNIQUE INDEX `uk_sys_user_role_relation_user_id_role_id`(`user_id`, `role_id`) USING BTREE,
+  INDEX `idx_sys_user_role_relation_role_id`(`role_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统用户-角色关联关系' ROW_FORMAT = Dynamic;
 
 INSERT INTO `sys_user_role_relation` VALUES (0, 0, '2026-10-01 00:00:00', NULL, 0, 0);
@@ -348,8 +369,8 @@ CREATE TABLE `sys_user_tenant_relation`  (
   `created_by` bigint(20) NULL DEFAULT NULL COMMENT '创建者',
   `user_id` bigint(20) NOT NULL COMMENT '用户ID',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk_tenant_user`(`tenant_id`, `user_id`) USING BTREE,
-  INDEX `idx_user`(`user_id`) USING BTREE
+  UNIQUE INDEX `uk_sys_user_tenant_relation_tenant_id_user_id`(`tenant_id`, `user_id`) USING BTREE,
+  INDEX `idx_sys_user_tenant_relation_user_id`(`user_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '系统用户-租户关联关系' ROW_FORMAT = Dynamic;
 
 INSERT INTO `sys_user_tenant_relation` VALUES (0, 0, '2026-10-01 00:00:00', NULL, 0);
@@ -367,7 +388,9 @@ CREATE TABLE `tenant_meta`  (
   `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '状态',
   `admin_user_id` bigint(20) NULL DEFAULT NULL COMMENT '租户管理员用户ID',
   `package_id` bigint(20) NULL DEFAULT NULL COMMENT '所属租户套餐ID',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_tenant_meta_code`(`code`) USING BTREE,
+  INDEX `idx_tenant_meta_package_id`(`package_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '租户元数据' ROW_FORMAT = Dynamic;
 
 INSERT INTO `tenant_meta` VALUES (0, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '0000', '平台自营域', 1, 0, NULL);
@@ -384,7 +407,8 @@ CREATE TABLE `tenant_package`  (
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '套餐名称',
   `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '状态',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '套餐描述',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_tenant_package_code`(`code`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '租户套餐' ROW_FORMAT = Dynamic;
 
 
@@ -395,7 +419,8 @@ CREATE TABLE `tenant_package_menu_relation`  (
   `created_by` bigint(20) NULL DEFAULT NULL COMMENT '创建者',
   `package_id` bigint(20) NOT NULL COMMENT '租户套餐ID',
   `menu_id` bigint(20) NOT NULL COMMENT '菜单ID',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_tenant_package_menu_relation_package_id_menu_id`(`package_id`, `menu_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '租户套餐-菜单关联关系' ROW_FORMAT = Dynamic;
 
 

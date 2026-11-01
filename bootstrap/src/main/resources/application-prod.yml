@@ -16,16 +16,14 @@
 spring:
   datasource:
     dynamic:
+      # 配置注释参见 application-dev.yml
       primary: mysql
       datasource:
-        # MySQL 数据源
         mysql:
           url: jdbc:mysql://${MYSQL_HOST:127.0.0.1}:${MYSQL_PORT:3306}/${MYSQL_DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${DB_TIMEZONE}
           username: ${MYSQL_USERNAME:helium}
           password: ${MYSQL_PASSWORD:helium}
-          # 设置 false 会在工程启动时就初始化数据源
           lazy: false
-        # PG 数据源
         postgres:
           url: jdbc:postgresql://${PG_HOST:127.0.0.1}:${PG_PORT:5432}/${PG_DB_NAME:helium}?reWriteBatchedInserts=true&TimeZone=${DB_TIMEZONE}
           username: ${PG_USERNAME:helium}

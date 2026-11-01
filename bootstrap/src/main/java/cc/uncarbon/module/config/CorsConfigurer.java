@@ -19,15 +19,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfigurer implements WebMvcConfigurer {
 
-    private final HeliumWebSecurityProperties heliumWebSecurityProperties;
+    private final HeliumWebSecurityProperties webSecurityProps;
 
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        var cors = heliumWebSecurityProperties.getCors();
-        String[] origins = CollUtil.defaultIfEmpty(
-                cors.getAllowedOrigins(), java.util.List.of("http://localhost:*"))
-                .toArray(String[]::new);
+        var cors = webSecurityProps.getCors();
+        String[] origins = cors.getAllowedOrigins().toArray(String[]::new);
         boolean allowAnyOrigin = CollUtil.contains(cors.getAllowedOrigins(), "*");
 
         registry

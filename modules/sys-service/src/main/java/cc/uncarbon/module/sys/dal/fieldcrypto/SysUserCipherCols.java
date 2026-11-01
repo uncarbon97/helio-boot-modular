@@ -1,4 +1,4 @@
-package cc.uncarbon.module.sys.constant;
+package cc.uncarbon.module.sys.dal.fieldcrypto;
 
 import lombok.experimental.UtilityClass;
 
