@@ -168,7 +168,13 @@
 <!--                <message/>-->
 <!--                <mdc/>-->
 <!--                <arguments/>-->
-<!--                <stackTrace/>-->
+<!--                &lt;!&ndash; 限制堆栈总长度与深度，避免超长行被采集端/服务端按 max_line_size 丢弃 &ndash;&gt;-->
+<!--                <stackTrace>-->
+<!--                    <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">-->
+<!--                        <maxLength>8192</maxLength>-->
+<!--                        <maxDepthPerThrowable>50</maxDepthPerThrowable>-->
+<!--                    </throwableConverter>-->
+<!--                </stackTrace>-->
 <!--                <threadName/>-->
 <!--            </providers>-->
 <!--        </encoder>-->
