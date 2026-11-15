@@ -7,8 +7,8 @@ SET SESSION time_zone = '+08:00';
 SET SESSION sql_mode = CONCAT(IFNULL(@@SESSION.sql_mode, ''), ',NO_AUTO_VALUE_ON_ZERO');
 SET FOREIGN_KEY_CHECKS = 0;
 
-DROP TABLE IF EXISTS `#数据表模板`;
-CREATE TABLE `#数据表模板`  (
+DROP TABLE IF EXISTS `#业务表模板`;
+CREATE TABLE `#业务表模板`  (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `tenant_id` bigint(20) NULL DEFAULT 0 COMMENT '租户ID',
   `del_flag` smallint(6) NOT NULL DEFAULT 0 COMMENT '逻辑删除标识',
@@ -17,7 +17,16 @@ CREATE TABLE `#数据表模板`  (
   `updated_at` timestamp NULL DEFAULT NULL COMMENT '更新时刻',
   `updated_by` bigint(20) NULL DEFAULT NULL COMMENT '更新者',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '数据表模板' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '业务表模板' ROW_FORMAT = Dynamic;
+
+DROP TABLE IF EXISTS `#关联表模板`;
+CREATE TABLE `#关联表模板`  (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `tenant_id` bigint(20) NULL DEFAULT 0 COMMENT '租户ID',
+  `created_at` timestamp NOT NULL COMMENT '创建时刻',
+  `created_by` bigint(20) NULL DEFAULT NULL COMMENT '创建者',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 0 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '关联表模板' ROW_FORMAT = Dynamic;
 
 
 DROP TABLE IF EXISTS `file_meta`;

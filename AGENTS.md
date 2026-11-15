@@ -1,5 +1,3 @@
-@.agents/AGENTS.md
-
 # 编程规约
 ## 上下文
 - 用户态、租户态等上下文，遵循虚拟线程`ScopedValue`规范传递，并统一从`UserContextHolder`、`TenantContextHolder`等API中读写

@@ -29,11 +29,11 @@ JDK compatibility: 25
 │       ├───MySQL          MySQL 初始化及变更脚本
 │       └───PostgreSQL     PostgreSQL 初始化及变更脚本
 ├───bootstrap  项目主入口，负责启动 SpringBoot
-├───commons  跨模块共享契约
 ├───endpoints  API 端点聚合
 │   ├───admin-api  后台管理 API 端点
 │   └───app-api  APP API 端点（空架子）
 ├───modules  业务模块层（契约 + 实现）
+│   ├───commons  跨模块共享契约
 │   ├───file-contract  文件管理契约
 │   ├───file-service  文件管理实现
 │   ├───sys-contract  系统管理契约

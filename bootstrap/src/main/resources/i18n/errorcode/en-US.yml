@@ -1,3 +1,16 @@
+---  # BuiltinErrorCodeEnum
+Z00400: {}
+Z00401: You need to sign in again
+Z00402: You do not have the required role permission
+Z00403: You do not have permission for this function
+Z00404: You look lost
+Z00405: Incorrect request method
+Z00406: Incorrect request parameter format
+Z00413: File size exceeds the limit
+Z00415: Unsupported media type
+Z00429: Slow down a little, please try again later
+Z00500: The server is busy, please try again later or contact the administrator
+
 ---  # DefaultErrorCodeEnum
 A00001: Duplicate data
 A00002: Data does not exist
@@ -8,6 +21,7 @@ A04001: Incorrect captcha, please try again
 A04002: Unsupported image format
 A04003: This file cannot be used as an avatar
 A04004: Too many failed login attempts, the account is temporarily locked, please try again later
+A04005: You are currently in a tenant-switched state, please exit the switch before continuing
 B04001: Failed to generate captcha
 
 ---  # SysErrorCodeEnum
@@ -24,6 +38,7 @@ A01012: You cannot delete your own role
 A01013: Special roles cannot be modified
 A01014: You cannot modify your own role
 A01015: You must not exceed your own menu permissions
+A01016: Menus visible only to superadmin cannot be bound to roles
 A01020: This operation cannot be performed on yourself
 A01021: This operation cannot be performed on this user
 A01022: You must not exceed your own role permissions
