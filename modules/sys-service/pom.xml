@@ -77,7 +77,26 @@
 
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-excel</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-starter-i18n</artifactId>
+        </dependency>
+
+        <!-- 行级校验实现（jakarta.validation）：应用运行时随 helium-starter-web 传递提供，本模块单测显式引入 -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- 校验消息 EL 插值：应用运行时随 web 容器（tomcat-embed-el）传递提供，本模块单测显式引入 -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-el</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -10,7 +10,7 @@ import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
 import cc.uncarbon.module.adminapi.event.RefreshSysUserSessionEvent;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.constant.PermissionPattern;
+import cc.uncarbon.module.commons.constant.PermPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.model.response.IdResponse;
@@ -51,7 +51,10 @@ import java.util.Set;
 @SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysRoleController {
 
-    private static final String PERMISSION_PREFIX = "sys:role:";
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "sys:role:";
     static final String BIZ_TYPE = "系统角色管理";
 
     private final SysRoleService sysRoleService;
@@ -60,14 +63,14 @@ public class AdminSysRoleController {
     private final ApplicationEventPublisher eventPublisher;
 
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "分页查询")
     @PostMapping(value = "/list")
     public ApiResult<PageResult<SysRoleDTO>> list(@RequestBody @Valid AdminSysRoleListQuery query) {
         return ApiResult.success(sysRoleService.adminList(query));
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysRoleDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
@@ -75,7 +78,7 @@ public class AdminSysRoleController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增角色", success = "新增角色：{{#request.code}}|{{#request.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
     public ApiResult<IdResponse<Long>> create(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
@@ -85,7 +88,7 @@ public class AdminSysRoleController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改角色",
             bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}：{_DIFF{#request}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminSysRoleUpsertRequest request) {
@@ -100,7 +103,7 @@ public class AdminSysRoleController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除角色",
             bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
@@ -117,7 +120,7 @@ public class AdminSysRoleController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改角色状态",
             bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}，新状态：{{#request.newStatus.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改角色状态")
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
@@ -133,7 +136,7 @@ public class AdminSysRoleController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "授权",
             bizNo = "{{#request.id}}", success = "被操作角色：{{#old.code}}|{{#old.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bind-menu")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "bind-menu")
     @Operation(summary = "授权")
     @PostMapping(value = "/bind-menu")
     public ApiResult<Void> bindMenu(@RequestBody @Valid AdminSysRoleBindMenuRequest request) {
@@ -145,7 +148,7 @@ public class AdminSysRoleController {
         return ApiResult.success();
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "分页查询角色关联用户")
     @PostMapping(value = "/list-related-user")
     public ApiResult<PageResult<SysUserDTO>> listRelatedUser(
@@ -153,7 +156,7 @@ public class AdminSysRoleController {
         return ApiResult.success(sysUserService.adminListRoleRelatedUsers(query));
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "取指定角色关联用户ID")
     @PostMapping(value = "/list-related-user-id")
     public ApiResult<Set<Long>> listRelatedUserId(@RequestBody @Valid IdRequest<Long> request) {

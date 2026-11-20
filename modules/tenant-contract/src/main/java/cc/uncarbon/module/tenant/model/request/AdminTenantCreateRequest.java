@@ -1,6 +1,5 @@
 package cc.uncarbon.module.tenant.model.request;
 
-import cn.hutool.core.lang.RegexPool;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -45,16 +44,14 @@ public class AdminTenantCreateRequest implements Serializable {
     @ToString.Exclude
     private String tenantAdminPwd;
 
-    @Schema(description = "租户管理员邮箱", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Pattern(message = "租户管理员邮箱格式不正确", regexp = RegexPool.EMAIL)
-    @Size(max = 255, message = "租户管理员邮箱最长{max}位")
-    @NotBlank(message = "租户管理员邮箱必填")
+    @Schema(description = "租户管理员邮箱")
+    @Pattern(message = "租户管理员邮箱格式不正确", regexp = "^[\\x21-\\x7E]+@[\\x21-\\x7E]+$")
+    @Size(max = 254, message = "租户管理员邮箱最长{max}位（仅支持 ASCII 字符）")
     private String tenantAdminEmail;
 
-    @Schema(description = "租户管理员手机号", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Pattern(message = "租户管理员手机号格式不正确", regexp = RegexPool.MOBILE)
+    @Schema(description = "租户管理员手机号")
+    @Pattern(message = "租户管理员手机号格式不正确", regexp = "^1\\d{10}$")
     @Size(max = 20, message = "租户管理员手机号最长{max}位")
-    @NotBlank(message = "租户管理员手机号必填")
     private String tenantAdminPhoneNo;
 
     @Schema(description = "所属租户套餐ID")

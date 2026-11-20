@@ -3,8 +3,11 @@ package cc.uncarbon.module.sys.service;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.model.query.AdminSysOperateLogListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysOperateLogExportRequest;
 import cc.uncarbon.module.sys.model.request.SysOperateLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysOperateLogDTO;
+
+import java.io.OutputStream;
 
 /**
  * 系统操作日志
@@ -30,5 +33,10 @@ public interface SysOperateLogService {
      * 新增
      */
     Long create(SysOperateLogCreateRequest request);
+
+    /**
+     * 后台管理-导出
+     */
+    void adminExportExcel(AdminSysOperateLogExportRequest request, OutputStream out);
 
 }

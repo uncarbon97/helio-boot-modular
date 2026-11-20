@@ -1,12 +1,12 @@
 package cc.uncarbon.test.sys;
 
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
-import cc.uncarbon.module.commons.support.excel.ExcelIoUtil;
+import cc.uncarbon.framework.helium.excel.util.ExcelIoUtil;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.request.AdminSysUserImportRequest;
-import cc.uncarbon.module.sys.model.response.SysUserImportResultVO;
+import cc.uncarbon.module.sys.model.response.SysUserImportResult;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
 import jakarta.annotation.Resource;
@@ -43,7 +43,7 @@ class SysUserImportIT extends BaseIntegrationTest {
                 List.<Object>of(pinB, "导入乙", "女", "", "")));
         AdminSysUserImportRequest attr = new AdminSysUserImportRequest().setInitPwd("Passw0rd");
 
-        var first = new AtomicReference<SysUserImportResultVO>();
+        var first = new AtomicReference<SysUserImportResult>();
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () ->
                 first.set(sysUserService.adminImportUsers(new ByteArrayInputStream(xlsx), "users.xlsx", attr)));
 
@@ -67,7 +67,7 @@ class SysUserImportIT extends BaseIntegrationTest {
         });
 
         // 重复导入同一文件 → 整文件失败，无半截数据
-        var second = new AtomicReference<SysUserImportResultVO>();
+        var second = new AtomicReference<SysUserImportResult>();
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () ->
                 second.set(sysUserService.adminImportUsers(new ByteArrayInputStream(xlsx), "users.xlsx", attr)));
         Assertions.assertEquals(0, second.get().getSuccessCount());

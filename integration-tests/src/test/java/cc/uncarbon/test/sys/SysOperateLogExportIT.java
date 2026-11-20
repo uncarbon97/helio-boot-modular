@@ -1,7 +1,8 @@
 package cc.uncarbon.test.sys;
 
+import cc.uncarbon.framework.helium.excel.util.ExcelIoUtil;
 import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
-import cc.uncarbon.module.commons.support.excel.ExcelIoUtil;
+import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
 import cc.uncarbon.module.sys.dal.entity.SysOperateLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
@@ -60,7 +61,8 @@ class SysOperateLogExportIT extends BaseIntegrationTest {
             Assertions.assertEquals('P', bytes[0]);
             Assertions.assertEquals('K', bytes[1]);
 
-            var sheet = ExcelIoUtil.parse(new ByteArrayInputStream(bytes), 100);
+            var sheet = ExcelIoUtil.parse(new ByteArrayInputStream(bytes), 100,
+                DefaultErrorCodeEnum.A00007, DefaultErrorCodeEnum.A00006);
             Assertions.assertEquals(2, sheet.rows().size());
             // 操作内容列（列序 5）做过公式注入清洗
             Assertions.assertTrue(sheet.rows().stream().anyMatch(r -> "'=1+1".equals(r.cell(5))));

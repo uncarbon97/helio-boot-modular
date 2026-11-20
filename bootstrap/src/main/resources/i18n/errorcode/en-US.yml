@@ -11,10 +11,16 @@ Z00415: Unsupported media type
 Z00429: Slow down a little, please try again later
 Z00500: The server is busy, please try again later or contact the administrator
 
+
 ---  # DefaultErrorCodeEnum
 A00001: Duplicate data
 A00002: Data does not exist
 A00003: Length must not exceed {}
+A00004: The import file is empty or contains no data rows
+A00005: The import file headers do not match, please use the latest template
+A00006: Failed to parse the import file, please make sure it is a valid xlsx file
+A00007: The import file exceeds the maximum of {} rows
+A00008: The export exceeds the maximum of {} rows, please narrow the filters and try again
 
 ---  # AdminApiErrorCodeEnum
 A04001: Incorrect captcha, please try again
@@ -65,9 +71,9 @@ A01046: The account does not exist or is not available
 A01047: Superadmin cannot be added to a tenant
 A01048: The account is already a member of this tenant
 A01049: The tenant primary administrator cannot be removed
-A01051: Either the account name or the full phone number must be provided
-A01052: This operation is not supported in the platform domain
-A01053: In user-first mode, users cannot be deleted within a tenant; use remove-from-tenant instead
+A01050: Either the account name or the full phone number must be provided
+A01051: This operation is not supported in the platform domain
+A01052: In user-first mode, users cannot be deleted within a tenant; use remove-from-tenant instead
 B01001: Login component error, please contact the administrator
 B01002: The current login mode is not yet available, please contact the administrator
 

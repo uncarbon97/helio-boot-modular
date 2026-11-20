@@ -6,7 +6,7 @@ import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.constant.PermissionPattern;
+import cc.uncarbon.module.commons.constant.PermPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
@@ -41,13 +41,16 @@ import java.util.Set;
 @SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysDictController {
 
-    private static final String PERMISSION_PREFIX = "sys:dict:";
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "sys:dict:";
     static final String BIZ_TYPE = "字典管理";
 
     private final SysDictService sysDictService;
 
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "分页查询字典分类")
     @PostMapping(value = "/category/list")
     public ApiResult<PageResult<SysDictCategoryDTO>> list(@RequestBody AdminSysDictCategoryListQuery query) {
@@ -56,7 +59,7 @@ public class AdminSysDictController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增字典分类",
             success = "新增字典分类：{{#request.code}}|{{#request.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.CREATE)
     @Operation(summary = "新增字典分类")
     @PostMapping(value = "/category/create")
     public ApiResult<Void> create(@RequestBody @Valid AdminSysDictCategoryUpsertRequest request) {
@@ -66,7 +69,7 @@ public class AdminSysDictController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改字典分类",
             bizNo = "{{#request.id}}", success = "被操作字典分类：{{#old.code}}|{{#old.name}}：{_DIFF{#request}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改字典分类")
     @PostMapping(value = "/category/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminSysDictCategoryUpsertRequest request) {
@@ -79,7 +82,7 @@ public class AdminSysDictController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除字典分类",
             bizNo = "{{#request.id}}", success = "被操作字典分类：{{#old.code}}|{{#old.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
     @Operation(summary = "删除字典分类")
     @PostMapping(value = "/category/delete")
     public ApiResult<Void> deleteCategory(@RequestBody @Valid IdRequest<Long> request) {
@@ -90,7 +93,7 @@ public class AdminSysDictController {
         return ApiResult.success();
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "分页查询字典项")
     @PostMapping(value = "/item/list")
     public ApiResult<PageResult<SysDictItemDTO>> list(@RequestBody @Valid AdminSysDictItemListQuery query) {
@@ -99,7 +102,7 @@ public class AdminSysDictController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增字典项",
             success = "新增字典项：{{#request.code}}|{{#request.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.CREATE)
     @Operation(summary = "新增字典项")
     @PostMapping(value = "/item/create")
     public ApiResult<Void> create(@RequestBody @Valid AdminSysDictItemUpsertRequest request) {
@@ -109,7 +112,7 @@ public class AdminSysDictController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改字典项",
             bizNo = "{{#request.id}}", success = "被操作字典项：{{#old.code}}|{{#old.label}}：{_DIFF{#request}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改字典项")
     @PostMapping(value = "/item/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminSysDictItemUpsertRequest request) {
@@ -122,7 +125,7 @@ public class AdminSysDictController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除字典项",
             bizNo = "{{#request.id}}", success = "被操作字典项：{{#old.code}}|{{#old.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
     @Operation(summary = "删除字典项")
     @PostMapping(value = "/item/delete")
     public ApiResult<Void> deleteItem(@RequestBody @Valid IdRequest<Long> request) {
@@ -133,7 +136,7 @@ public class AdminSysDictController {
         return ApiResult.success();
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "分页查询内置字典分类")
     @PostMapping(value = "/builtin/list")
     public ApiResult<PageResult<SysDictBuiltinDTO>> listBuiltin(@RequestBody @Valid AdminSysDictCategoryListQuery query) {

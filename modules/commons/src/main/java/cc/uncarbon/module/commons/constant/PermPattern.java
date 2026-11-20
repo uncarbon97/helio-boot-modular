@@ -8,7 +8,7 @@ import lombok.experimental.UtilityClass;
  * @author Uncarbon
  */
 @UtilityClass
-public final class PermissionPattern {
+public final class PermPattern {
 
     public static final String READ = "read";
     public static final String CREATE = "create";

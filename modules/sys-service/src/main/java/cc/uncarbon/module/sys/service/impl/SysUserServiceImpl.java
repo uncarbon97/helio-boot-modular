@@ -5,11 +5,16 @@ import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.enums.GenderEnum;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexCalculator;
+import cc.uncarbon.framework.helium.excel.util.ExcelIoUtil;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
+import cc.uncarbon.module.commons.constant.ExcelConstant;
 import cc.uncarbon.module.commons.constant.SQLSegment;
+import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
@@ -25,12 +30,14 @@ import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
 import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.model.excel.SysUserExcelRow;
 import cc.uncarbon.module.sys.model.internal.UserDeptScope;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.model.query.AdminSysRoleListRelatedUserQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.response.SysUserBindRoleResult;
+import cc.uncarbon.module.sys.model.response.SysUserImportResult;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserBasicProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
@@ -42,15 +49,25 @@ import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cc.uncarbon.module.tenant.util.TenantUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.text.StrPool;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.fesod.sheet.ExcelWriter;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 
 
@@ -75,6 +92,7 @@ public class SysUserServiceImpl implements SysUserService {
     private final UserRoleHelper userRoleHelper;
     private final AuditNicknameFiller auditNicknameFiller;
     private final BlindIndexCalculator blindIndexCalculator;
+    private final TransactionTemplate transactionTemplate;
 
 
     @SneakyThrows
@@ -108,7 +126,7 @@ public class SysUserServiceImpl implements SysUserService {
         // 与实体侧 @BlindIndexOf(Tail4Digits) 同一归一化口径，否则索引对不上
         String phoneTail4BlindIndex = CharSequenceUtil.isBlank(query.getPhoneNoTail4()) ? null
                 : blindIndexCalculator.compute(SysUserCipherCols.PHONE_TAIL4_PURPOSE,
-                        new SysUserEntity.Tail4Digits().extract(query.getPhoneNoTail4()));
+                new SysUserEntity.Tail4Digits().extract(query.getPhoneNoTail4()));
         Page<SysUserEntity> entityPage = selectUserPage(pageParam.getPageNum(), pageParam.getPageSize(),
                 new LambdaQueryWrapper<SysUserEntity>()
                         // 手机号尾号
@@ -167,24 +185,7 @@ public class SysUserServiceImpl implements SysUserService {
         checkBeforeCreate(request);
 
         request.setId(null);
-        var entity = new SysUserEntity();
-        BeanUtil.copyProperties(request, entity);
-
-        entity
-                .setPin(request.getPin())
-                .setPwd(PwdUtil.hash(request.getInitPwd()))
-                .setCleanPhoneNo(request.getPhoneNo())
-                .setCleanEmail(request.getEmail())
-                // 默认新用户是禁用状态
-                .setStatus(SysUserStatusEnum.DISABLED);
-
-        sysUserMapper.insert(entity);
-        sysUserDeptRelationService.cleanAndBind(entity.getId(), request.getDeptId());
-        // 双写：relation 为唯一真源；tenant_id 投影列由 INSERT 自动填充，
-        // 未启用租户隔离（strategy=NONE）时无上下文可填，回落平台自营域与列默认值对齐
-        sysUserTenantRelationMapper.insert(SysUserTenantRelationEntity.of(
-                Objects.requireNonNullElse(entity.getTenantId(), TenantConstant.PLATFORM_TENANT_ID), entity.getId()));
-        return entity.getId();
+        return insertUserCore(request, null);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -344,6 +345,164 @@ public class SysUserServiceImpl implements SysUserService {
         }
     }
 
+    @Override
+    public void adminWriteImportTemplate(OutputStream out) {
+        // Sheet1
+        SysUserExcelRow example = new SysUserExcelRow()
+                .setPin("zhangsan01")
+                .setNickname("张三")
+                .setGender("男")
+                .setPhoneNo("13800001111")
+                .setEmail("zhangsan@example.com");
+        List<ExcelIoUtil.ColMeta> cols = ExcelIoUtil.declaredHead(SysUserExcelRow.class);
+
+        // Sheet2
+        List<List<String>> tipHead = List.of(List.of("填写说明"));
+        List<List<String>> tips = Arrays.stream(SysUserExcelRow.TEMPLATE_TIPS.split(StrPool.LF)).map(List::of).toList();
+
+        // 写出
+        ExcelWriter writer = ExcelIoUtil.newWriter(out);
+        try {
+            writer.write(List.of(ExcelIoUtil.rowValues(example, cols)),
+                    ExcelIoUtil.newSheet(0, "Sheet1", ExcelIoUtil.headOf(cols)));
+            writer.write(tips, ExcelIoUtil.newSheet(1, "填写说明", tipHead));
+        } finally {
+            ExcelIoUtil.finish(writer);
+        }
+    }
+
+    @Override
+    public SysUserImportResult adminImportUsers(InputStream excelStream, String originalFilename, @NonNull AdminSysUserImportRequest attr) {
+        log.info(LOG_PREFIX + "批量导入 >> 文件名：{}，参数：{}", originalFilename, attr);
+
+        /*
+        行数上限内快速失败、表头匹配校验
+         */
+        ExcelIoUtil.ParsedRows<SysUserExcelRow> parsed = ExcelIoUtil.parse(excelStream, SysUserExcelRow.class,
+                ExcelConstant.IMPORT_ROWS_MAX, DefaultErrorCodeEnum.A00007, DefaultErrorCodeEnum.A00006);
+        DefaultErrorCodeEnum.A00004.throwIfEmpty(parsed.rows());
+        List<String> declaredHeadNames = ExcelIoUtil.declaredHead(SysUserExcelRow.class).stream()
+                .map(ExcelIoUtil.ColMeta::headName).toList();
+        DefaultErrorCodeEnum.A00005.throwIf(!CollUtil.containsAll(parsed.headNames(), declaredHeadNames));
+
+        /*
+        逐行校验，收集全部错误（不中断）
+         */
+        List<AdminSysUserCreateRequest> pendingRows = new ArrayList<>(parsed.rows().size());
+        List<SysUserImportResult.RowError> errors = new ArrayList<>();
+        // 账号/手机号/邮箱 文件内查重，键为首见行
+        Map<String, ExcelIoUtil.RowData<SysUserExcelRow>> firstRowByPin = new HashMap<>();
+        Map<String, Integer> firstRowNoByPhone = new HashMap<>();
+        Map<String, Integer> firstRowNoByEmail = new HashMap<>();
+
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            Validator validator = factory.getValidator();
+            boolean ok;
+
+            for (ExcelIoUtil.RowData<SysUserExcelRow> rowData : parsed.rows()) {
+                var row = rowData.row();
+                String pin = row.getPin();
+
+                // validator 批量校验
+                var violations = validator.validate(row);
+                ok = violations.isEmpty();
+                for (var violation : violations) {
+                    appendRowError(errors, rowData.rowNumber(), pin, violation.getMessage());
+                }
+
+                // 性别
+                GenderEnum gender = row.resolveGender();
+                if (gender == null) {
+                    appendRowError(errors, rowData.rowNumber(), pin, SysUserExcelRow.MSG_GENDER);
+                    ok = false;
+                }
+
+                // 文件内查重（仅对通过本列校验的值生效，与格式报错不叠加）
+                if (columnPassed(violations, "pin")) {
+                    var firstSeen = firstRowByPin.putIfAbsent(pin, rowData);
+                    if (firstSeen != null) {
+                        appendRowError(errors, rowData.rowNumber(), pin, "文件内账号重复（首见于第 " + firstSeen.rowNumber() + " 行）");
+                        ok = false;
+                    }
+                }
+                if (columnPassed(violations, "phoneNo") && row.getPhoneNo() != null) {
+                    var firstSeen = firstRowNoByPhone.putIfAbsent(row.getPhoneNo(), rowData.rowNumber());
+                    if (firstSeen != null) {
+                        appendRowError(errors, rowData.rowNumber(), pin, "文件内手机号重复（首见于第 " + firstSeen + " 行）");
+                        ok = false;
+                    }
+                }
+                if (columnPassed(violations, "email") && row.getEmail() != null) {
+                    var firstSeen = firstRowNoByEmail.putIfAbsent(row.getEmail(), rowData.rowNumber());
+                    if (firstSeen != null) {
+                        appendRowError(errors, rowData.rowNumber(), pin, "文件内邮箱重复（首见于第 " + firstSeen + " 行）");
+                        ok = false;
+                    }
+                }
+
+                if (ok) {
+                    AdminSysUserCreateRequest createReq = new AdminSysUserCreateRequest()
+                            .setInitPwd(attr.getInitPwd())
+                            .setDeptId(attr.getDefaultDeptId());
+                    createReq.setPin(pin)
+                            .setNickname(row.getNickname())
+                            .setGender(gender)
+                            .setPhoneNo(row.getPhoneNo())
+                            .setEmail(row.getEmail());
+                    pendingRows.add(createReq);
+                }
+            }
+        }
+
+        /*
+        库内账号查重
+         */
+        Set<String> existingPins = listExistingPins(firstRowByPin.keySet());
+        firstRowByPin.forEach((pinKey, firstSeen) -> {
+            if (existingPins.contains(pinKey)) {
+                appendRowError(errors, firstSeen.rowNumber(), pinKey, "账号已存在");
+            }
+        });
+        pendingRows.removeIf(req -> existingPins.contains(req.getPin()));
+
+        if (!errors.isEmpty()) {
+            // 文件级 all-or-nothing：任一行失败整文件不入库
+            return buildImportResult(parsed.rows().size(), List.of(), errors);
+        }
+
+        /*
+        统一参数校验
+         */
+        checkDeptAccess(attr.getDefaultDeptId());
+        checkImportRoleScope(attr.getDefaultRoleIds());
+
+        /*
+        单事务全量入库
+         */
+        List<Long> importedUserIds = transactionTemplate.execute(txStatus -> {
+            // 兜底：查重后至插入前的并发写入
+            if (CollUtil.isNotEmpty(listExistingPins(firstRowByPin.keySet()))) {
+                throw new HasRepeatRecordException(SysErrorCodeEnum.A01030);
+            }
+            List<Long> ids = new ArrayList<>(pendingRows.size());
+            for (AdminSysUserCreateRequest req : pendingRows) {
+                Long userId = insertUserCore(req, YesOrNoEnum.YES);
+                ids.add(userId);
+                if (CollUtil.isNotEmpty(attr.getDefaultRoleIds())) {
+                    sysUserRoleRelationService.cleanAndBindByUser(userId, attr.getDefaultRoleIds());
+                }
+            }
+            if (attr.isAutoEnable()) {
+                for (List<Long> chunk : ListUtil.partition(ids, 500)) {
+                    sysUserMapper.updateStatusBatch(chunk, SysUserStatusEnum.ENABLED);
+                }
+            }
+            return ids;
+        });
+        log.info(LOG_PREFIX + "批量导入完成 >> 共{}行，成功{}行", parsed.rows().size(), CollUtil.size(importedUserIds));
+        return buildImportResult(parsed.rows().size(), Objects.requireNonNullElse(importedUserIds, List.of()), errors);
+    }
+
     /*
     ----------------------------------------------------------------
                         私有方法
@@ -495,7 +654,7 @@ public class SysUserServiceImpl implements SysUserService {
     void checkBeforeDelete(Collection<Long> ids) {
         // USER_FIRST 租户域内「删除」语义实为移出本租户，须走 tenant-expel；全局删人仅平台自营域可执行
         if (isUserFirstLoginMode() && !TenantUtil.isPlatformDomain(TenantContextHolder.getTenantId())) {
-            throw new BusinessException(SysErrorCodeEnum.A01053);
+            throw new BusinessException(SysErrorCodeEnum.A01052);
         }
         if (CollUtil.contains(ids, UserContextHolder.getUserId())) {
             // 不能动自身用户
@@ -731,6 +890,101 @@ public class SysUserServiceImpl implements SysUserService {
             return;
         }
         writeOp.run();
+    }
+
+    /**
+     * 单建/批量导入共用的用户落库路径
+     *
+     * @param pwdMustChange 要求首登改密；null 表示不设置（沿用列默认值）
+     */
+    private Long insertUserCore(AdminSysUserCreateRequest request, YesOrNoEnum pwdMustChange) {
+        var entity = new SysUserEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        entity
+                .setPin(request.getPin())
+                .setPwd(PwdUtil.hash(request.getInitPwd()))
+                .setCleanPhoneNo(request.getPhoneNo())
+                .setCleanEmail(request.getEmail())
+                // 默认新用户是禁用状态
+                .setStatus(SysUserStatusEnum.DISABLED)
+                .setPwdMustChange(pwdMustChange);
+
+        sysUserMapper.insert(entity);
+        sysUserDeptRelationService.cleanAndBind(entity.getId(), request.getDeptId());
+        // 双写：relation 为唯一真源；tenant_id 投影列由 INSERT 自动填充，
+        // 未启用租户隔离（strategy=NONE）时无上下文可填，回落平台自营域与列默认值对齐
+        sysUserTenantRelationMapper.insert(SysUserTenantRelationEntity.of(
+                Objects.requireNonNullElse(entity.getTenantId(), TenantConstant.PLATFORM_TENANT_ID), entity.getId()));
+        return entity.getId();
+    }
+
+    /**
+     * 查询库内已存在的账号集合（USER_FIRST 下忽略租户行级隔离全局查，口径与单建查重一致）
+     */
+    @SneakyThrows
+    private Set<String> listExistingPins(Collection<String> pins) {
+        if (CollUtil.isEmpty(pins)) {
+            return Set.of();
+        }
+        Set<String> ret = new HashSet<>();
+        for (List<String> chunk : ListUtil.partition(new ArrayList<>(pins), 500)) {
+            LambdaQueryWrapper<SysUserEntity> qw = new LambdaQueryWrapper<SysUserEntity>()
+                    .select(SysUserEntity::getPin)
+                    .in(SysUserEntity::getPin, chunk);
+            if (isUserFirstLoginMode()) {
+                ret.addAll(TenantContextHolder.callIgnored(() -> sysUserMapper.selectPins(qw)));
+            } else {
+                ret.addAll(sysUserMapper.selectPins(qw));
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * 导入统一绑定角色的越权检查（语义对齐 {@link #checkBeforeBindUserRoleRelation}；新用户必非管理员，跳过逐用户检查）
+     */
+    private void checkImportRoleScope(Collection<Long> roleIds) {
+        if (CollUtil.isEmpty(roleIds)) {
+            return;
+        }
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (me.isSuperAdmin()) {
+            return;
+        }
+        if (!CollUtil.containsAll(me.getRelatedRoleIds(), roleIds)) {
+            throw new BusinessException(SysErrorCodeEnum.A01022);
+        }
+    }
+
+    /**
+     * 追加行错误
+     */
+    private static void appendRowError(List<SysUserImportResult.RowError> errors,
+                                       int rowNumber, String pin, String reason) {
+        errors.add(new SysUserImportResult.RowError(rowNumber, pin, reason));
+    }
+
+    /**
+     * 指定列是否无校验违规（文件内查重仅对通过本列校验的值生效）
+     */
+    private static boolean columnPassed(Set<ConstraintViolation<SysUserExcelRow>> violations, String propertyName) {
+        return violations.stream().noneMatch(v -> propertyName.equals(v.getPropertyPath().toString()));
+    }
+
+    /**
+     * 汇总导入结果；失败行数 = 总行数 - 成功行数
+     */
+    private static SysUserImportResult buildImportResult(int totalRows, List<Long> importedUserIds,
+                                                         List<SysUserImportResult.RowError> errors) {
+        boolean truncated = errors.size() > ExcelConstant.IMPORT_ERRORS_MAX;
+        return new SysUserImportResult()
+                .setTotalRows(totalRows)
+                .setSuccessCount(importedUserIds.size())
+                .setFailedCount(totalRows - importedUserIds.size())
+                .setErrors(truncated ? List.copyOf(errors.subList(0, ExcelConstant.IMPORT_ERRORS_MAX)) : List.copyOf(errors))
+                .setErrorTruncated(truncated)
+                .setImportedUserIds(importedUserIds);
     }
 
 }

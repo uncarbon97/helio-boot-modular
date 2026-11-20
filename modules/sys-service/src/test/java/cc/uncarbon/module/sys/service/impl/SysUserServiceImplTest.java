@@ -483,7 +483,7 @@ class SysUserServiceImplTest {
         var ex = Assertions.assertThrows(BusinessException.class, () -> withUser(7L, () ->
                 TenantContextHolder.runWithContext(new SimpleTenantContext(10L, "T10", "t10"),
                         () -> service.adminDelete(List.of(8L)))));
-        Assertions.assertEquals(SysErrorCodeEnum.A01053, ex.getErrorCode());
+        Assertions.assertEquals(SysErrorCodeEnum.A01052, ex.getErrorCode());
         Mockito.verify(sysUserMapper, Mockito.never()).deleteByIds(Mockito.anyCollection());
     }
 

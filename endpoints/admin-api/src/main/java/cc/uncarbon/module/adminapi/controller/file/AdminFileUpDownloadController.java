@@ -5,6 +5,7 @@ import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.helper.FileUploadResultHelper;
 import cc.uncarbon.module.adminapi.model.valueobj.FileUploadResultVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.ExcelConstant;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.file.errorcode.FileErrorCodeEnum;
 import cc.uncarbon.module.file.facade.FileUpDownloadFacade;
@@ -59,7 +60,7 @@ public class AdminFileUpDownloadController {
             "png", "image/png",
             "webp", "image/webp",
             "gif", "image/gif",
-            "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            "xlsx", ExcelConstant.XLSX_CONTENT_TYPE
     );
 
     private final FileUpDownloadFacade fileUpDownloadFacade;

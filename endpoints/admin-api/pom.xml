@@ -59,6 +59,11 @@
 
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-excel</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
             <artifactId>helium-starter-openapi3</artifactId>
         </dependency>
 

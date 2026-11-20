@@ -3,7 +3,7 @@ package cc.uncarbon.module.adminapi.controller.sys;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.constant.PermissionPattern;
+import cc.uncarbon.module.commons.constant.PermPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;
@@ -30,19 +30,22 @@ import org.springframework.web.bind.annotation.RestController;
 @SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysLoginLogController {
 
-    private static final String PERMISSION_PREFIX = "sys:login-log:";
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "sys:login-log:";
 
     private final SysLoginLogService sysLoginLogService;
 
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "分页查询")
     @PostMapping(value = "/list")
     public ApiResult<PageResult<SysLoginLogDTO>> list(@RequestBody @Valid AdminSysLoginLogListQuery query) {
         return ApiResult.success(sysLoginLogService.adminList(query));
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysLoginLogDTO> detail(@RequestBody @Valid IdRequest<Long> request) {

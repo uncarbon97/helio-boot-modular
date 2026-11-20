@@ -330,6 +330,7 @@ INSERT INTO sys_menu VALUES (106, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '�
 INSERT INTO sys_menu VALUES (107, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '重置密码', 10, 2, 1, '', 'sys:user:reset-password', 1, '', 4, NULL, '');
 INSERT INTO sys_menu VALUES (108, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '踢下线', 10, 2, 1, '', 'sys:user:kick-out', 1, '', 4, NULL, '');
 INSERT INTO sys_menu VALUES (109, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '租户成员管理', 10, 2, 1, '', 'sys:user:join', 1, '', 5, NULL, '');
+INSERT INTO sys_menu VALUES (110, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '批量导入', 10, 2, 1, '', 'sys:user:import', 1, '', 6, NULL, '');
 INSERT INTO sys_menu VALUES (111, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 11, 2, 1, '', 'sys:role:read', 1, '', 1, NULL, '');
 INSERT INTO sys_menu VALUES (112, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 11, 2, 1, '', 'sys:role:create', 1, '', 2, NULL, '');
 INSERT INTO sys_menu VALUES (113, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 11, 2, 1, '', 'sys:role:update', 1, '', 3, NULL, '');
@@ -349,6 +350,7 @@ INSERT INTO sys_menu VALUES (143, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '�
 INSERT INTO sys_menu VALUES (144, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 14, 2, 1, '', 'sys:dict:delete', 1, '', 4, NULL, '');
 INSERT INTO sys_menu VALUES (161, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 16, 2, 1, '', 'sys:login-log:read', 1, '', 1, NULL, '');
 INSERT INTO sys_menu VALUES (171, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 17, 2, 1, '', 'sys:operate-log:read', 1, '', 1, NULL, '');
+INSERT INTO sys_menu VALUES (172, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '导出', 17, 2, 1, '', 'sys:operate-log:export', 1, '', 2, NULL, '');
 INSERT INTO sys_menu VALUES (201, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 20, 2, 1, '', 'file:storage:read', 1, '', 1, NULL, '');
 INSERT INTO sys_menu VALUES (202, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 20, 2, 1, '', 'file:storage:create', 1, '', 2, NULL, '');
 INSERT INTO sys_menu VALUES (203, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 20, 2, 1, '', 'file:storage:update', 1, '', 3, NULL, '');

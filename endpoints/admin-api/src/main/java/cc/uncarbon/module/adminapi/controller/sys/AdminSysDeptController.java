@@ -7,7 +7,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.constant.PermissionPattern;
+import cc.uncarbon.module.commons.constant.PermPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
@@ -40,20 +40,23 @@ import java.util.Set;
 @SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysDeptController {
 
-    private static final String PERMISSION_PREFIX = "sys:dept:";
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "sys:dept:";
     static final String BIZ_TYPE = "部门管理";
 
     private final SysDeptService sysDeptService;
 
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "列表查询")
     @PostMapping(value = "/list")
     public ApiResult<List<SysDeptDTO>> list() {
         return ApiResult.success(sysDeptService.adminList());
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysDeptDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
@@ -61,7 +64,7 @@ public class AdminSysDeptController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增部门", success = "新增部门：{{#request.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
     public ApiResult<Void> create(@RequestBody @Valid AdminSysDeptUpsertRequest request) {
@@ -71,7 +74,7 @@ public class AdminSysDeptController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改部门",
             bizNo = "{{#request.id}}", success = "被操作部门：{{#old.name}}：{_DIFF{#request}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminSysDeptUpsertRequest request) {
@@ -88,7 +91,7 @@ public class AdminSysDeptController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除部门", success = "被操作部门：{{#old.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
@@ -101,7 +104,7 @@ public class AdminSysDeptController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改部门状态",
             bizNo = "{{#request.id}}", success = "被操作部门：{{#old.name}}，新状态：{{#request.newStatus.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改状态")
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {

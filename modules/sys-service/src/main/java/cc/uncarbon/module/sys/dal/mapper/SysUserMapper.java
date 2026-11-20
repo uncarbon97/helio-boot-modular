@@ -14,6 +14,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,10 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
                 .select(SysUserEntity::getId, SysUserEntity::getPin)
                 .in(SysUserEntity::getId, ids)
         ).stream().collect(Collectors.toMap(SysUserEntity::getId, SysUserEntity::getPin, StreamFunction.keepExisting()));
+    }
+
+    default List<String> selectPins(LambdaQueryWrapper<SysUserEntity> qw) {
+        return selectList(qw).stream().map(SysUserEntity::getPin).toList();
     }
 
     /**

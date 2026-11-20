@@ -9,7 +9,7 @@ import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.helper.FileUploadResultHelper;
 import cc.uncarbon.module.adminapi.model.valueobj.FileUploadResultVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.constant.PermissionPattern;
+import cc.uncarbon.module.commons.constant.PermPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.file.facade.FileUpDownloadFacade;
@@ -45,8 +45,10 @@ import java.util.Set;
 @SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminFileStorageController {
 
-    // 功能权限串前缀
-    private static final String PERMISSION_PREFIX = "file:storage:";
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "file:storage:";
     static final String BIZ_TYPE = "文件存储点管理";
 
     private final FileStorageDataService fileStorageDataService;
@@ -54,14 +56,14 @@ public class AdminFileStorageController {
     private final FileUploadResultHelper fileUploadResultHelper;
 
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "分页查询")
     @PostMapping(value = "/list")
     public ApiResult<PageResult<FileStorageDTO>> list(@RequestBody @Valid AdminFileStorageListQuery query) {
         return ApiResult.success(fileStorageDataService.adminList(query));
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<FileStorageDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
@@ -69,7 +71,7 @@ public class AdminFileStorageController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增文件存储点", success = "新增文件存储点：{{#request.code}}|{{#request.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
     public ApiResult<Void> create(@RequestBody @Valid AdminFileStorageUpsertRequest request) {
@@ -79,7 +81,7 @@ public class AdminFileStorageController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改文件存储点",
             bizNo = "{{#request.id}}", success = "被操作文件存储点：{{#old.code}}|{{#old.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminFileStorageUpsertRequest request) {
@@ -92,7 +94,7 @@ public class AdminFileStorageController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除文件存储点",
             bizNo = "{{#request.id}}", success = "删除文件存储点：{{#old.code}}|{{#old.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
@@ -111,7 +113,7 @@ public class AdminFileStorageController {
      * 4. 测试文件打上 category=storage-test 标记，便于后续批量清理；
      * 5. @SysOperateLog 审计。
      */
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "测试上传，验证存储点可用性")
     @PostMapping(value = "/test-upload")
     public ApiResult<FileUploadResultVO> testUpload(HttpServletRequest servletRequest,

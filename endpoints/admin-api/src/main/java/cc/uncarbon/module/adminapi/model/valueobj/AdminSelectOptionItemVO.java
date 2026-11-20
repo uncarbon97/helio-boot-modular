@@ -74,6 +74,13 @@ public class AdminSelectOptionItemVO implements Serializable {
     @Setter
     private String storageCode;
 
+    /**
+     * @since 4.0.0
+     */
+    @Schema(description = "角色编码")
+    @Setter
+    private String roleCode;
+
 
     /*
     ----------------------------------------------------------------

@@ -144,7 +144,7 @@ class SysUserFirstTenantServiceImplTest {
     void lookupWithoutConditionRejected() {
         var ex = Assertions.assertThrows(BusinessException.class, () -> withTenantContext(() ->
                 service.lookupUsers(new TenantUserLookupRequest())));
-        Assertions.assertEquals(SysErrorCodeEnum.A01051, ex.getErrorCode());
+        Assertions.assertEquals(SysErrorCodeEnum.A01050, ex.getErrorCode());
     }
 
     @Test
@@ -174,7 +174,7 @@ class SysUserFirstTenantServiceImplTest {
                 TenantContextHolder.runWithContext(
                         new SimpleTenantContext(0L, "平台自营域", "0000"),
                         () -> service.lookupUsers(new TenantUserLookupRequest().setPin("u66"))));
-        Assertions.assertEquals(SysErrorCodeEnum.A01052, ex.getErrorCode());
+        Assertions.assertEquals(SysErrorCodeEnum.A01051, ex.getErrorCode());
     }
 
 

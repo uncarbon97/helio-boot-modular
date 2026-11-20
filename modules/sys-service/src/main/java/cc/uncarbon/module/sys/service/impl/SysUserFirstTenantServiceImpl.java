@@ -183,7 +183,7 @@ public class SysUserFirstTenantServiceImpl implements SysUserFirstTenantService 
     private static long currentTenantId() {
         Long tenantId = TenantContextHolder.getTenantId();
         if (TenantUtil.isPlatformDomain(tenantId)) {
-            throw new BusinessException(SysErrorCodeEnum.A01052);
+            throw new BusinessException(SysErrorCodeEnum.A01051);
         }
         return tenantId;
     }
@@ -206,7 +206,7 @@ public class SysUserFirstTenantServiceImpl implements SysUserFirstTenantService 
                             .orderByAsc(SysUserEntity::getId)
                             .last(SQLSegment.LIMIT_5)));
         }
-        throw new BusinessException(SysErrorCodeEnum.A01051);
+        throw new BusinessException(SysErrorCodeEnum.A01050);
     }
 
     /**

@@ -1,12 +1,17 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.excel.exporter.ExcelBatchExporter;
+import cc.uncarbon.framework.helium.excel.page.CursorPageParam;
+import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
 import cc.uncarbon.module.sys.dal.entity.SysOperateLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
 import cc.uncarbon.module.sys.iplocation.IPLocationResolver;
+import cc.uncarbon.module.sys.model.excel.SysOperateLogExcelRow;
 import cc.uncarbon.module.sys.model.query.AdminSysOperateLogListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysOperateLogExportRequest;
 import cc.uncarbon.module.sys.model.request.SysOperateLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysOperateLogDTO;
 import cc.uncarbon.module.sys.service.SysOperateLogService;
@@ -21,8 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 
 /**
@@ -34,7 +41,7 @@ import java.util.Objects;
 public class SysOperateLogServiceImpl implements SysOperateLogService {
 
     /**
-     * UA可以接受的最大长度
+     * UA长度上限
      */
     public static final int USER_AGENT_MAX_LENGTH = 250;
 
@@ -49,9 +56,14 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
         // 过滤查询条件中的用户ID，防止越权枚举隐藏用户
         sysUserService.checkUserQueryAccess(query.getUserIds());
 
+        // 兼容游标导出
+        Long lastId = query.getPageParam() instanceof CursorPageParam cursorParam ? cursorParam.getLastId() : null;
+
         Page<SysOperateLogEntity> entityPage = sysOperateLogMapper.selectPage(
-                new Page<>(query.getPageNum(), query.getPageSize()),
+                new Page<SysOperateLogEntity>(query.getPageNum(), query.getPageSize()).setSearchCount(lastId == null),
                 new LambdaQueryWrapper<SysOperateLogEntity>()
+                        // 兼容游标导出
+                        .lt(lastId != null, SysOperateLogEntity::getId, lastId)
                         // 业务类型
                         .like(CharSequenceUtil.isNotBlank(query.getBizType()), SysOperateLogEntity::getBizType, CharSequenceUtil.cleanBlank(query.getBizType()))
                         // 行为
@@ -107,6 +119,29 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
 
         sysOperateLogMapper.insert(entity);
         return entity.getId();
+    }
+
+    @Override
+    public void adminExportExcel(AdminSysOperateLogExportRequest request, OutputStream out) {
+        // 单次导出行数上限
+        final int exportMaxRows = 100_000;
+        // 导出单批行数
+        final int exportBatchSize = 1000;
+
+        boolean includeUserAgent = Boolean.TRUE.equals(request.getIncludeUserAgent());
+
+        ExcelBatchExporter.exportByRow(out, "Sheet1", SysOperateLogExcelRow.class,
+                includeUserAgent ? null : Set.of("visitorUserAgent"),
+                exportMaxRows, DefaultErrorCodeEnum.A00008,
+                cursor -> {
+                    request.setPageParam(new CursorPageParam(1, exportBatchSize, cursor));
+                    var pageResult = adminList(request);
+                    var records = pageResult.getRecords();
+                    return ExcelBatchExporter.PageBatch.of(
+                            records.stream().map(dto -> SysOperateLogExcelRow.of(dto, includeUserAgent)).toList(),
+                            pageResult.getTotal(),
+                            records.isEmpty() ? null : records.getLast().getId());
+                });
     }
 
 

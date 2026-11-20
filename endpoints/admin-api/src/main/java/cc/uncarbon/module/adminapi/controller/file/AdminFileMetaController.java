@@ -7,7 +7,7 @@ import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.constant.PermissionPattern;
+import cc.uncarbon.module.commons.constant.PermPattern;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.file.model.query.AdminFileMetaListQuery;
@@ -35,21 +35,23 @@ import java.util.Set;
 @SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminFileMetaController {
 
-    // 功能权限串前缀
-    private static final String PERMISSION_PREFIX = "file:meta:";
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "file:meta:";
     static final String BIZ_TYPE = "文件管理";
 
     private final FileMetaService fileMetaService;
 
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "分页查询")
     @PostMapping(value = "/list")
     public ApiResult<PageResult<FileMetaDTO>> list(@RequestBody @Valid AdminFileMetaListQuery query) {
         return ApiResult.success(fileMetaService.adminList(query));
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<FileMetaDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
@@ -58,7 +60,7 @@ public class AdminFileMetaController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除文件",
             bizNo = "{{#request.id}}", success = "被操作文件：{{#old.getStorageFilenameFull()}}(存储点：{{#old.storageCode}})")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {

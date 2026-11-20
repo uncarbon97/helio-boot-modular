@@ -5,8 +5,8 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ArrayUtil;
-import jakarta.annotation.Nonnull;
 import lombok.experimental.UtilityClass;
+import org.jspecify.annotations.NonNull;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
@@ -77,7 +77,7 @@ public class UploadFileChecker {
      * @param allowedSuffixes   允许上传的文件后缀
      * @return {@link FileErrorCodeEnum#OK} 表示检查通过
      */
-    public FileErrorCodeEnum check(@Nonnull MultipartFile multipartFile, long singleFileSizeMax, String[] allowedSuffixes) {
+    public FileErrorCodeEnum check(@NonNull MultipartFile multipartFile, long singleFileSizeMax, String[] allowedSuffixes) {
         long fileSize = multipartFile.getSize();
 
         // 确定文件大小区间

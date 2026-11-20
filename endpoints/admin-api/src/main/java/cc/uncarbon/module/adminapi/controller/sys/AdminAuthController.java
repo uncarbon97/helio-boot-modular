@@ -20,11 +20,13 @@ import cc.uncarbon.module.commons.constant.ApiPathPrefix;
 import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.commons.satoken.StpKit;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
 import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
 import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
 import cc.uncarbon.module.sys.service.AdminLoginService;
+import cc.uncarbon.module.sys.util.SysUtil;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.stp.StpLogic;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 
 @Tag(name = "后台管理--鉴权接口")
@@ -87,6 +90,11 @@ public class AdminAuthController {
             throw be;
         }
         loginFailureGuard.clear(request.getTenantCode(), request.getPin());
+
+        if (SysUtil.isSuperAdmin(loginResult.getId())) {
+            // 超管角色权限为全量菜单并集，重新登录时清除其权限缓存，使手工调整菜单（如执行补丁 SQL）无需额外操作即可生效
+            rolePermissionCacheHelper.delayedDoubleDelete(Set.of(SysConstant.SUPER_ADMIN_ROLE_ID));
+        }
 
         // 构造用户上下文
         UserContext userContext = new SimpleUserContext()

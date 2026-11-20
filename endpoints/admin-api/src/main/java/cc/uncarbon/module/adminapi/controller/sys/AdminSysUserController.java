@@ -1,5 +1,6 @@
 package cc.uncarbon.module.adminapi.controller.sys;
 
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
 import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
@@ -9,14 +10,18 @@ import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
 import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
 import cc.uncarbon.module.adminapi.event.RefreshSysUserSessionEvent;
+import cc.uncarbon.module.adminapi.support.excel.ExcelResponseUtil;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.constant.PermissionPattern;
+import cc.uncarbon.module.commons.constant.ExcelConstant;
+import cc.uncarbon.module.commons.constant.PermPattern;
+import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
+import cc.uncarbon.module.sys.model.response.SysUserImportResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.model.valueobj.TenantUserLookupVO;
 import cc.uncarbon.module.sys.service.SysDeptService;
@@ -26,18 +31,20 @@ import cc.uncarbon.module.sys.service.SysUserService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.StrPool;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -51,7 +58,10 @@ import java.util.Set;
 @SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysUserController {
 
-    private static final String PERMISSION_PREFIX = "sys:user:";
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "sys:user:";
     static final String BIZ_TYPE = "系统用户管理";
 
     private final SysUserService sysUserService;
@@ -61,7 +71,7 @@ public class AdminSysUserController {
     private final ApplicationEventPublisher eventPublisher;
 
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "分页查询")
     @PostMapping(value = "/list")
     public ApiResult<PageResult<SysUserDTO>> list(@RequestBody @Valid AdminSysUserListQuery query) {
@@ -69,7 +79,7 @@ public class AdminSysUserController {
     }
 
     @UseRateLimit(mark = "sys-user-detail", duration = 60, max = 30)
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysUserDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
@@ -77,7 +87,7 @@ public class AdminSysUserController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增用户", success = "新增用户：{{#request.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
     public ApiResult<Void> create(@RequestBody @Valid AdminSysUserCreateRequest request) {
@@ -87,7 +97,7 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改用户",
             bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}：{_DIFF{#request}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminSysUserUpdateRequest request) {
@@ -100,7 +110,7 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除用户",
             bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
@@ -114,7 +124,7 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改用户状态",
             success = "被操作用户ID：{{#request.id}}，新状态：{{#request.newStatus.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改用户状态")
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, SysUserStatusEnum> request) {
@@ -127,7 +137,7 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "分配角色",
             bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}，分配后角色：{{#roleNames}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "bind-role")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "bind-role")
     @Operation(summary = "分配角色")
     @PostMapping(value = "/bind-role")
     public ApiResult<Void> bindRole(@RequestBody @Valid AdminSysUserBindRoleRequest request) {
@@ -160,7 +170,7 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "重置密码",
             bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "reset-password")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "reset-password")
     @Operation(summary = "重置密码")
     @PostMapping(value = "/reset-password")
     public ApiResult<Void> resetPassword(@RequestBody @Valid AdminSysUserResetPasswordRequest request) {
@@ -174,7 +184,7 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "踢下线",
             bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "kick-out")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "kick-out")
     @Operation(summary = "踢下线")
     @PostMapping(value = "/kick-out")
     public ApiResult<Void> kickOut(@RequestBody @Valid IdRequest<Long> request) {
@@ -185,7 +195,7 @@ public class AdminSysUserController {
         return ApiResult.success();
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "取指定用户关联角色ID")
     @PostMapping(value = "/list-related-role")
     public ApiResult<List<Long>> listRelatedRole(@RequestBody @Valid IdRequest<Long> request) {
@@ -194,7 +204,7 @@ public class AdminSysUserController {
         return ApiResult.success(sysUserRoleRelationService.listRoleIdsByUser(request.getId()));
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "全局找人（仅用户优先模式）")
     @PostMapping(value = "/lookup")
     public ApiResult<List<TenantUserLookupVO>> lookup(@RequestBody @Valid TenantUserLookupRequest request) {
@@ -203,7 +213,7 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "拉入本租户", bizNo = "{{#request.pin}}",
             success = "拉入本租户：{{#request.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "join")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "join")
     @Operation(summary = "拉入本租户（仅用户优先模式）")
     @PostMapping(value = "/tenant-join")
     public ApiResult<Void> tenantJoin(@RequestBody @Valid TenantUserJoinRequest request) {
@@ -213,7 +223,7 @@ public class AdminSysUserController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "移出本租户", bizNo = "{{#old.pin}}",
             success = "移出本租户：{{#old.pin}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + "join")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "join")
     @Operation(summary = "移出本租户（仅用户优先模式）")
     @PostMapping(value = "/tenant-expel")
     public ApiResult<Void> tenantExpel(@RequestBody @Valid TenantUserExpelRequest request) {
@@ -223,6 +233,32 @@ public class AdminSysUserController {
         // 用于操作日志
         LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
         return ApiResult.success();
+    }
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "import")
+    @Operation(summary = "下载批量导入模板")
+    @PostMapping(value = "/import/download-template")
+    public void downloadTemplate(HttpServletResponse servletResponse) throws IOException {
+        ExcelResponseUtil.writeXlsx(servletResponse, "用户导入模板", sysUserService::adminWriteImportTemplate);
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "批量导入",
+            success = "批量导入：共{{#result.totalRows}}行，成功{{#result.successCount}}行，失败{{#result.failedCount}}行",
+            successCondition = "{{#result.failedCount == 0}}",
+            fail = "批量导入：共{{#result.totalRows}}行，成功{{#result.successCount}}行，失败{{#result.failedCount}}行")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "import")
+    @UseRateLimit(mark = "sys-user-import", duration = 60, max = 5)
+    @Operation(summary = "批量导入Excel")
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResult<SysUserImportResult> imports(@RequestPart(value = "file") MultipartFile file,
+                                                  @RequestPart(value = "attr") @Valid AdminSysUserImportRequest attr) throws IOException {
+        if (!ExcelConstant.XLSX_SUFFIX.equalsIgnoreCase(FileNameUtil.getSuffix(file.getOriginalFilename()))) {
+            throw new BusinessException(DefaultErrorCodeEnum.A00006);
+        }
+        var result = sysUserService.adminImportUsers(file.getInputStream(), file.getOriginalFilename(), attr);
+        // 用于操作日志
+        LogRecordContext.putVariable("result", result);
+        return ApiResult.success(result);
     }
 
     /*

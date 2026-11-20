@@ -7,17 +7,20 @@ import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
 import cc.uncarbon.module.adminapi.event.RefreshRolePermissionCacheEvent;
+import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.constant.PermissionPattern;
+import cc.uncarbon.module.commons.constant.PermPattern;
 import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
 import cc.uncarbon.module.commons.model.request.IdRequest;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
 import cc.uncarbon.module.sys.service.SysMenuService;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaCheckRole;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,22 +45,26 @@ import java.util.*;
 @SaCheckLogin(type = StpLoginType.ADMIN)
 public class AdminSysMenuController {
 
-    private static final String PERMISSION_PREFIX = "sys:menu:";
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "sys:menu:";
     static final String BIZ_TYPE = "系统菜单管理";
 
     private final SysMenuService sysMenuService;
     private final SysRoleMenuRelationService sysRoleMenuRelationService;
     private final ApplicationEventPublisher eventPublisher;
+    private final RolePermissionCacheHelper rolePermissionCacheHelper;
 
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "列表查询")
     @PostMapping(value = "/list")
     public ApiResult<List<SysMenuDTO>> list() {
         return ApiResult.success(sysMenuService.adminList());
     }
 
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.READ)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
     @Operation(summary = "详情")
     @PostMapping(value = "/detail")
     public ApiResult<SysMenuDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
@@ -65,17 +72,22 @@ public class AdminSysMenuController {
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增菜单", success = "新增菜单：{{#request.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.CREATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.CREATE)
     @Operation(summary = "新增")
     @PostMapping(value = "/create")
     public ApiResult<Void> create(@RequestBody @Valid AdminSysMenuUpsertRequest request) {
         sysMenuService.adminCreate(request);
+        // 新菜单虽未绑定角色，但超管角色权限为全量菜单并集，需刷新其缓存
+        eventPublisher.publishEvent(new RefreshRolePermissionCacheEvent(
+                new RefreshRolePermissionCacheEvent.EventData(
+                        Set.of(SysConstant.SUPER_ADMIN_ROLE_ID), TenantContextHolder.getTenantId())
+        ));
         return ApiResult.success();
     }
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改菜单",
             bizNo = "{{#request.id}}", success = "被操作菜单：{{#old.name}}：{_DIFF{#request}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改")
     @PostMapping(value = "/update")
     public ApiResult<Void> update(@RequestBody @Valid AdminSysMenuUpsertRequest request) {
@@ -90,7 +102,7 @@ public class AdminSysMenuController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除菜单",
             bizNo = "{{#request.id}}", success = "被操作菜单：{{#old.name}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.DELETE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
     @Operation(summary = "删除")
     @PostMapping(value = "/delete")
     public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
@@ -105,7 +117,7 @@ public class AdminSysMenuController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改菜单状态",
             bizNo = "{{#request.id}}", success = "被操作菜单：{{#old.name}}，新状态：{{#request.newStatus.label}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERMISSION_PREFIX + PermissionPattern.UPDATE)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
     @Operation(summary = "修改菜单状态")
     @PostMapping(value = "/set-status")
     public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
@@ -128,6 +140,15 @@ public class AdminSysMenuController {
     @PostMapping("/visible")
     public ApiResult<List<SysMenuDTO>> visible() {
         return ApiResult.success(sysMenuService.adminListVisibleMenus());
+    }
+
+    @SaCheckRole(type = StpLoginType.ADMIN, value = SysConstant.SUPER_ADMIN_ROLE_CODE)
+    @Operation(summary = "清空超管角色权限缓存")
+    @PostMapping(value = "/refresh-permission-cache")
+    public ApiResult<Void> refreshPermissionCache() {
+        // 超管角色权限为全量菜单并集，重新登录时清除其权限缓存，使手工调整菜单（如执行补丁 SQL）无需额外操作即可生效
+        rolePermissionCacheHelper.delayedDoubleDelete(Set.of(SysConstant.SUPER_ADMIN_ROLE_ID));
+        return ApiResult.success();
     }
 
     /*

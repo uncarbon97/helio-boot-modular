@@ -8,10 +8,14 @@ import cc.uncarbon.module.sys.model.query.AdminSysRoleListRelatedUserQuery;
 import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
 import cc.uncarbon.module.sys.model.request.*;
 import cc.uncarbon.module.sys.model.response.SysUserBindRoleResult;
+import cc.uncarbon.module.sys.model.response.SysUserImportResult;
 import cc.uncarbon.module.sys.model.response.TenantUserCreateResult;
 import cc.uncarbon.module.sys.model.valueobj.SysUserBasicProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
+import org.jspecify.annotations.NonNull;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Collection;
 
 public interface SysUserService {
@@ -97,5 +101,22 @@ public interface SysUserService {
      * 校验当前用户是否可查询目标角色的关联信息（防止跨租户/越权 ID 枚举）
      */
     void checkRoleQueryAccess(Long roleId);
+
+    /**
+     * 后台管理-生成用户导入模板 xlsx
+     *
+     * @param out 输出流（调用方负责关闭）
+     */
+    void adminWriteImportTemplate(OutputStream out);
+
+    /**
+     * 后台管理-批量导入用户（xlsx）
+     * <p>文件级 all-or-nothing：任一行校验失败则整文件不入库</p>
+     *
+     * @param excelStream      上传的 xlsx 文件流（调用方负责关闭）
+     * @param originalFilename 原始文件名
+     * @param attr             统一导入参数
+     */
+    SysUserImportResult adminImportUsers(InputStream excelStream, String originalFilename, @NonNull AdminSysUserImportRequest attr);
 
 }

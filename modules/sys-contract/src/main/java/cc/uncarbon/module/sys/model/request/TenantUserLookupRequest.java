@@ -26,7 +26,7 @@ public class TenantUserLookupRequest implements Serializable {
     private String pin;
 
     @Schema(description = "完整手机号")
-    @Pattern(message = "手机号格式有误（仅支持中国大陆 11 位手机号）", regexp = "^1\\d{10}$")
+    @Pattern(message = "手机号格式有误（仅支持中国大陆 11 位手机号）", regexp = AdminUpdateMyProfileRequest.PHONE_NO_REGEX)
     @Size(max = 20, message = "手机号最长{max}位")
     @ToString.Exclude
     private String phoneNo;

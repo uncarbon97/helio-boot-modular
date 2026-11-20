@@ -65,7 +65,8 @@ public class AdminSelectOptionController {
     @PostMapping(value = "/sys/role")
     public ApiResult<List<AdminSelectOptionItemVO>> role() {
         return ApiResult.success(AdminSelectOptionItemVO.ofIdNameBatch(sysRoleService.adminListSelectOption(),
-                SysRoleDTO::getId, SysRoleDTO::getName));
+                SysRoleDTO::getId, SysRoleDTO::getName,
+                (source, target) -> target.setRoleCode(source.getCode())));
     }
 
     @SaCheckLogin(type = StpLoginType.ADMIN)

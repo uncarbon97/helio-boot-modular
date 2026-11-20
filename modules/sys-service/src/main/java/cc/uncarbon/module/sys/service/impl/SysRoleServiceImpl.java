@@ -175,7 +175,7 @@ public class SysRoleServiceImpl implements SysRoleService {
         Set<Long> hiddenRoleIds = userRoleHelper.listHiddenRoleIds();
         List<SysRoleEntity> entityList = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
                 // 只取特定字段
-                .select(SysRoleEntity::getId, SysRoleEntity::getName)
+                .select(SysRoleEntity::getId, SysRoleEntity::getName, SysRoleEntity::getCode)
                 // 不显示特定角色
                 .notIn(CollUtil.isNotEmpty(hiddenRoleIds), SysRoleEntity::getId, hiddenRoleIds)
                 // 排序
