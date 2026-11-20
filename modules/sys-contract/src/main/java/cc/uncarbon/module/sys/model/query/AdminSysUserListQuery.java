@@ -25,6 +25,9 @@ public class AdminSysUserListQuery implements Serializable, PageQuery {
     @Schema(description = "分页查询参数")
     private PageParam pageParam;
 
+    @Schema(description = "完整手机号")
+    private String phoneNoFull;
+
     @Schema(description = "手机号后4位")
     private String phoneNoTail4;
 

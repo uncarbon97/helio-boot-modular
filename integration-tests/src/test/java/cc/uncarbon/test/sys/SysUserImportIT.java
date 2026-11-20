@@ -45,7 +45,7 @@ class SysUserImportIT extends BaseIntegrationTest {
 
         var first = new AtomicReference<SysUserImportResult>();
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () ->
-                first.set(sysUserService.adminImportUsers(new ByteArrayInputStream(xlsx), "users.xlsx", attr)));
+                first.set(sysUserService.adminImport(new ByteArrayInputStream(xlsx), "users.xlsx", attr)));
 
         Assertions.assertEquals(2, first.get().getTotalRows());
         Assertions.assertEquals(2, first.get().getSuccessCount());
@@ -69,7 +69,7 @@ class SysUserImportIT extends BaseIntegrationTest {
         // 重复导入同一文件 → 整文件失败，无半截数据
         var second = new AtomicReference<SysUserImportResult>();
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () ->
-                second.set(sysUserService.adminImportUsers(new ByteArrayInputStream(xlsx), "users.xlsx", attr)));
+                second.set(sysUserService.adminImport(new ByteArrayInputStream(xlsx), "users.xlsx", attr)));
         Assertions.assertEquals(0, second.get().getSuccessCount());
         Assertions.assertEquals(2, second.get().getFailedCount());
 

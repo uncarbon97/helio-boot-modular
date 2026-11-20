@@ -50,7 +50,7 @@ import java.util.stream.Stream;
 import static org.mockito.ArgumentMatchers.*;
 
 /**
- * {@link SysUserServiceImpl#adminImportUsers} 校验分支与入库行为测试
+ * {@link SysUserServiceImpl#adminImport} 校验分支与入库行为测试
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -207,12 +207,12 @@ class SysUserServiceImplImportTest {
 
     @Test
     void wrongExtensionOrBadPwdRejected() {
-        Assertions.assertThrows(BusinessException.class, () -> service.adminImportUsers(
+        Assertions.assertThrows(BusinessException.class, () -> service.adminImport(
                 new ByteArrayInputStream(new byte[0]), "users.xls",
                 new AdminSysUserImportRequest().setInitPwd("Passw0rd")));
 
         byte[] xlsx = workbook(List.of(List.<Object>of("ext001", "甲", "男", "", "")));
-        var ex = Assertions.assertThrows(BusinessException.class, () -> service.adminImportUsers(
+        var ex = Assertions.assertThrows(BusinessException.class, () -> service.adminImport(
                 new ByteArrayInputStream(xlsx), "users.xlsx",
                 new AdminSysUserImportRequest().setInitPwd("123")));
         Assertions.assertEquals(SysErrorCodeEnum.A01053, ex.getErrorCode());
@@ -244,6 +244,6 @@ class SysUserServiceImplImportTest {
     }
 
     private SysUserImportResult importUsers(byte[] xlsx, AdminSysUserImportRequest attr) {
-        return service.adminImportUsers(new ByteArrayInputStream(xlsx), "users.xlsx", attr);
+        return service.adminImport(new ByteArrayInputStream(xlsx), "users.xlsx", attr);
     }
 }

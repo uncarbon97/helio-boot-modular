@@ -66,17 +66,22 @@ public class FileMetaServiceImpl implements FileMetaService {
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public void adminDelete(Collection<Long> ids) {
-        // 尽力删除底层物理文件；失败仅告警，不阻断元数据删除
-        for (Long id : ids) {
-            FileMetaEntity entity = fileMetaMapper.selectById(id);
-            if (entity == null) {
-                continue;
-            }
-            try {
-                fileStorageService.delete(toFileInfo(entity));
-            } catch (Exception e) {
-                log.warn("[文件元数据][删除] 底层物理文件删除失败, id={}, msg={}", id, e.getMessage());
+    public void adminDelete(Collection<Long> ids, boolean deleteRemoteFile) {
+        if (deleteRemoteFile) {
+            // 尽力删除底层物理文件；远端不存在或已被删除时，仍直接删除元数据
+            for (Long id : ids) {
+                FileMetaEntity entity = fileMetaMapper.selectById(id);
+                if (entity == null) {
+                    continue;
+                }
+                try {
+                    boolean deleted = fileStorageService.delete(toFileInfo(entity));
+                    if (!deleted) {
+                        log.info("[文件元数据][删除] 底层物理文件不存在或已被删除, 仅删除元数据, id={}", id);
+                    }
+                } catch (Exception e) {
+                    log.warn("[文件元数据][删除] 底层物理文件删除失败, id={}, msg={}", id, e.getMessage());
+                }
             }
         }
         fileMetaMapper.deleteByIds(ids);

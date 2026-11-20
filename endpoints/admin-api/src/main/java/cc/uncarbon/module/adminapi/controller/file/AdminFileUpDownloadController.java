@@ -5,8 +5,8 @@ import cc.uncarbon.framework.helium.web.model.response.ApiResult;
 import cc.uncarbon.module.adminapi.helper.FileUploadResultHelper;
 import cc.uncarbon.module.adminapi.model.valueobj.FileUploadResultVO;
 import cc.uncarbon.module.commons.constant.ApiPathPrefix;
-import cc.uncarbon.module.commons.constant.ExcelConstant;
 import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.file.enums.UploadFileTypeEnum;
 import cc.uncarbon.module.file.errorcode.FileErrorCodeEnum;
 import cc.uncarbon.module.file.facade.FileUpDownloadFacade;
 import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
@@ -36,8 +36,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
-import java.util.Map;
 
 
 @Tag(name = "后台管理-文件上传、下载")
@@ -51,17 +49,6 @@ public class AdminFileUpDownloadController {
      * 上传请求路由，方便文本替换复用
      */
     private static final String UPLOAD_ROUTE = "/file/upload";
-
-    /**
-     * 扩展名白名单对应的 Content-Type 映射；未知扩展一律按二进制流处理
-     */
-    private static final Map<String, String> EXT_CONTENT_TYPE_MAP = Map.of(
-            "jpg", "image/jpeg",
-            "png", "image/png",
-            "webp", "image/webp",
-            "gif", "image/gif",
-            "xlsx", ExcelConstant.XLSX_CONTENT_TYPE
-    );
 
     private final FileUpDownloadFacade fileUpDownloadFacade;
     private final FileUploadResultHelper fileUploadResultHelper;
@@ -140,21 +127,16 @@ public class AdminFileUpDownloadController {
      * 按原始文件名扩展名推导 Content-Type，不信任客户端上报值
      */
     private String resolveContentType(String originalFilename) {
-        String ext = FileNameUtil.getSuffix(originalFilename);
-        if (ext != null) {
-            ext = ext.toLowerCase(Locale.ROOT);
-        }
-        return EXT_CONTENT_TYPE_MAP.getOrDefault(ext, MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        UploadFileTypeEnum fileType = UploadFileTypeEnum.ofExtend(FileNameUtil.getSuffix(originalFilename));
+        return fileType == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE : fileType.getContentType();
     }
 
     private void checkBeforeUpload(MultipartFile file) {
         FileErrorCodeEnum.A02001.throwIfNull(file);
         long kbMax = multipartProps.getMaxFileSize().toKilobytes();
         var errorCodeEnum = UploadFileChecker.check(file,
-                // 默认只能上传尺寸之内的文件
-                kbMax,
-                // 且约束后缀名
-                UploadFileChecker.COMMON_EXTEND_NAMES);
+                // 默认只能上传尺寸之内的文件，且后缀名、文件头均在白名单内
+                kbMax);
         if (errorCodeEnum != FileErrorCodeEnum.OK) {
             throw new BusinessException(errorCodeEnum);
         }

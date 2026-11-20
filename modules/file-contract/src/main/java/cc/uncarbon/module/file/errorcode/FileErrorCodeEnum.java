@@ -35,6 +35,7 @@ public enum FileErrorCodeEnum implements StructuredErrorCode {
     A02008("已存在其他主存储点"),
     A02009("主存储点不能删除"),
     A02010("存储点仍有文件引用，不能删除或修改编码"),
+    A02011("文件名不合法"),
 
     /*
      B 开头错误码，表示本服务内部错误

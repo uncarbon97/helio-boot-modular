@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -15,9 +16,6 @@ import java.time.Instant;
 
 /**
  * 系统用户
- *
- * <p>列表场景以 {@code phoneNoMasked}/{@code emailMasked} 为准（零解密直读），
- * 完整明文仅详情/导出接口返回；明文字段 @ToString.Exclude 不进日志</p>
  */
 @Data
 @NoArgsConstructor
@@ -63,6 +61,14 @@ public class SysUserDTO implements Serializable, AuditUserDisplayAware {
 
     @Schema(description = "邮箱脱敏")
     private String emailMasked;
+
+    @Schema(description = "手机号明文")
+    @ToString.Exclude
+    private String phoneNoPlain;
+
+    @Schema(description = "邮箱明文")
+    @ToString.Exclude
+    private String emailPlain;
 
     @Schema(description = "所属部门ID")
     private Long deptId;

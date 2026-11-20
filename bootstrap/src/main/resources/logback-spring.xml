@@ -190,6 +190,11 @@
 <!--        <appender-ref ref="JSON_FILE"/>-->
 <!--    </appender>-->
 
+    <!-- 上报 ERROR 及以上日志到 Sentry -->
+<!--    <appender name="SENTRY" class="io.sentry.logback.SentryAppender">-->
+<!--        <minimumEventLevel>ERROR</minimumEventLevel>-->
+<!--    </appender>-->
+
     <logger name="io.undertow" level="WARN"/>
 
     <!-- 默认日志输出级别 -->
@@ -199,6 +204,7 @@
         <appender-ref ref="ASYNC_INFO"/>
         <appender-ref ref="ASYNC_WARN"/>
         <appender-ref ref="ASYNC_ERROR"/>
-        <appender-ref ref="ASYNC_JSON"/>
+<!--        <appender-ref ref="ASYNC_JSON"/>-->
+<!--        <appender-ref ref="SENTRY"/>-->
     </root>
 </configuration>

@@ -43,6 +43,7 @@ import cc.uncarbon.module.sys.model.valueobj.SysUserBasicProfileDTO;
 import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
 import cc.uncarbon.module.sys.service.*;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
+import cc.uncarbon.module.sys.util.PiiContractNormalizer;
 import cc.uncarbon.module.sys.util.PwdUtil;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
 import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
@@ -127,8 +128,14 @@ public class SysUserServiceImpl implements SysUserService {
         String phoneTail4BlindIndex = CharSequenceUtil.isBlank(query.getPhoneNoTail4()) ? null
                 : blindIndexCalculator.compute(SysUserCipherCols.PHONE_TAIL4_PURPOSE,
                 new SysUserEntity.Tail4Digits().extract(query.getPhoneNoTail4()));
+
+        String phoneFullBlindIndex = CharSequenceUtil.isBlank(query.getPhoneNoFull()) ? null
+                : blindIndexCalculator.compute(SysUserCipherCols.PHONE_FULL_PURPOSE, PiiContractNormalizer.normalizePhone(query.getPhoneNoFull()));
         Page<SysUserEntity> entityPage = selectUserPage(pageParam.getPageNum(), pageParam.getPageSize(),
                 new LambdaQueryWrapper<SysUserEntity>()
+                        // 完整手机号
+                        .eq(phoneFullBlindIndex != null,
+                                SysUserEntity::getPhoneNoFullBlindIndex, phoneFullBlindIndex)
                         // 手机号尾号
                         .eq(phoneTail4BlindIndex != null,
                                 SysUserEntity::getPhoneNoTail4BlindIndex, phoneTail4BlindIndex)
@@ -244,6 +251,18 @@ public class SysUserServiceImpl implements SysUserService {
     @Override
     public SysUserDTO getNonnullOperableById(Long id) throws NoRecordException {
         return NoRecordException.throwIfNull(getOperableById(id));
+    }
+
+    @Override
+    public SysUserDTO getNonnullPlainOperableById(Long id) throws NoRecordException {
+        SysUserDTO ret = getNonnullOperableById(id);
+        // 复用可操作性与数据范围校验，再单独补填明文；字段名与实体错开，不会被 BeanUtil 自动带出
+        SysUserEntity entity = selectUserByCurrentScope(id);
+        if (entity != null) {
+            ret.setPhoneNoPlain(entity.getPhoneNo())
+                    .setEmailPlain(entity.getEmail());
+        }
+        return ret;
     }
 
     @Override
@@ -372,7 +391,7 @@ public class SysUserServiceImpl implements SysUserService {
     }
 
     @Override
-    public SysUserImportResult adminImportUsers(InputStream excelStream, String originalFilename, @NonNull AdminSysUserImportRequest attr) {
+    public SysUserImportResult adminImport(InputStream excelStream, String originalFilename, @NonNull AdminSysUserImportRequest attr) {
         log.info(LOG_PREFIX + "批量导入 >> 文件名：{}，参数：{}", originalFilename, attr);
 
         /*

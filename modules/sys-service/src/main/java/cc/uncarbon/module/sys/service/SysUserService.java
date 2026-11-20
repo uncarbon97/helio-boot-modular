@@ -63,6 +63,11 @@ public interface SysUserService {
     SysUserDTO getNonnullOperableById(Long id) throws NoRecordException;
 
     /**
+     * 根据 ID 取当前用户可操作的指定用户详情，**含隐私信息明文**
+     */
+    SysUserDTO getNonnullPlainOperableById(Long id) throws NoRecordException;
+
+    /**
      * 根据 ID 取用户基本信息，未取到会抛出 {@link NoRecordException}
      */
     SysUserBasicProfileDTO getNonnullBasicProfileById(Long id) throws NoRecordException;
@@ -117,6 +122,6 @@ public interface SysUserService {
      * @param originalFilename 原始文件名
      * @param attr             统一导入参数
      */
-    SysUserImportResult adminImportUsers(InputStream excelStream, String originalFilename, @NonNull AdminSysUserImportRequest attr);
+    SysUserImportResult adminImport(InputStream excelStream, String originalFilename, @NonNull AdminSysUserImportRequest attr);
 
 }

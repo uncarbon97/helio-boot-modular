@@ -86,6 +86,22 @@ public class AdminSysUserController {
         return ApiResult.success(sysUserService.getNonnullOperableById(request.getId()));
     }
 
+    /**
+     * 隐私信息明文属于高敏数据，独立权限串 + 限流，与普通详情隔离
+     */
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "查看隐私信息明文",
+            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
+    @UseRateLimit(mark = "sys-user-detail-plain", duration = 60, max = 30)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "read-plain")
+    @Operation(summary = "详情（含隐私信息明文）")
+    @PostMapping(value = "/detail-plain")
+    public ApiResult<SysUserDTO> detailPlain(@RequestBody @Valid IdRequest<Long> request) {
+        SysUserDTO ret = sysUserService.getNonnullPlainOperableById(request.getId());
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, ret);
+        return ApiResult.success(ret);
+    }
+
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增用户", success = "新增用户：{{#request.pin}}")
     @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.CREATE)
     @Operation(summary = "新增")
@@ -246,8 +262,8 @@ public class AdminSysUserController {
             success = "批量导入：共{{#result.totalRows}}行，成功{{#result.successCount}}行，失败{{#result.failedCount}}行",
             successCondition = "{{#result.failedCount == 0}}",
             fail = "批量导入：共{{#result.totalRows}}行，成功{{#result.successCount}}行，失败{{#result.failedCount}}行")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "import")
     @UseRateLimit(mark = "sys-user-import", duration = 60, max = 5)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "import")
     @Operation(summary = "批量导入Excel")
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResult<SysUserImportResult> imports(@RequestPart(value = "file") MultipartFile file,
@@ -255,7 +271,7 @@ public class AdminSysUserController {
         if (!ExcelConstant.XLSX_SUFFIX.equalsIgnoreCase(FileNameUtil.getSuffix(file.getOriginalFilename()))) {
             throw new BusinessException(DefaultErrorCodeEnum.A00006);
         }
-        var result = sysUserService.adminImportUsers(file.getInputStream(), file.getOriginalFilename(), attr);
+        var result = sysUserService.adminImport(file.getInputStream(), file.getOriginalFilename(), attr);
         // 用于操作日志
         LogRecordContext.putVariable("result", result);
         return ApiResult.success(result);

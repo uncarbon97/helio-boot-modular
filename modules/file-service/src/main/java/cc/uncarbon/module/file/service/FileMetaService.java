@@ -24,8 +24,11 @@ public interface FileMetaService {
 
     /**
      * 后台管理-删除
+     *
+     * @param deleteRemoteFile true=一并尽力删除底层物理文件（远端文件不存在或已被删除时，仍直接删除元数据）；
+     *                         false=仅删除元数据
      */
-    void adminDelete(Collection<Long> ids);
+    void adminDelete(Collection<Long> ids, boolean deleteRemoteFile);
 
     /**
      * 根据 ID 取详情

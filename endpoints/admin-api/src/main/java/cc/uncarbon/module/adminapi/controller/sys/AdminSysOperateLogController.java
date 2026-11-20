@@ -65,8 +65,8 @@ public class AdminSysOperateLogController {
 
     @SysOperateLog(bizType = BIZ_TYPE, behavior = "批量导出",
             success = "批量导出：筛选条件：{{#old}}")
-    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "export")
     @UseRateLimit(mark = "sys-operate-log-export", duration = 60, max = 10)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "export")
     @Operation(summary = "批量导出Excel")
     @PostMapping(value = "/export")
     public void export(HttpServletResponse servletResponse, @RequestBody @Valid AdminSysOperateLogExportRequest request)

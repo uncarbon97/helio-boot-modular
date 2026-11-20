@@ -117,7 +117,7 @@ class FileMetaServiceImplTest {
         Mockito.doThrow(new RuntimeException("disk gone"))
                 .when(fileStorageService).delete(Mockito.any(FileInfo.class));
 
-        Assertions.assertDoesNotThrow(() -> service.adminDelete(List.of(1L, 2L)));
+        Assertions.assertDoesNotThrow(() -> service.adminDelete(List.of(1L, 2L), true));
 
         Mockito.verify(fileStorageService).delete(Mockito.any(FileInfo.class));
         Mockito.verify(fileMetaMapper).deleteByIds(List.of(1L, 2L));
@@ -129,7 +129,7 @@ class FileMetaServiceImplTest {
                 .setId(2L).setTenantId(0L).setStorageCode("st")
                 .setStorageBasePath("/").setSubDirPath("p/").setStorageFilename("f").setExtendName("txt"));
 
-        service.adminDelete(List.of(2L));
+        service.adminDelete(List.of(2L), true);
 
         ArgumentCaptor<FileInfo> captor = ArgumentCaptor.forClass(FileInfo.class);
         Mockito.verify(fileStorageService).delete(captor.capture());

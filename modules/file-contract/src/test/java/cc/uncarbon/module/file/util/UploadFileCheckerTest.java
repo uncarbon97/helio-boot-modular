@@ -44,7 +44,7 @@ class UploadFileCheckerTest {
 
     @Test
     void batchAllPassReturnsOK() {
-        List<MultipartFile> files = List.of(file("a.jpg", 100), file("b.png", 200));
+        List<MultipartFile> files = List.of(file("a.jpg", 100, JPEG_MAGIC), file("b.png", 200, PNG_MAGIC));
         Assertions.assertEquals(FileErrorCodeEnum.OK,
                 UploadFileChecker.check(files, 3, 1024, 2048, new String[]{"jpg", "png"}));
     }
@@ -72,7 +72,7 @@ class UploadFileCheckerTest {
     @Test
     void singleSuffixCaseInsensitive() {
         Assertions.assertEquals(FileErrorCodeEnum.OK,
-                UploadFileChecker.check(file("a.JPG", 100), 1024, new String[]{"jpg"}));
+                UploadFileChecker.check(file("a.JPG", 100, JPEG_MAGIC), 1024, new String[]{"jpg"}));
     }
 
     @Test
@@ -94,8 +94,15 @@ class UploadFileCheckerTest {
     ----------------------------------------------------------------
      */
 
+    private static final byte[] JPEG_MAGIC = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
+    private static final byte[] PNG_MAGIC = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+
     private MultipartFile file(String filename, long size) {
-        return new MockMultipartFile("file", filename, null, new byte[0]) {
+        return file(filename, size, new byte[0]);
+    }
+
+    private MultipartFile file(String filename, long size, byte[] content) {
+        return new MockMultipartFile("file", filename, null, content) {
             @Override
             public long getSize() {
                 return size;
