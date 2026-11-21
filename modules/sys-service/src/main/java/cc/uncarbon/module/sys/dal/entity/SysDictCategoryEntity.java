@@ -1,6 +1,6 @@
 package cc.uncarbon.module.sys.dal.entity;
 
-import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
+import cc.uncarbon.framework.helium.db.entity.AbstractTenantGenericEntity;
 import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
 import cc.uncarbon.module.sys.enums.DictStatusEnum;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -26,7 +26,7 @@ import java.io.Serial;
 @AllArgsConstructor
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-public class SysDictCategoryEntity extends AbstractGenericEntity implements AuditingUserSource {
+public class SysDictCategoryEntity extends AbstractTenantGenericEntity implements AuditingUserSource {
 
     @Serial
     private static final long serialVersionUID = 1L;

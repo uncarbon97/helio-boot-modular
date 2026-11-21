@@ -216,19 +216,6 @@ class TenantUserRoleFacadeImplTest {
     }
 
     @Test
-    void isSuperAdminBranches() {
-        // 无归属租户 → 忽略租户态解析
-        Mockito.when(sysUserMapper.selectById(66L)).thenReturn(new SysUserEntity().setId(66L));
-        Mockito.when(userRoleHelper.getSpecifiedUserRole(66L)).thenReturn(normalScope(List.of(5L)));
-
-        Mockito.when(userRoleHelper.getSpecifiedUserRole(66L)).thenReturn(UserRoleScope.mockSuperAdmin());
-
-        // 有归属租户 → 在归属租户作用域内解析
-        Mockito.when(sysUserMapper.selectById(77L)).thenReturn(tenantUser(77L, 10L));
-        Mockito.when(userRoleHelper.getSpecifiedUserRole(77L)).thenReturn(UserRoleScope.mockSuperAdmin());
-    }
-
-    @Test
     void getUserHomeTenantIdBranches() {
         Assertions.assertNull(facade.getUserHomeTenantId(null));
 
@@ -250,10 +237,5 @@ class TenantUserRoleFacadeImplTest {
         var ret = new SysUserEntity().setId(id);
         ret.setTenantId(tenantId);
         return ret;
-    }
-
-    private UserRoleScope normalScope(List<Long> roleIds) {
-        return new UserRoleScope(roleIds, roleIds.stream()
-                .map(id -> new SysRoleEntity().setId(id).setCode("R" + id)).toList());
     }
 }

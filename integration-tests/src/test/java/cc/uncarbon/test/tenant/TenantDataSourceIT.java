@@ -10,7 +10,10 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
- * 数据源租户测试
+ * 数据源租户冒烟测试：验证 it profile 下上下文可用
+ *
+ * <p>默认隔离策略 LINE 下本用例仅冒烟；切换 DATASOURCE 需按 application-it.yml
+ * 注释额外配置租户数据源路由后再跑</p>
  *
  * @author Uncarbon
  */

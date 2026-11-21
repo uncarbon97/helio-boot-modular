@@ -344,6 +344,81 @@ class SysRoleServiceImplTest {
     }
 
     @Test
+    void adminUpdateHappyPathUpdatesEntity() {
+        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(sysRoleMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(sysRoleMapper.selectById(9L)).thenReturn(null);
+
+        service.adminUpdate(upsert(9L, "R9"));
+
+        ArgumentCaptor<SysRoleEntity> captor = ArgumentCaptor.forClass(SysRoleEntity.class);
+        Mockito.verify(sysRoleMapper).updateById(captor.capture());
+        Assertions.assertEquals(9L, captor.getValue().getId());
+        Assertions.assertEquals("R9", captor.getValue().getCode());
+        Assertions.assertEquals("角色", captor.getValue().getName());
+    }
+
+    @Test
+    void getByIdBranches() {
+        // 缺失
+        Mockito.when(sysRoleMapper.selectById(9L)).thenReturn(null);
+        Assertions.assertNull(service.getById(9L));
+
+        // 命中：转 DTO 并填充关联菜单IDs
+        Mockito.when(sysRoleMapper.selectById(9L))
+                .thenReturn(new SysRoleEntity().setId(9L).setCode("R9").setName("角色九"));
+        Mockito.when(sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(9L))).thenReturn(Set.of(1L, 2L));
+
+        var ret = service.getById(9L);
+
+        Assertions.assertEquals(9L, ret.getId());
+        Assertions.assertEquals("R9", ret.getCode());
+        Assertions.assertEquals(Set.of(1L, 2L), ret.getMenuIds());
+    }
+
+    @Test
+    void getNonnullByIdBranches() {
+        Mockito.when(sysRoleMapper.selectById(9L)).thenReturn(null);
+        Assertions.assertThrows(NoRecordException.class, () -> service.getNonnullById(9L));
+
+        Mockito.when(sysRoleMapper.selectById(9L))
+                .thenReturn(new SysRoleEntity().setId(9L).setCode("R9").setName("角色九"));
+        Mockito.when(sysRoleMenuRelationService.listMenuIdsByRoles(Mockito.anyCollection())).thenReturn(Set.of());
+        Assertions.assertEquals(9L, service.getNonnullById(9L).getId());
+    }
+
+    @Test
+    void adminListEmptyRecordsYieldsEmptyPage() {
+        Mockito.when(sysRoleMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysRoleEntity> page = inv.getArgument(0);
+            page.setRecords(List.of());
+            page.setTotal(0);
+            return page;
+        });
+
+        var ret = service.adminList(new AdminSysRoleListQuery().setPageParam(new PageParam(1, 10)));
+
+        // 空页走 convertList 空集合分支，不再查菜单关联
+        Assertions.assertEquals(0, ret.getTotal());
+        Assertions.assertTrue(ret.getRecords().isEmpty());
+        Mockito.verify(sysRoleMenuRelationService, Mockito.never()).listMenuIdsByRoles(Mockito.anyCollection());
+    }
+
+    @Test
+    void adminBindMenuEmptyMenuIdsSkipsSubtreeCheck() {
+        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(true);
+        Mockito.when(sysRoleMapper.selectById(6L)).thenReturn(new SysRoleEntity().setId(6L).setCode("R6"));
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+        Mockito.when(sysMenuService.getPermissionsByRole(Mockito.anyCollection())).thenReturn(Map.of());
+
+        withUser(7L, () -> service.adminBindMenu(bindMenu(6L, Set.of())));
+
+        // 空菜单集合跳过超管专属子树与越权范围校验，直接清绑
+        Mockito.verify(sysMenuService, Mockito.never()).listSuperAdminOnlySubtreeMenuIds();
+        Mockito.verify(sysRoleMenuRelationService).cleanAndBind(6L, Set.of());
+    }
+
+    @Test
     void getByIdNullReturnsNull() {
         Assertions.assertNull(service.getById(null));
     }

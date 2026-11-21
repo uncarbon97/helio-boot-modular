@@ -68,8 +68,7 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminCreateDuplicatePrimaryRejected() {
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(null);
-        // 第二次 selectOne（主存储点检查）命中已有主存储点
+        // 第一次 selectOne（编码查重）为空，第二次（主存储点检查）命中已有主存储点
         Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(null)
                 .thenReturn(new FileStorageEntity().setId(1L));
 

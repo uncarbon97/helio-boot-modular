@@ -1,7 +1,10 @@
 package cc.uncarbon.module.sys.service.impl;
 
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageParam;
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.excel.page.CursorPageParam;
+import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.sys.AuditNicknameFillerTestSupport;
 import cc.uncarbon.module.sys.MybatisPlusTestSupport;
@@ -10,6 +13,7 @@ import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import cc.uncarbon.module.sys.iplocation.IPLocationResolver;
 import cc.uncarbon.module.sys.model.query.AdminSysOperateLogListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysOperateLogExportRequest;
 import cc.uncarbon.module.sys.model.request.SysOperateLogCreateRequest;
 import cc.uncarbon.module.sys.model.valueobj.SysOperateLogDTO;
 import cc.uncarbon.module.sys.service.SysUserService;
@@ -24,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.ByteArrayOutputStream;
 import java.time.Instant;
 import java.util.List;
 
@@ -127,6 +132,50 @@ class SysOperateLogServiceImplTest {
         Assertions.assertFalse(sqlSegment.contains("LIKE"));
         Assertions.assertFalse(sqlSegment.contains("BETWEEN"));
         Assertions.assertTrue(sqlSegment.contains("ORDER BY"));
+    }
+
+
+    @Test
+    void adminListCursorParamUsesIdLt() {
+        Mockito.when(sysOperateLogMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysOperateLogEntity> page = inv.getArgument(0);
+            page.setRecords(List.of());
+            page.setTotal(0);
+            return page;
+        });
+
+        service.adminList(new AdminSysOperateLogListQuery()
+                .setPageParam(new CursorPageParam(1, 10, 77L)));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysOperateLogEntity>> wrapperCaptor =
+                ArgumentCaptor.forClass(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class);
+        Mockito.verify(sysOperateLogMapper).selectPage(Mockito.any(), wrapperCaptor.capture());
+        // 游标续批：id < lastId 且不触发计数
+        String sqlSegment = wrapperCaptor.getValue().getSqlSegment();
+        Assertions.assertTrue(sqlSegment.contains("<"));
+        Assertions.assertTrue(wrapperCaptor.getValue().getParamNameValuePairs().containsValue(77L));
+    }
+
+    @Test
+    void adminListOnlyBeginAtSkipsBetween() {
+        Mockito.when(sysOperateLogMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysOperateLogEntity> page = inv.getArgument(0);
+            page.setRecords(List.of());
+            page.setTotal(0);
+            return page;
+        });
+
+        service.adminList(new AdminSysOperateLogListQuery()
+                .setPageParam(new PageParam(1, 10))
+                .setBeginAt(Instant.parse("2026-01-01T00:00:00Z")));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysOperateLogEntity>> wrapperCaptor =
+                ArgumentCaptor.forClass(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class);
+        Mockito.verify(sysOperateLogMapper).selectPage(Mockito.any(), wrapperCaptor.capture());
+        // 起止任一为空即不落时间区间条件
+        Assertions.assertFalse(wrapperCaptor.getValue().getSqlSegment().contains("BETWEEN"));
     }
 
 
@@ -245,6 +294,85 @@ class SysOperateLogServiceImplTest {
         Mockito.when(sysOperateLogMapper.selectById(9L)).thenReturn(entity());
 
         Assertions.assertEquals(9L, service.getNonnullById(9L).getId());
+    }
+
+
+    /*
+    ----------------------------------------------------------------
+                        后台管理-批量导出
+    ----------------------------------------------------------------
+     */
+
+    @Test
+    void adminExportExcelOverLimitRejectedBeforeWriting() {
+        Mockito.when(sysOperateLogMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysOperateLogEntity> page = inv.getArgument(0);
+            page.setRecords(List.of(entity()));
+            page.setTotal(100_001);
+            return page;
+        });
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        var ex = Assertions.assertThrows(BusinessException.class, () -> service.adminExportExcel(
+                new AdminSysOperateLogExportRequest().setIncludeUserAgent(false), out));
+
+        Assertions.assertEquals(DefaultErrorCodeEnum.A00008, ex.getErrorCode());
+        // 超限守卫先于任何字节写出
+        Assertions.assertEquals(0, out.size());
+    }
+
+    @Test
+    void adminExportExcelWritesBatchesByCursor() {
+        int[] call = {0};
+        Mockito.when(sysOperateLogMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysOperateLogEntity> page = inv.getArgument(0);
+            switch (call[0]++) {
+                case 0 -> {
+                    page.setRecords(List.of(entity().setId(9L), entity().setId(8L)));
+                    page.setTotal(2);
+                }
+                case 1 -> {
+                    page.setRecords(List.of(entity().setId(7L), entity().setId(6L)));
+                    page.setTotal(2);
+                }
+                default -> {
+                    page.setRecords(List.of());
+                    page.setTotal(0);
+                }
+            }
+            return page;
+        });
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        service.adminExportExcel(new AdminSysOperateLogExportRequest().setIncludeUserAgent(false), out);
+
+        // 首批满批 → 游标续批 → 空批收尾，共取数 3 次
+        Assertions.assertTrue(out.size() > 0);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysOperateLogEntity>> wrapperCaptor =
+                ArgumentCaptor.forClass(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class);
+        Mockito.verify(sysOperateLogMapper, Mockito.times(3)).selectPage(Mockito.any(), wrapperCaptor.capture());
+        // 第二次取数以首批末条主键为游标
+        var secondWrapper = wrapperCaptor.getAllValues().get(1);
+        Assertions.assertTrue(secondWrapper.getSqlSegment().contains("<"));
+        Assertions.assertTrue(secondWrapper.getParamNameValuePairs().containsValue(8L));
+    }
+
+    @Test
+    void adminExportExcelEmptyResultWritesHeaderOnly() {
+        Mockito.when(sysOperateLogMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysOperateLogEntity> page = inv.getArgument(0);
+            page.setRecords(List.of());
+            page.setTotal(0);
+            return page;
+        });
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        service.adminExportExcel(new AdminSysOperateLogExportRequest().setIncludeUserAgent(true), out);
+
+        // 空结果也能产出仅表头的文件
+        Assertions.assertTrue(out.size() > 0);
+        Mockito.verify(sysOperateLogMapper).selectPage(Mockito.any(), Mockito.any());
     }
 
 

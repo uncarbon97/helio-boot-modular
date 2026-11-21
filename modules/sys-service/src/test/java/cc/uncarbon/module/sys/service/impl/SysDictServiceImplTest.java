@@ -27,7 +27,9 @@ import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.List;
 import java.util.Map;
@@ -378,6 +380,55 @@ class SysDictServiceImplTest {
         Assertions.assertEquals("c1", service.getCategoryNonnullById(5L).getCode());
         // 字典项缺失 → NoRecordException
         Assertions.assertThrows(NoRecordException.class, () -> service.getItemNonnullById(9L));
+    }
+
+    @Test
+    void getItemNonnullFound() {
+        Mockito.when(itemMapper.selectById(9L)).thenReturn(
+                new SysDictItemEntity().setId(9L).setCode("i1").setValue("v1"));
+
+        Assertions.assertEquals("i1", service.getItemNonnullById(9L).getCode());
+    }
+
+    @Test
+    void adminListCategoryEmptyRecords() {
+        Mockito.when(categoryMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysDictCategoryEntity> page = inv.getArgument(0);
+            page.setRecords(List.of());
+            page.setTotal(0);
+            return page;
+        });
+
+        // 空页走 convertList 空集合短路分支
+        var ret = service.adminListCategory(new AdminSysDictCategoryListQuery()
+                .setPageParam(new PageParam(1, 10)));
+
+        Assertions.assertEquals(0, ret.getTotal());
+        Assertions.assertTrue(ret.getRecords().isEmpty());
+    }
+
+    @Test
+    void initBuiltinDictCacheScansAnnotatedEnumsAndContributors() throws Exception {
+        // 真实 Spring 容器注册基包 → 全链路：扫描注解枚举 + 未标注枚举跳过 + 汇总贡献者
+        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+        AutoConfigurationPackages.register(ctx,
+                "cc.uncarbon.module.sys.enums", "cc.uncarbon.framework.helium.db.enums");
+        ctx.refresh();
+        try {
+            SysDictServiceImpl realService = new SysDictServiceImpl(categoryMapper, itemMapper, ctx,
+                    List.of(() -> List.of(new EnumDictSpec("sp_code", "规格", "描述", List.of(
+                            new EnumDictSpec.Item("c1", "v1", "标签一", 0))))),
+                    AuditNicknameFillerTestSupport.passThrough());
+            realService.initBuiltinDictCache();
+
+            Map<String, SysDictBuiltinDTO> cache = builtinCache();
+            Assertions.assertTrue(cache.containsKey("menu_type"), () -> "扫描结果: " + cache.keySet());
+            Assertions.assertFalse(cache.containsKey("gender"), "未标 @EnumDict 的枚举不应入缓存");
+            Assertions.assertEquals("规格", cache.get("sp_code").getName());
+            Assertions.assertEquals(1, cache.get("sp_code").getItems().size());
+        } finally {
+            ctx.close();
+        }
     }
 
 

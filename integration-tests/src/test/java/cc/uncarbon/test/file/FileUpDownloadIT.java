@@ -170,7 +170,7 @@ class FileUpDownloadIT extends BaseIntegrationTest {
             // 文件元数据（尽力删物理文件）
             if (fileMetaId != null) {
                 try {
-                    fileMetaService.adminDelete(List.of(fileMetaId));
+                    fileMetaService.adminDelete(List.of(fileMetaId), true);
                 } catch (Exception ignored) {
                     fileMetaMapper.deleteById(fileMetaId);
                 }

@@ -134,16 +134,16 @@ class TenantCrudIT extends BaseIntegrationTest {
     @Test
     void duplicateTenantCodeRejected() {
         long nano = System.nanoTime() % 1_000_000_000L;
-        String code = "itdup" + nano;
+        String code = "ittc" + nano;
         tenantService.adminCreate(new AdminTenantCreateRequest()
                 .setCode(code).setName("IT重复租户")
-                .setTenantAdminPin("itdupa" + nano).setTenantAdminPwd("it-pass-123456")
+                .setTenantAdminPin("ittca" + nano).setTenantAdminPwd("it-pass-123456")
                 .setTenantAdminEmail("it@a.b.c").setTenantAdminPhoneNo("13800001111"));
 
         var dup = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> tenantService.adminCreate(new AdminTenantCreateRequest()
                         .setCode(code).setName("IT重复租户2")
-                        .setTenantAdminPin("itdupb" + nano).setTenantAdminPwd("it-pass-123456")
+                        .setTenantAdminPin("ittcb" + nano).setTenantAdminPwd("it-pass-123456")
                         .setTenantAdminEmail("it@a.b.c").setTenantAdminPhoneNo("13800001111")));
         Assertions.assertEquals(TenantErrorCodeEnum.A03005, ((HasRepeatRecordException) dup).getErrorCode());
     }
@@ -207,9 +207,9 @@ class TenantCrudIT extends BaseIntegrationTest {
     @AfterEach
     void cleanup() {
         TenantContextHolder.runIgnored(() -> {
-            // 残留租户
+            // 残留租户（统一 ittc 前缀，避免误清共享库中以 it 开头的业务租户）
             tenantMetaMapper.selectList(new LambdaQueryWrapper<TenantMetaEntity>()
-                            .likeRight(TenantMetaEntity::getCode, "it"))
+                            .likeRight(TenantMetaEntity::getCode, "ittc"))
                     .forEach(t -> {
                         cleanupTenantUsers(t.getId());
                         tenantMetaMapper.deleteById(t.getId());

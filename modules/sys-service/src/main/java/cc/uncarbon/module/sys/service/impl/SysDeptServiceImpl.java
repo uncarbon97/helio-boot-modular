@@ -202,19 +202,6 @@ public class SysDeptServiceImpl implements SysDeptService {
     }
 
     /**
-     * 检查是否存在
-     */
-    private void checkExistence(Long id) {
-        boolean exists = sysDeptMapper.exists(
-                new LambdaQueryWrapper<SysDeptEntity>()
-                        .select(SysDeptEntity::getId)
-                        .eq(SysDeptEntity::getId, id)
-                        .last(SQLSegment.LIMIT_1)
-        );
-        NoRecordException.throwIfFalse(exists);
-    }
-
-    /**
      * 检查是否存在重复：同一上级部门下不允许同名部门
      */
     private void checkRepeat(AdminSysDeptUpsertRequest request) {

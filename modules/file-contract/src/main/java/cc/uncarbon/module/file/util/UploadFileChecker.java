@@ -63,6 +63,12 @@ public class UploadFileChecker {
         } else if (fileQty > fileQtyMax) {
             return FileErrorCodeEnum.A02002;
         }
+        // 拦截 null 元素（须在累计大小求和前，避免方法引用触发 NPE）
+        for (MultipartFile item : multipartFiles) {
+            if (item == null) {
+                return FileErrorCodeEnum.A02001;
+            }
+        }
         // 限制所有文件总大小（除以1024）
         long allFileSize = multipartFiles.stream().mapToLong(MultipartFile::getSize).sum() >> 10;
         if (allFileSize > allFileSizeMax) {
@@ -71,9 +77,6 @@ public class UploadFileChecker {
 
         // 每个文件单独检查
         for (MultipartFile item : multipartFiles) {
-            if (item == null) {
-                return FileErrorCodeEnum.A02001;
-            }
             FileErrorCodeEnum single = checkSingle(item, singleFileSizeMax, allowedSuffixes);
             if (single != FileErrorCodeEnum.OK) {
                 return single;

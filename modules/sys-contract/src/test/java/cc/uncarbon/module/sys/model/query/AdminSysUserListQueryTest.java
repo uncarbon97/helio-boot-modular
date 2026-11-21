@@ -16,7 +16,7 @@ class AdminSysUserListQueryTest {
     @Test
     void nullSelectedDeptIdDoesNotNeedFilter() {
         Assertions.assertFalse(new AdminSysUserListQuery().needFilterBySelectedDeptId());
-        Assertions.assertFalse(new AdminSysUserListQuery(null, "13800138000", null)
+        Assertions.assertFalse(new AdminSysUserListQuery(null, null, "13800138000", null)
                 .needFilterBySelectedDeptId());
     }
 
@@ -81,7 +81,7 @@ class AdminSysUserListQueryTest {
      */
     @Test
     void lombokEqualsAndHashCode() {
-        AdminSysUserListQuery left = new AdminSysUserListQuery(null, "13800138000", 100L);
+        AdminSysUserListQuery left = new AdminSysUserListQuery(null, null, "13800138000", 100L);
         AdminSysUserListQuery right = new AdminSysUserListQuery().setPhoneNoTail4("13800138000").setSelectedDeptId(100L);
 
         Assertions.assertEquals(left, right);

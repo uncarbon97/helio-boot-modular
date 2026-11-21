@@ -10,6 +10,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -51,7 +54,7 @@ class UploadFileCheckerTest {
 
     @Test
     void batchShortCircuitsOnFirstBadFile() {
-        List<MultipartFile> files = List.of(file("ok.jpg", 100), file("bad.exe", 100));
+        List<MultipartFile> files = List.of(file("ok.jpg", 100, JPEG_MAGIC), file("bad.exe", 100));
         Assertions.assertEquals(FileErrorCodeEnum.A02004,
                 UploadFileChecker.check(files, 3, 1024, 2048, new String[]{"jpg"}));
     }
@@ -87,6 +90,70 @@ class UploadFileCheckerTest {
                 UploadFileChecker.check(file("filename", 100), 1024, new String[]{"jpg"}));
     }
 
+    @Test
+    void twoArgOverloadUsesEnumWhitelist() {
+        // 已知类型后缀 → 走 magic-number 校验
+        Assertions.assertEquals(FileErrorCodeEnum.OK,
+                UploadFileChecker.check(file("a.jpg", 100, JPEG_MAGIC), 1024));
+        // 未知类型后缀不在枚举白名单内
+        Assertions.assertEquals(FileErrorCodeEnum.A02004,
+                UploadFileChecker.check(file("a.doc", 100), 1024));
+    }
+
+    @Test
+    void customSuffixUnknownTypeSkipsMagicCheck() {
+        // 自定义白名单含未知类型后缀 → 无 magic-number 可比对，直接放行
+        Assertions.assertEquals(FileErrorCodeEnum.OK,
+                UploadFileChecker.check(file("a.doc", 100, new byte[]{1, 2, 3}), 1024, new String[]{"doc"}));
+    }
+
+    @Test
+    void magicNumberMismatchRejected() {
+        // 改后缀伪装：jpg 后缀但内容是 PNG 文件头
+        Assertions.assertEquals(FileErrorCodeEnum.A02004,
+                UploadFileChecker.check(file("fake.jpg", 100, PNG_MAGIC), 1024, new String[]{"jpg"}));
+    }
+
+    @Test
+    void unreadableStreamTreatedAsMagicMismatch() {
+        Assertions.assertEquals(FileErrorCodeEnum.A02004,
+                UploadFileChecker.check(unreadableFile("a.jpg", 100), 1024, new String[]{"jpg"}));
+    }
+
+    @Test
+    void blankFilenameRejected() {
+        Assertions.assertEquals(FileErrorCodeEnum.A02011,
+                UploadFileChecker.check(file(" ", 100), 1024, new String[]{"jpg"}));
+    }
+
+    @Test
+    void overlongFilenameRejected() {
+        Assertions.assertEquals(FileErrorCodeEnum.A02011,
+                UploadFileChecker.check(file("a".repeat(256) + ".jpg", 100), 1024, new String[]{"jpg"}));
+    }
+
+    @Test
+    void controlCharFilenameRejected() {
+        // 逐类拦截：c<0x20、c==0x7F、'/'、'\'
+        for (String bad : new String[]{"a\nb.jpg", "a\u007F.jpg", "a/b.jpg", "a\\b.jpg"}) {
+            Assertions.assertEquals(FileErrorCodeEnum.A02011,
+                    UploadFileChecker.check(file(bad, 100), 1024, new String[]{"jpg"}), "文件名: " + bad);
+        }
+    }
+
+    @Test
+    void pathTraversalFilenameRejected() {
+        Assertions.assertEquals(FileErrorCodeEnum.A02011,
+                UploadFileChecker.check(file("a..b.jpg", 100), 1024, new String[]{"jpg"}));
+    }
+
+    @Test
+    void batchNullItemRejected() {
+        List<MultipartFile> files = Arrays.asList(file("a.jpg", 100, JPEG_MAGIC), null);
+        Assertions.assertEquals(FileErrorCodeEnum.A02001,
+                UploadFileChecker.check(files, 3, 1024, 2048, new String[]{"jpg"}));
+    }
+
 
     /*
     ----------------------------------------------------------------
@@ -106,6 +173,23 @@ class UploadFileCheckerTest {
             @Override
             public long getSize() {
                 return size;
+            }
+        };
+    }
+
+    /**
+     * 文件头流读取即失败的文件（覆盖 IOException 按不匹配处理分支）
+     */
+    private MultipartFile unreadableFile(String filename, long size) {
+        return new MockMultipartFile("file", filename, null, new byte[0]) {
+            @Override
+            public long getSize() {
+                return size;
+            }
+
+            @Override
+            public InputStream getInputStream() throws IOException {
+                throw new IOException("unreadable");
             }
         };
     }

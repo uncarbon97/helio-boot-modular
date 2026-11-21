@@ -14,10 +14,9 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
- * 行级多租户隔离测试（M2 验收：同 pin 双租户互不串数据）
+ * 行级多租户隔离测试（同 pin 双租户互不串数据）
  *
- * <p>前置：已执行 attachments/db/upgrade/4.0.0-tenant-login-mode.sql，
- * 且 helium.tenant.strategy=LINE</p>
+ * <p>前置：helium.tenant.isolation-strategy=LINE（application-it.yml 默认值）</p>
  */
 @Tag("tenant")
 class TenantLineIsolationIT extends BaseIntegrationTest {
@@ -31,7 +30,7 @@ class TenantLineIsolationIT extends BaseIntegrationTest {
 
     @Test
     void samePinInTwoTenantsIsolated() throws Exception {
-        String pin = "it" + (System.nanoTime() % 1_000_000_000L);
+        String pin = "itiso" + (System.nanoTime() % 1_000_000_000L);
 
         Long idA = insertUserInTenant(TENANT_A, pin, "A-租户视角");
         Long idB = insertUserInTenant(TENANT_B, pin, "B-租户视角");
@@ -87,7 +86,7 @@ class TenantLineIsolationIT extends BaseIntegrationTest {
             // 只取 id/pin，避免残留的异密钥密文行在结果映射时解密爆炸
             sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
                             .select(SysUserEntity::getId, SysUserEntity::getPin)
-                            .likeRight(SysUserEntity::getPin, "it"))
+                            .likeRight(SysUserEntity::getPin, "itiso"))
                     .forEach(user -> sysUserMapper.deleteById(user.getId()));
         });
     }

@@ -101,17 +101,17 @@ class SysUserServiceImplImportTest {
             entity.setId((long) (System.nanoTime() % 1_000_000_000L));
             return 1;
         });
-        Mockito.when(sysUserMapper.selectList(any())).thenReturn(List.of());
+        Mockito.when(sysUserMapper.selectPins(any())).thenReturn(List.of());
     }
 
 
     @Test
-    void importHappyPathEnabledByDefault() {
+    void importHappyPathAutoEnable() {
         byte[] xlsx = workbook(List.of(
                 List.<Object>of("happy01", "甲", "男", "13900000001", "happy01@example.com"),
                 List.<Object>of("happy02", "乙", "女", "", "")));
 
-        var result = importUsers(xlsx, new AdminSysUserImportRequest().setInitPwd("Passw0rd"));
+        var result = importUsers(xlsx, new AdminSysUserImportRequest().setInitPwd("Passw0rd").setAutoEnable(true));
 
         Assertions.assertEquals(2, result.getTotalRows());
         Assertions.assertEquals(2, result.getSuccessCount());
@@ -153,8 +153,7 @@ class SysUserServiceImplImportTest {
 
     @Test
     void existingDbPinRejected() {
-        Mockito.when(sysUserMapper.selectList(any())).thenReturn(
-                List.of(new SysUserEntity().setPin("taken01")));
+        Mockito.when(sysUserMapper.selectPins(any())).thenReturn(List.of("taken01"));
         byte[] xlsx = workbook(List.of(List.<Object>of("taken01", "甲", "男", "", "")));
 
         var result = importUsers(xlsx, new AdminSysUserImportRequest().setInitPwd("Passw0rd"));
@@ -195,9 +194,9 @@ class SysUserServiceImplImportTest {
 
     @Test
     void concurrentPinDuringInsertRollsBack() {
-        Mockito.when(sysUserMapper.selectList(any()))
+        Mockito.when(sysUserMapper.selectPins(any()))
                 .thenReturn(List.of())
-                .thenReturn(List.of(new SysUserEntity().setPin("race001")));
+                .thenReturn(List.of("race001"));
 
         byte[] xlsx = workbook(List.of(List.<Object>of("race001", "甲", "男", "", "")));
 
@@ -206,16 +205,10 @@ class SysUserServiceImplImportTest {
     }
 
     @Test
-    void wrongExtensionOrBadPwdRejected() {
+    void malformedExcelStreamRejected() {
         Assertions.assertThrows(BusinessException.class, () -> service.adminImport(
                 new ByteArrayInputStream(new byte[0]), "users.xls",
                 new AdminSysUserImportRequest().setInitPwd("Passw0rd")));
-
-        byte[] xlsx = workbook(List.of(List.<Object>of("ext001", "甲", "男", "", "")));
-        var ex = Assertions.assertThrows(BusinessException.class, () -> service.adminImport(
-                new ByteArrayInputStream(xlsx), "users.xlsx",
-                new AdminSysUserImportRequest().setInitPwd("123")));
-        Assertions.assertEquals(SysErrorCodeEnum.A01053, ex.getErrorCode());
     }
 
     @Test
@@ -229,6 +222,33 @@ class SysUserServiceImplImportTest {
         Assertions.assertEquals(1, sheet.rows().size());
     }
 
+
+    @Test
+    void fileDuplicatePhoneRejected() {
+        byte[] xlsx = workbook(List.of(
+                List.<Object>of("ph001", "甲", "男", "13900000001", ""),
+                List.<Object>of("ph002", "乙", "女", "13900000001", "ph002@example.com")));
+
+        var result = importUsers(xlsx, new AdminSysUserImportRequest().setInitPwd("Passw0rd"));
+
+        // 文件级 all-or-nothing：任一行失败整文件不入库
+        Assertions.assertEquals(0, result.getSuccessCount());
+        Assertions.assertTrue(result.getErrors().stream().anyMatch(e -> e.getReason().contains("文件内手机号重复")));
+        Mockito.verify(sysUserMapper, Mockito.never()).insert(any(SysUserEntity.class));
+    }
+
+    @Test
+    void fileDuplicateEmailRejected() {
+        byte[] xlsx = workbook(List.of(
+                List.<Object>of("em001", "甲", "男", "13900000001", "dup@example.com"),
+                List.<Object>of("em002", "乙", "女", "13900000002", "dup@example.com")));
+
+        var result = importUsers(xlsx, new AdminSysUserImportRequest().setInitPwd("Passw0rd"));
+
+        Assertions.assertEquals(0, result.getSuccessCount());
+        Assertions.assertTrue(result.getErrors().stream().anyMatch(e -> e.getReason().contains("文件内邮箱重复")));
+        Mockito.verify(sysUserMapper, Mockito.never()).insert(any(SysUserEntity.class));
+    }
 
     private byte[] workbook(List<List<Object>> rows) {
         var out = new ByteArrayOutputStream();

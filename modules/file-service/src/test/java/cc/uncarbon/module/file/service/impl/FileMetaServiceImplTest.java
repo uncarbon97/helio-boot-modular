@@ -112,8 +112,9 @@ class FileMetaServiceImplTest {
     @Test
     void adminDeleteSwallowsPhysicalFailure() {
         Mockito.when(fileMetaMapper.selectById(1L)).thenReturn(null);
-        Mockito.when(fileMetaMapper.selectById(2L)).thenReturn(
-                new FileMetaEntity().setId(2L).setStorageCode("st").setTenantId(0L));
+        FileMetaEntity entity = new FileMetaEntity().setId(2L).setStorageCode("st");
+        entity.setTenantId(0L);
+        Mockito.when(fileMetaMapper.selectById(2L)).thenReturn(entity);
         Mockito.doThrow(new RuntimeException("disk gone"))
                 .when(fileStorageService).delete(Mockito.any(FileInfo.class));
 
@@ -125,9 +126,11 @@ class FileMetaServiceImplTest {
 
     @Test
     void adminDeleteRebuildsFullPlatformName() {
-        Mockito.when(fileMetaMapper.selectById(2L)).thenReturn(new FileMetaEntity()
-                .setId(2L).setTenantId(0L).setStorageCode("st")
-                .setStorageBasePath("/").setSubDirPath("p/").setStorageFilename("f").setExtendName("txt"));
+        FileMetaEntity fullEntity = new FileMetaEntity()
+                .setId(2L).setStorageCode("st")
+                .setStorageBasePath("/").setSubDirPath("p/").setStorageFilename("f").setExtendName("txt");
+        fullEntity.setTenantId(0L);
+        Mockito.when(fileMetaMapper.selectById(2L)).thenReturn(fullEntity);
 
         service.adminDelete(List.of(2L), true);
 

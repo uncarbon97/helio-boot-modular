@@ -104,6 +104,7 @@ A02007: The same storage point code already exists
 A02008: Another primary storage point already exists
 A02009: The primary storage point cannot be deleted
 A02010: The storage point still has file references and cannot be deleted or have its code changed
+A02011: Invalid file name
 B02001: File upload failed, please contact the administrator
 B02002: File download failed, please contact the administrator
 B02003: Storage point {} does not exist or lacks detailed configuration

@@ -41,6 +41,8 @@ class SysOperateLogExportIT extends BaseIntegrationTest {
                     .setBizType(bizType)
                     .setBehavior("测试导出")
                     .setOperation("=1+1")
+                    .setRequestMethod("POST")
+                    .setRequestPath("/it/sys-operate-log/export")
                     .setUserId(0L)
                     .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER)
                     .setResultStatus(LogResultStatusEnum.SUCCESS));
@@ -48,7 +50,10 @@ class SysOperateLogExportIT extends BaseIntegrationTest {
                     .setBizType(bizType)
                     .setBehavior("测试导出2")
                     .setOperation("普通文本")
+                    .setRequestMethod("POST")
+                    .setRequestPath("/it/sys-operate-log/export")
                     .setUserId(0L)
+                    .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER)
                     .setResultStatus(LogResultStatusEnum.SUCCESS));
 
             var out = new ByteArrayOutputStream();
@@ -64,9 +69,11 @@ class SysOperateLogExportIT extends BaseIntegrationTest {
             var sheet = ExcelIoUtil.parse(new ByteArrayInputStream(bytes), 100,
                 DefaultErrorCodeEnum.A00007, DefaultErrorCodeEnum.A00006);
             Assertions.assertEquals(2, sheet.rows().size());
-            // 操作内容列（列序 5）做过公式注入清洗
-            Assertions.assertTrue(sheet.rows().stream().anyMatch(r -> "'=1+1".equals(r.cell(5))));
-            Assertions.assertTrue(sheet.rows().stream().anyMatch(r -> "普通文本".equals(r.cell(5))));
+            // 操作内容列做过公式注入清洗（列序以表头名为准，避免列增删后错位）
+            int operationCol = sheet.columnIndexOf("操作内容");
+            Assertions.assertTrue(operationCol >= 0);
+            Assertions.assertTrue(sheet.rows().stream().anyMatch(r -> "'=1+1".equals(r.cell(operationCol))));
+            Assertions.assertTrue(sheet.rows().stream().anyMatch(r -> "普通文本".equals(r.cell(operationCol))));
         });
     }
 

@@ -2,6 +2,7 @@ package cc.uncarbon.test.sys;
 
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.framework.helium.excel.util.ExcelIoUtil;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
@@ -9,9 +10,11 @@ import cc.uncarbon.module.sys.model.request.AdminSysUserImportRequest;
 import cc.uncarbon.module.sys.model.response.SysUserImportResult;
 import cc.uncarbon.module.sys.service.SysUserService;
 import cc.uncarbon.test.base.BaseIntegrationTest;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
 import org.apache.fesod.sheet.ExcelWriter;
 import org.apache.fesod.sheet.write.metadata.WriteSheet;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -41,7 +44,7 @@ class SysUserImportIT extends BaseIntegrationTest {
         byte[] xlsx = workbook(List.of(
                 List.<Object>of(pinA, "导入甲", "男", "13900000001", "imp.a@example.com"),
                 List.<Object>of(pinB, "导入乙", "女", "", "")));
-        AdminSysUserImportRequest attr = new AdminSysUserImportRequest().setInitPwd("Passw0rd");
+        AdminSysUserImportRequest attr = new AdminSysUserImportRequest().setInitPwd("Passw0rd").setAutoEnable(true);
 
         var first = new AtomicReference<SysUserImportResult>();
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () ->
@@ -54,7 +57,7 @@ class SysUserImportIT extends BaseIntegrationTest {
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
             SysUserEntity a = sysUserMapper.getByPin(pinA);
             Assertions.assertNotNull(a);
-            // autoEnable 默认 true
+            // autoEnable=true → 导入即启用
             Assertions.assertEquals(SysUserStatusEnum.ENABLED, a.getStatus());
             Assertions.assertEquals("13900000001", a.getPhoneNo());
             Assertions.assertEquals(YesOrNoEnum.YES, a.getPwdMustChange());
@@ -72,11 +75,17 @@ class SysUserImportIT extends BaseIntegrationTest {
                 second.set(sysUserService.adminImport(new ByteArrayInputStream(xlsx), "users.xlsx", attr)));
         Assertions.assertEquals(0, second.get().getSuccessCount());
         Assertions.assertEquals(2, second.get().getFailedCount());
+    }
 
-        // 清理
-        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () ->
-                sysUserService.adminDelete(List.of(
-                        sysUserMapper.getByPin(pinA).getId(), sysUserMapper.getByPin(pinB).getId())));
+    /**
+     * 断言失败也不残留导入行；只取 id，避免异密钥密文行在结果映射时解密爆炸
+     */
+    @AfterEach
+    void cleanup() {
+        TenantContextHolder.runIgnored(() -> sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                        .select(SysUserEntity::getId)
+                        .likeRight(SysUserEntity::getPin, "imp"))
+                .forEach(u -> sysUserMapper.deleteById(u.getId())));
     }
 
 
@@ -88,7 +97,7 @@ class SysUserImportIT extends BaseIntegrationTest {
                     java.util.stream.Stream.of("账号", "昵称", "性别", "手机号", "邮箱").map(List::of).toList());
             writer.write(rows, sheet);
         } finally {
-            ExcelIoUtil.finishQuietly(writer);
+            ExcelIoUtil.finish(writer);
         }
         return out.toByteArray();
     }

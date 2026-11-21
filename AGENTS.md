@@ -7,6 +7,9 @@
 - 新增的`private`/`protected`方法，如果没有特别说明，均放置在当前类最后一个`private`方法之后
 - lombok `@Accessors(chain=true)` 的 setter 返回**声明类**类型（无协变覆盖）：request 多层继承时，子类字段须放在链首/单独赋值，父类字段链式收尾；跨层整链的末端静态类型是父类，不能直接塞回子类容器
 
+## 接口
+- 所有 HTTP 接口统一使用 `POST` 方法（`@PostMapping`），不使用 `GET`/`PUT`/`DELETE`；浏览器直链例外，允许 `GET`
+
 ## 数据访问
 - 数据库写操作（`delete`/`update`）禁止在 service 层直接向 Mapper 传 `Wrapper` 裸调用，必须封装为对应 Mapper 中的具名 `default` 方法；裸读（`select*`/`exists`）不受此限
 

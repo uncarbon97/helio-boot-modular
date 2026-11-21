@@ -325,6 +325,61 @@ class SysDeptServiceImplTest {
         Mockito.verify(auditNicknameFiller, Mockito.times(2)).fill(Mockito.anyList(), Mockito.any());
     }
 
+    @Test
+    void getNonnullByIdBranches() {
+        Mockito.when(sysDeptMapper.selectById(5L)).thenReturn(dept(5L, 0L));
+
+        Assertions.assertEquals(5L, service.getNonnullById(5L).getId());
+
+        Mockito.when(sysDeptMapper.selectById(6L)).thenReturn(null);
+        Assertions.assertThrows(NoRecordException.class, () -> service.getNonnullById(6L));
+    }
+
+    @Test
+    void getSpecifiedUserDeptWithoutRelationsYieldsEmptyScope() {
+        Mockito.when(sysUserDeptRelationService.listDeptIdsByUser(7L)).thenReturn(List.of());
+
+        var scope = service.getSpecifiedUserDept(7L, true);
+
+        Assertions.assertFalse(scope.hasRelatedDepts());
+        Assertions.assertFalse(scope.hasVisibleDepts());
+    }
+
+    @Test
+    void adminListEmptyReturnsEmptyList() {
+        Mockito.when(sysDeptMapper.selectSortedList()).thenReturn(List.of());
+
+        Assertions.assertTrue(service.adminList().isEmpty());
+    }
+
+    @Test
+    void adminUpdateParentChainBrokenByMissingNodeProceeds() {
+        // 新上级 3 存在且启用，但其父 4 已不存在 → 父链提前断开，不视为成环
+        Mockito.when(sysDeptMapper.exists(Mockito.any())).thenReturn(false);
+        Mockito.when(sysDeptMapper.selectById(3L)).thenReturn(dept(3L, 4L));
+        Mockito.when(sysDeptMapper.selectById(4L)).thenReturn(null);
+        Mockito.when(sysDeptMapper.updateById(Mockito.any(SysDeptEntity.class))).thenReturn(1);
+
+        service.adminUpdate(upsert(1L, "研发部", 3L));
+
+        Mockito.verify(sysDeptMapper).updateById(Mockito.any(SysDeptEntity.class));
+    }
+
+    @Test
+    void adminListSelectOptionEmptyAndFiltersDisabled() {
+        Mockito.when(sysDeptMapper.selectEnabledSortedList()).thenReturn(List.of());
+        Assertions.assertTrue(service.adminListSelectOption(false).isEmpty());
+
+        // 停用部门在下拉框中被过滤
+        Mockito.when(sysDeptMapper.selectEnabledSortedList()).thenReturn(List.of(
+                dept(5L, 0L),
+                new SysDeptEntity().setId(6L).setParentId(5L).setStatus(EnabledStatusEnum.DISABLED)));
+        var ret = service.adminListSelectOption(false);
+
+        Assertions.assertEquals(1, ret.size());
+        Assertions.assertEquals(5L, ret.get(0).getId());
+    }
+
 
     /*
     ----------------------------------------------------------------

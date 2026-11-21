@@ -48,21 +48,23 @@ class DynamicFileStorageRegistrarTest {
     private CopyOnWriteArrayList<FileStorage> fileStorageList;
 
     private static FileStorageEntity localEntity(Long tenantId, String code) {
-        return new FileStorageEntity()
+        FileStorageEntity entity = new FileStorageEntity()
                 .setId(1L)
-                .setTenantId(tenantId)
                 .setCode(code)
                 .setPlatformType(StoragePlatformTypeEnum.LOCAL)
                 .setSettingJson(LOCAL_SETTING_JSON);
+        entity.setTenantId(tenantId);
+        return entity;
     }
 
     private static FileStorageEntity cloudEntity(StoragePlatformTypeEnum platformType, String code) {
-        return new FileStorageEntity()
+        FileStorageEntity entity = new FileStorageEntity()
                 .setId(1L)
-                .setTenantId(null)
                 .setCode(code)
                 .setPlatformType(platformType)
                 .setSettingJson("{}");
+        entity.setTenantId(null);
+        return entity;
     }
 
     @BeforeEach

@@ -930,6 +930,98 @@ class SysUserServiceImplTest {
         Assertions.assertEquals("u9", ret.getPin());
     }
 
+    @Test
+    void checkUserQueryAccessCollectionBranches() {
+        // 空集合直接放行
+        Assertions.assertDoesNotThrow(() -> service.checkUserQueryAccess(List.of()));
+
+        // 超级管理员放行
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
+        Assertions.assertDoesNotThrow(() -> service.checkUserQueryAccess(List.of(8L)));
+
+        // 非超级管理员委托操作权限校验 → 隐藏用户拒绝
+        Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of(8L));
+        var ex = Assertions.assertThrows(BusinessException.class,
+                () -> service.checkUserQueryAccess(List.of(8L)));
+        Assertions.assertEquals(SysErrorCodeEnum.A01021, ex.getErrorCode());
+    }
+
+    @Test
+    void getNonnullPlainOperableByIdFillsPlainContact() {
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserMapper.selectById(9L)).thenReturn(
+                new SysUserEntity().setId(9L).setPin("u9").setPhoneNo("13800000000").setEmail("a@b.c"));
+        Mockito.when(sysDeptService.getSpecifiedUserDept(9L, false)).thenReturn(null);
+
+        var ret = service.getNonnullPlainOperableById(9L);
+
+        Assertions.assertEquals("13800000000", ret.getPhoneNoPlain());
+        Assertions.assertEquals("a@b.c", ret.getEmailPlain());
+    }
+
+    @Test
+    void getNonnullPlainOperableByIdMissingSecondReadSkipsPlain() {
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        // 第一次读取（可操作性校验）命中，第二次补查明文时已不存在 → 跳过补填
+        Mockito.when(sysUserMapper.selectById(9L))
+                .thenReturn(new SysUserEntity().setId(9L).setPin("u9"))
+                .thenReturn(null);
+
+        var ret = service.getNonnullPlainOperableById(9L);
+
+        Assertions.assertEquals("u9", ret.getPin());
+        Assertions.assertNull(ret.getPhoneNoPlain());
+        Assertions.assertNull(ret.getEmailPlain());
+    }
+
+    @Test
+    void adminListFiltersByFullPhoneBlindIndex() {
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(blindIndexCalculator.compute(Mockito.anyString(), Mockito.anyString())).thenReturn("FULL_IDX");
+        Mockito.when(sysUserMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysUserEntity> page = inv.getArgument(0);
+            page.setRecords(List.of(new SysUserEntity().setId(3L).setPin("u3")));
+            page.setTotal(1);
+            return page;
+        });
+
+        var ret = service.adminList(new AdminSysUserListQuery()
+                .setPageParam(new PageParam(1, 10)).setPhoneNoFull("13800000000"));
+
+        Assertions.assertEquals(1, ret.getTotal());
+    }
+
+    @Test
+    void adminListEmptyPageRecords() {
+        Mockito.when(userRoleHelper.listHiddenUserIds()).thenReturn(Set.of());
+        Mockito.when(sysUserMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
+            Page<SysUserEntity> page = inv.getArgument(0);
+            page.setRecords(List.of());
+            page.setTotal(0);
+            return page;
+        });
+
+        // 空页走 convertList 空集合短路分支
+        var ret = service.adminList(new AdminSysUserListQuery().setPageParam(new PageParam(1, 10)));
+
+        Assertions.assertEquals(0, ret.getTotal());
+        Assertions.assertTrue(ret.getRecords().isEmpty());
+    }
+
+    @Test
+    void adminUpdateUserFirstTenantDomainChecksExistenceGlobally() {
+        Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(false);
+
+        // USER_FIRST 租户域内存在性校验走租户忽略作用域（忽略行级过滤全局判定）
+        Assertions.assertThrows(NoRecordException.class, () ->
+                TenantContextHolder.callWithContext(new SimpleTenantContext(55L, null, null), () -> {
+                    withUser(7L, () -> service.adminUpdate(updateRequest(9L)));
+                    return null;
+                }));
+    }
+
 
     /*
     ----------------------------------------------------------------

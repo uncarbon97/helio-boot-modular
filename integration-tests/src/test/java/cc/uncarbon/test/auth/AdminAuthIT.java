@@ -39,6 +39,9 @@ class AdminAuthIT extends BaseIntegrationTest {
 
     private static final String PWD = "it-pass-123456";
 
+    private Long tenantId;
+    private String tenantCode;
+
     @Resource
     private AdminLoginService adminLoginService;
     @Resource
@@ -67,10 +70,10 @@ class AdminAuthIT extends BaseIntegrationTest {
     @Test
     void passwordLoginBranches() {
         String nano = String.valueOf(System.nanoTime() % 1_000_000_000L);
-        String code = "itt" + nano;
+        tenantCode = "itt" + nano;
         String adminPin = "ita" + nano;
-        Long tenantId = tenantService.adminCreate(new AdminTenantCreateRequest()
-                .setCode(code).setName("IT租户" + nano)
+        tenantId = tenantService.adminCreate(new AdminTenantCreateRequest()
+                .setCode(tenantCode).setName("IT租户" + nano)
                 .setTenantAdminPin(adminPin).setTenantAdminPwd(PWD)
                 .setTenantAdminEmail("it@a.b.c").setTenantAdminPhoneNo("13800001111"));
 
@@ -79,7 +82,7 @@ class AdminAuthIT extends BaseIntegrationTest {
         // 成功登录：租户管理员角色与租户上下文
         SysUserLoginResult ok = adminLoginService.passwordLogin(
                 new AdminAuthPasswordLoginRequest().setPin(adminPin).setPwd(PWD)
-                        .setTenantCode(tenantFirst ? code : null),
+                        .setTenantCode(tenantFirst ? tenantCode : null),
                 new SimpleVisitorContext().setClientIp("127.0.0.1").setUserAgent("UA"));
         Assertions.assertNotNull(ok.getId());
         Assertions.assertEquals(tenantId, ok.getTenantContext().getTenantId());
@@ -90,7 +93,7 @@ class AdminAuthIT extends BaseIntegrationTest {
         var wrong = Assertions.assertThrows(BusinessException.class,
                 () -> adminLoginService.passwordLogin(
                         new AdminAuthPasswordLoginRequest().setPin(adminPin).setPwd("wrong-pass-9")
-                                .setTenantCode(tenantFirst ? code : null),
+                                .setTenantCode(tenantFirst ? tenantCode : null),
                         new SimpleVisitorContext().setClientIp("127.0.0.1").setUserAgent("UA")));
         Assertions.assertEquals(SysErrorCodeEnum.A01001, wrong.getErrorCode());
 
@@ -98,7 +101,7 @@ class AdminAuthIT extends BaseIntegrationTest {
         var unknown = Assertions.assertThrows(BusinessException.class,
                 () -> adminLoginService.passwordLogin(
                         new AdminAuthPasswordLoginRequest().setPin("nosuch" + nano).setPwd(PWD)
-                                .setTenantCode(tenantFirst ? code : null),
+                                .setTenantCode(tenantFirst ? tenantCode : null),
                         new SimpleVisitorContext().setClientIp("127.0.0.1").setUserAgent("UA")));
         Assertions.assertEquals(SysErrorCodeEnum.A01001, unknown.getErrorCode());
 
@@ -114,17 +117,13 @@ class AdminAuthIT extends BaseIntegrationTest {
                     "账号不存在的尝试也应落登录日志");
         });
 
-        cleanupTenant(tenantId, code);
     }
 
-
-    /*
-    ----------------------------------------------------------------
-                        私有方法
-    ----------------------------------------------------------------
-     */
-
-    private void cleanupTenant(Long tenantId, String code) {
+    @AfterEach
+    void cleanupTenant() {
+        if (tenantId == null) {
+            return;
+        }
         TenantContextHolder.runIgnored(() -> {
             // 租户内角色
             List<SysRoleEntity> roles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()

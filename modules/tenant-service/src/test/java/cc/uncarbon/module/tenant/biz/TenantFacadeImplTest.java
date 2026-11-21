@@ -160,6 +160,28 @@ class TenantFacadeImplTest {
     }
 
     @Test
+    void listSelectableTenantsUserFirstSkipsUnresolvableTenants() {
+        Mockito.when(props.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
+        Mockito.when(tenantUserRoleFacade.listEnabledTenantIdsByUser(2L)).thenReturn(List.of(5L, 9L));
+        Mockito.when(tenantService.getById(5L, false)).thenReturn(meta(5L, EnabledStatusEnum.ENABLED));
+        // 9 号租户已停用，解析为 null 后跳过
+        Mockito.when(tenantService.getById(9L, false)).thenReturn(meta(9L, EnabledStatusEnum.DISABLED));
+
+        var ret = facade.listSelectableTenants(2L);
+
+        Assertions.assertEquals(1, ret.size());
+        Assertions.assertEquals(5L, ret.get(0).getTenantId());
+    }
+
+    @Test
+    void listSelectableTenantsTenantFirstNoHomeYieldsEmpty() {
+        Mockito.when(props.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
+        Mockito.when(tenantUserRoleFacade.getUserHomeTenantId(2L)).thenReturn(null);
+
+        Assertions.assertEquals(List.of(), facade.listSelectableTenants(2L));
+    }
+
+    @Test
     void listSelectableTenantsSwallowsFailure() {
         Mockito.when(props.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
         Mockito.when(tenantUserRoleFacade.getUserHomeTenantId(2L)).thenThrow(new RuntimeException("x"));
@@ -217,6 +239,10 @@ class TenantFacadeImplTest {
         Mockito.when(props.getLoginMode()).thenReturn(TenantLoginModeEnum.TENANT_FIRST);
         var ex3 = Assertions.assertThrows(BusinessException.class, () -> facade.assertSwitchable(2L, 5L));
         Assertions.assertEquals(TenantErrorCodeEnum.A03012, ex3.getErrorCode());
+
+        // 无用户上下文不可切
+        var ex4 = Assertions.assertThrows(BusinessException.class, () -> facade.assertSwitchable(null, 5L));
+        Assertions.assertEquals(TenantErrorCodeEnum.A03012, ex4.getErrorCode());
     }
 
     @Test
@@ -248,6 +274,41 @@ class TenantFacadeImplTest {
 
         Mockito.when(tenantService.getById(5L, false)).thenReturn(meta(5L, EnabledStatusEnum.ENABLED));
         Assertions.assertEquals(5L, facade.resolveDefaultTenant(2L).getTenantId());
+    }
+
+
+    @Test
+    void getTenantAdminUserIdBranches() {
+        // 空入参
+        Assertions.assertNull(facade.getTenantAdminUserId(null));
+
+        // 租户不存在
+        Mockito.when(tenantService.getById(5L, false)).thenReturn(null);
+        Assertions.assertNull(facade.getTenantAdminUserId(5L));
+
+        // 命中主管理员
+        Mockito.when(tenantService.getById(5L, false))
+                .thenReturn(meta(5L, EnabledStatusEnum.ENABLED).setAdminUserId(2L));
+        Assertions.assertEquals(2L, facade.getTenantAdminUserId(5L));
+
+        // 查库失败吞掉返回 null
+        Mockito.when(tenantService.getById(5L, false)).thenThrow(new RuntimeException("db down"));
+        Assertions.assertNull(facade.getTenantAdminUserId(5L));
+    }
+
+    @Test
+    void resolveEnabledTenantSwallowsFailure() {
+        Mockito.when(tenantService.getById(5L, false)).thenThrow(new RuntimeException("db down"));
+
+        Assertions.assertNull(facade.resolveEnabledTenant(5L));
+    }
+
+    @Test
+    void resolveDefaultTenantSwallowsFailure() {
+        Mockito.when(tenantUserRoleFacade.getUserHomeTenantId(2L)).thenReturn(5L);
+        Mockito.when(tenantService.getById(5L, false)).thenThrow(new RuntimeException("db down"));
+
+        Assertions.assertNull(facade.resolveDefaultTenant(2L));
     }
 
 

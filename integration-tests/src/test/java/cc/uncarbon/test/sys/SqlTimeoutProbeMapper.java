@@ -1,5 +1,6 @@
 package cc.uncarbon.test.sys;
 
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
 
@@ -9,6 +10,7 @@ import org.apache.ibatis.annotations.Select;
  * 语句级超时 1 秒 + SQL 固定睡眠 3 秒，稳定触发 JDBC 查询超时；
  * 依赖 MySQL SLEEP() 函数，与 IT profile 数据源一致
  */
+@Mapper
 public interface SqlTimeoutProbeMapper {
 
     /**

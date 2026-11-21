@@ -1,18 +1,26 @@
 package cc.uncarbon.test.sys;
 
+import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
+import cc.uncarbon.framework.helium.base.context.UserContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.framework.helium.web.context.SimpleVisitorContext;
+import cc.uncarbon.framework.helium.web.context.VisitorContext;
+import cc.uncarbon.module.Bootstrap;
 import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
+import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
 import cc.uncarbon.module.sys.dal.entity.SysOperateLogEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysOperateLogMapper;
 import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
 import cc.uncarbon.test.base.BaseIntegrationTest;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.annotation.Resource;
+import org.apache.ibatis.annotations.Mapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -26,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * 断言异常正常抛出的同时，操作日志落一条 FAILED 记录（超管在平台自营域视角执行）
  */
 @Tag("sys")
+@SpringBootTest(classes = {Bootstrap.class, SysOperateLogSqlTimeoutIT.ProbeConfig.class})
 class SysOperateLogSqlTimeoutIT extends BaseIntegrationTest {
 
     private static final String PROBE_BIZ_TYPE = "IT-SQL超时探针";
@@ -34,9 +43,12 @@ class SysOperateLogSqlTimeoutIT extends BaseIntegrationTest {
 
     /**
      * 探针与 Mapper 仅在本测试上下文装配，不污染生产包扫描
+     * <p>
+     * 显式 MapperScan 会使 MyBatis-Plus 的 @Mapper 自动扫描退避，故须一并覆盖生产包，
+     * 且限定 annotationClass，避免把生产包下无关接口注册成 Mapper
      */
     @TestConfiguration
-    @MapperScan(basePackages = "cc.uncarbon.test.sys")
+    @MapperScan(basePackages = {"cc.uncarbon.module", "cc.uncarbon.test.sys"}, annotationClass = Mapper.class)
     static class ProbeConfig {
 
         @Bean
@@ -69,8 +81,16 @@ class SysOperateLogSqlTimeoutIT extends BaseIntegrationTest {
     @Test
     void sqlTimeoutStillRecordsFailedOperateLog() {
         // 1. SQL 超时异常正常上抛，不被日志切面吞掉
+        // 走完整切面链路需补齐访客上下文与用户类型，否则 recorder 落库缺 NOT NULL 列被吞
+        UserContext probeUser = new SimpleUserContext().setUserId(0L).setUserPin("admin")
+                .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER.name());
+        VisitorContext probeVisitor = new SimpleVisitorContext()
+                .setHttpRequestMethod("POST")
+                .setHttpRequestPath("/it/sql-timeout-probe")
+                .setClientIp("127.0.0.1")
+                .setUserAgent("it-probe");
         Exception thrown = Assertions.assertThrows(Exception.class, () ->
-                withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"),
+                withContext(probeUser, testTenant(0L, "平台", "platform"), probeVisitor,
                         () -> sqlTimeoutProbe.probe()));
         Assertions.assertTrue(mentionsTimeout(thrown),
                 () -> "异常链应包含超时信息, 实际: " + thrown);

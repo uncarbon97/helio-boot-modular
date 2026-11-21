@@ -105,11 +105,16 @@ class SysDeptIT extends BaseIntegrationTest {
 
     @Test
     void selectOptionListsEnabledOnly() {
-        Long id = create("IT启用部门", null);
+        Long enabledId = create("IT启用部门", null);
+        Long disabledId = create("IT停用部门", null);
+        withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () ->
+                sysDeptService.adminSetStatus(new AdminSetStatusRequest<Long, EnabledStatusEnum>()
+                        .setId(disabledId).setNewStatus(EnabledStatusEnum.DISABLED)));
 
         withContext(testUser(0L, "admin"), testTenant(0L, "平台", "platform"), () -> {
             List<SysDeptDTO> all = sysDeptService.adminListSelectOption(false);
-            Assertions.assertTrue(all.stream().anyMatch(d -> id.equals(d.getId())));
+            Assertions.assertTrue(all.stream().anyMatch(d -> enabledId.equals(d.getId())));
+            Assertions.assertTrue(all.stream().noneMatch(d -> disabledId.equals(d.getId())));
         });
     }
 

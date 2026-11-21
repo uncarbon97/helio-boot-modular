@@ -1,27 +1,35 @@
 # 集成测试专用 profile
-# 假定外部 DB/Redis 已启动；按实际测试环境修改以下连接信息。
-# @ActiveProfiles("test") 会覆盖 application.yml 中的 dev,local，故数据源/Redis/文件存储必须在此提供。
+# 假定外部 DB/Redis 已启动；按实际测试环境修改以下连接信息
+# @ActiveProfiles("it") 会覆盖 application.yml 中的 dev,local，故数据源/Redis/文件存储必须在此提供
 
 ---
 spring:
   datasource:
     dynamic:
-      primary: it
+      primary: it-postgres
       datasource:
-        # 集成测试专用数据源
-        it:
+        # 集成测试专用数据源-MySQL
+        it-mysql:
           url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${DB_TIMEZONE}
           username: ${DB_USERNAME:helium}
           password: ${DB_PASSWORD:helium}
-          # 设置 false 会在工程启动时就初始化数据源
-          lazy: false
+          lazy: true
+        # 集成测试专用数据源-PG
+        it-postgres:
+          url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:helium}?reWriteBatchedInserts=true&TimeZone=${DB_TIMEZONE}
+          username: ${DB_USERNAME:helium}
+          password: ${DB_PASSWORD:helium}
+          lazy: true
   data:
     redis:
+      # Redis 主机
       host: ${REDIS_HOST:127.0.0.1}
-      port: 6379
-      # 未设密码请保持注释，避免向 Redis 发送 AUTH 引发启动失败
-      # password:
-      database: 2
+      # Redis 端口
+      port: ${REDIS_PORT:6379}
+      # 如果没有设置密码，下面这行直接注释掉，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
+      # password: ${REDIS_PASSWORD}
+      # Redis 数据库序号
+      database: ${REDIS_DATABASE:2}
 
 ---
 # 多租户：四种组合（隔离策略 × 登录模式）用环境变量切换
