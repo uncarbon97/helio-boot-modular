@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.web.context.VisitorContext;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -18,7 +19,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -68,9 +68,9 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
 
         Page<SysLoginLogEntity> entityPage = sysLoginLogMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new LambdaQueryWrapper<SysLoginLogEntity>()
+                new LambdaQueryWrapperX<SysLoginLogEntity>()
                         // 状态
-                        .eq(Objects.nonNull(query.getResultStatus()), SysLoginLogEntity::getResultStatus, query.getResultStatus())
+                        .eqIfPresent(SysLoginLogEntity::getResultStatus, query.getResultStatus())
                         // 操作人：成功登录有userId，失败登录只有userPin，两者取并集
                         .and(userIdsNotEmpty, wrapper -> wrapper
                                 .in(SysLoginLogEntity::getUserId, query.getUserIds())
@@ -78,7 +78,7 @@ public class SysLoginLogServiceImpl implements SysLoginLogService {
                                 .in(userPinsNotEmpty, SysLoginLogEntity::getUserPin, userPins)
                         )
                         // 时间区间
-                        .between(Objects.nonNull(query.getBeginAt()) && Objects.nonNull(query.getEndAt()), SysLoginLogEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
+                        .betweenIfPresent(SysLoginLogEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
                         // 排序
                         .orderByDesc(SysLoginLogEntity::getId)
         );

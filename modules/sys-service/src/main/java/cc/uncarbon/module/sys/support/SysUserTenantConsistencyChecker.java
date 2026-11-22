@@ -1,12 +1,12 @@
 package cc.uncarbon.module.sys.support;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.entity.SysUserTenantRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cc.uncarbon.module.sys.dal.mapper.SysUserTenantRelationMapper;
 import cc.uncarbon.module.tenant.constant.TenantConstant;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -45,10 +45,10 @@ public class SysUserTenantConsistencyChecker {
     public void reconcile() {
         try {
             List<SysUserEntity> users = TenantContextHolder.callIgnored(() ->
-                    sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                    sysUserMapper.selectList(new LambdaQueryWrapperX<SysUserEntity>()
                             .select(SysUserEntity::getId, SysUserEntity::getTenantId)));
             List<SysUserTenantRelationEntity> relations = TenantContextHolder.callIgnored(() ->
-                    sysUserTenantRelationMapper.selectList(new LambdaQueryWrapper<SysUserTenantRelationEntity>()
+                    sysUserTenantRelationMapper.selectList(new LambdaQueryWrapperX<SysUserTenantRelationEntity>()
                             .select(SysUserTenantRelationEntity::getTenantId,
                                     SysUserTenantRelationEntity::getUserId)));
 

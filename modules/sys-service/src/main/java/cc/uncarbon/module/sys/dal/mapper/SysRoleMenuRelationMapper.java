@@ -1,8 +1,8 @@
 package cc.uncarbon.module.sys.dal.mapper;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.sys.dal.entity.SysRoleMenuRelationEntity;
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -21,7 +21,7 @@ public interface SysRoleMenuRelationMapper extends BaseMapper<SysRoleMenuRelatio
         if (CollUtil.isEmpty(roleIds)) {
             return 0;
         }
-        return delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+        return delete(new LambdaQueryWrapperX<SysRoleMenuRelationEntity>()
                 .in(SysRoleMenuRelationEntity::getRoleId, roleIds));
     }
 
@@ -32,7 +32,7 @@ public interface SysRoleMenuRelationMapper extends BaseMapper<SysRoleMenuRelatio
         if (roleId == null) {
             return 0;
         }
-        return delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+        return delete(new LambdaQueryWrapperX<SysRoleMenuRelationEntity>()
                 .eq(SysRoleMenuRelationEntity::getRoleId, roleId));
     }
 
@@ -40,7 +40,7 @@ public interface SysRoleMenuRelationMapper extends BaseMapper<SysRoleMenuRelatio
      * 根据角色ID，删除不在指定菜单ID集合内的关联
      */
     default int deleteByRoleIdAndMenuIdNotIn(Long roleId, Collection<Long> menuIds) {
-        return delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+        return delete(new LambdaQueryWrapperX<SysRoleMenuRelationEntity>()
                 .eq(SysRoleMenuRelationEntity::getRoleId, roleId)
                 .notIn(SysRoleMenuRelationEntity::getMenuId, menuIds));
     }
@@ -52,7 +52,7 @@ public interface SysRoleMenuRelationMapper extends BaseMapper<SysRoleMenuRelatio
         if (CollUtil.isEmpty(menuIds)) {
             return 0;
         }
-        return delete(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+        return delete(new LambdaQueryWrapperX<SysRoleMenuRelationEntity>()
                 .in(SysRoleMenuRelationEntity::getMenuId, menuIds));
     }
 }

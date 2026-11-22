@@ -1,10 +1,10 @@
 package cc.uncarbon.module.sys.service.impl;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.sys.dal.entity.SysRoleMenuRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMenuRelationMapper;
 import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +35,7 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
         Set<Long> ret = new HashSet<>(roleIds.size() << 4);
         for (Long roleId : roleIds) {
             var menuIdsQuery =
-                    new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+                    new LambdaQueryWrapperX<SysRoleMenuRelationEntity>()
                             .select(SysRoleMenuRelationEntity::getMenuId)
                             .eq(SysRoleMenuRelationEntity::getRoleId, roleId);
             ret.addAll(sysRoleMenuRelationMapper.selectList(menuIdsQuery).stream()
@@ -49,7 +49,7 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
         if (CollUtil.isEmpty(menuIds)) {
             return Set.of();
         }
-        return sysRoleMenuRelationMapper.selectList(new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+        return sysRoleMenuRelationMapper.selectList(new LambdaQueryWrapperX<SysRoleMenuRelationEntity>()
                         .select(SysRoleMenuRelationEntity::getRoleId)
                         .in(SysRoleMenuRelationEntity::getMenuId, menuIds))
                 .stream().map(SysRoleMenuRelationEntity::getRoleId).collect(Collectors.toSet());
@@ -62,7 +62,7 @@ public class SysRoleMenuRelationServiceImpl implements SysRoleMenuRelationServic
         if (CollUtil.isNotEmpty(menuIds)) {
             menuIds = new LinkedHashSet<>(menuIds);
         }
-        var menuIdsQuery = new LambdaQueryWrapper<SysRoleMenuRelationEntity>()
+        var menuIdsQuery = new LambdaQueryWrapperX<SysRoleMenuRelationEntity>()
                 .select(SysRoleMenuRelationEntity::getMenuId)
                 .eq(SysRoleMenuRelationEntity::getRoleId, roleId);
 

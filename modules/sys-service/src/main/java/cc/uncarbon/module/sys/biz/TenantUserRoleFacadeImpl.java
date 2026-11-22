@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.biz;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
@@ -27,7 +28,6 @@ import cc.uncarbon.module.sys.util.SysUtil;
 import cc.uncarbon.module.tenant.facade.TenantConfigFacade;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -100,7 +100,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
         return TenantContextHolder.callWithContext(
                 new SimpleTenantContext(tenantId, null, null),
                 () -> {
-                    List<SysRoleEntity> roles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
+                    List<SysRoleEntity> roles = sysRoleMapper.selectList(new LambdaQueryWrapperX<SysRoleEntity>()
                             .select(SysRoleEntity::getId, SysRoleEntity::getCode)
                     );
                     Set<Long> allowedMenuIds = CollUtil.isEmpty(packageMenuIds) ? Set.of() : Set.copyOf(packageMenuIds);
@@ -143,7 +143,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
                             // USER_FIRST：成员真源在 sys_user_tenant_relation，含投影列指向他租户的拉入成员
                             ? listRelationMemberUserIds(tenantId, statusEnums)
                             // TENANT_FIRST：成员即 sys_user.tenant_id 投影列，行级过滤天然限定
-                            : listProjectedUserIds(statusEnums);
+                            : sysUserMapper.selectIdsByStatuses(statusEnums);
                     return memberUserIds.stream()
                             .filter(id -> !SysConstant.SUPER_ADMIN_USER_ID.equals(id))
                             .toList();
@@ -156,7 +156,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
         if (userId == null) {
             return List.of();
         }
-        return sysUserTenantRelationMapper.selectList(new LambdaQueryWrapper<SysUserTenantRelationEntity>()
+        return sysUserTenantRelationMapper.selectList(new LambdaQueryWrapperX<SysUserTenantRelationEntity>()
                         .select(SysUserTenantRelationEntity::getTenantId)
                         .eq(SysUserTenantRelationEntity::getUserId, userId)
                         .orderByAsc(SysUserTenantRelationEntity::getId))
@@ -196,16 +196,6 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
     ----------------------------------------------------------------
      */
 
-
-    private List<Long> listProjectedUserIds(Collection<EnabledStatusEnum> statusEnums) {
-        return sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
-                        .select(SysUserEntity::getId)
-                        .in(CollUtil.isNotEmpty(statusEnums), SysUserEntity::getStatus, statusEnums))
-                .stream()
-                .map(SysUserEntity::getId)
-                .toList();
-    }
-
     /**
      * USER_FIRST 成员集合：先取关联表成员ID，再忽略行级隔离回查 sys_user 过滤状态（成员投影列可能指向他租户）
      */
@@ -216,7 +206,7 @@ public class TenantUserRoleFacadeImpl implements TenantUserRoleFacade {
             return List.copyOf(CollUtil.emptyIfNull(memberUserIds));
         }
         return TenantContextHolder.callIgnored(() -> sysUserMapper.selectList(
-                        new LambdaQueryWrapper<SysUserEntity>()
+                        new LambdaQueryWrapperX<SysUserEntity>()
                                 .select(SysUserEntity::getId)
                                 .in(SysUserEntity::getId, memberUserIds)
                                 .in(SysUserEntity::getStatus, statusEnums)

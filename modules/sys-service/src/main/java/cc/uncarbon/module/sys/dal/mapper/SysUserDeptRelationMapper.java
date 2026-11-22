@@ -1,7 +1,7 @@
 package cc.uncarbon.module.sys.dal.mapper;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.sys.dal.entity.SysUserDeptRelationEntity;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -18,7 +18,7 @@ public interface SysUserDeptRelationMapper extends BaseMapper<SysUserDeptRelatio
         if (userId == null) {
             return 0;
         }
-        return delete(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+        return delete(new LambdaQueryWrapperX<SysUserDeptRelationEntity>()
                 .eq(SysUserDeptRelationEntity::getUserId, userId));
     }
 
@@ -26,7 +26,7 @@ public interface SysUserDeptRelationMapper extends BaseMapper<SysUserDeptRelatio
      * 根据部门ID，删除关联
      */
     default int deleteByDeptId(long deptId) {
-        return delete(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+        return delete(new LambdaQueryWrapperX<SysUserDeptRelationEntity>()
                 .eq(SysUserDeptRelationEntity::getDeptId, deptId));
     }
 }

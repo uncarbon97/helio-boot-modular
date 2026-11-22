@@ -4,6 +4,7 @@ import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexCalculat
 import cc.uncarbon.framework.helium.db.fieldcrypto.constant.FieldCryptoConstant;
 import cc.uncarbon.framework.helium.db.fieldcrypto.field.FieldCipher;
 import cc.uncarbon.framework.helium.db.fieldcrypto.field.FieldCipherContext;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
@@ -16,7 +17,6 @@ import cc.uncarbon.module.sys.model.internal.RotationResult;
 import cc.uncarbon.module.sys.service.SysUserFieldCryptoKeyRotationService;
 import cc.uncarbon.module.sys.util.PiiContractNormalizer;
 import cn.hutool.core.thread.ThreadUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -143,11 +143,11 @@ public class SysUserFieldCryptoKeyRotationServiceImpl implements SysUserFieldCry
         final String LOG_PREFIX = "[数据 keyId 轮换]";
         String prefix = oldKeyId + "$";
 
-        long phoneRows = sysUserMapper.selectCount(new LambdaQueryWrapper<SysUserEntity>()
+        long phoneRows = sysUserMapper.selectCount(new LambdaQueryWrapperX<SysUserEntity>()
                 .apply(PHONE_NO_LIKE_PREFIX_SQL, prefix + "%"));
-        long emailRows = sysUserMapper.selectCount(new LambdaQueryWrapper<SysUserEntity>()
+        long emailRows = sysUserMapper.selectCount(new LambdaQueryWrapperX<SysUserEntity>()
                 .apply(EMAIL_LIKE_PREFIX_SQL, prefix + "%"));
-        long rowsTotal = sysUserMapper.selectCount(new LambdaQueryWrapper<SysUserEntity>()
+        long rowsTotal = sysUserMapper.selectCount(new LambdaQueryWrapperX<SysUserEntity>()
                 .and(w -> w.apply(PHONE_NO_LIKE_PREFIX_SQL, prefix + "%")
                         .or().apply(EMAIL_LIKE_PREFIX_SQL, prefix + "%")));
 
@@ -171,7 +171,7 @@ public class SysUserFieldCryptoKeyRotationServiceImpl implements SysUserFieldCry
         int processedBatches = 0;
         try {
             while (true) {
-                List<SysUserEntity> batch = sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                List<SysUserEntity> batch = sysUserMapper.selectList(new LambdaQueryWrapperX<SysUserEntity>()
                         .gt(SysUserEntity::getId, lastId)
                         .and(w -> w.apply(PHONE_NO_LIKE_PREFIX_SQL, prefix + "%")
                                 .or().apply(EMAIL_LIKE_PREFIX_SQL, prefix + "%"))
@@ -222,7 +222,7 @@ public class SysUserFieldCryptoKeyRotationServiceImpl implements SysUserFieldCry
         try {
             while (true) {
                 // 任一旧前缀命中即入选：phone/email 两列 × 旧前缀全组合平铺 OR
-                List<SysUserEntity> batch = sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                List<SysUserEntity> batch = sysUserMapper.selectList(new LambdaQueryWrapperX<SysUserEntity>()
                         .gt(SysUserEntity::getId, lastId)
                         .and(w -> {
                             for (int i = 0; i < prefixes.size(); i++) {
@@ -284,7 +284,7 @@ public class SysUserFieldCryptoKeyRotationServiceImpl implements SysUserFieldCry
         try {
             while (true) {
                 // 无前缀过滤：索引值不带代际标记，只能全量扫；重跑仅重写、不损坏
-                List<SysUserEntity> batch = sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                List<SysUserEntity> batch = sysUserMapper.selectList(new LambdaQueryWrapperX<SysUserEntity>()
                         .gt(SysUserEntity::getId, lastId)
                         .orderByAsc(SysUserEntity::getId)
                         .last(SQLSegment.LIMIT + opts.batchSize()));

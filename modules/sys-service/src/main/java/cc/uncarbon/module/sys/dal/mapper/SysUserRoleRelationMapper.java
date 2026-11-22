@@ -1,8 +1,8 @@
 package cc.uncarbon.module.sys.dal.mapper;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.sys.dal.entity.SysUserRoleRelationEntity;
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -24,7 +24,7 @@ public interface SysUserRoleRelationMapper extends BaseMapper<SysUserRoleRelatio
         if (userId == null) {
             return List.of();
         }
-        return selectList(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+        return selectList(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
                 .select(SysUserRoleRelationEntity::getRoleId)
                 .eq(SysUserRoleRelationEntity::getUserId, userId)
         ).stream().map(SysUserRoleRelationEntity::getRoleId).toList();
@@ -37,7 +37,7 @@ public interface SysUserRoleRelationMapper extends BaseMapper<SysUserRoleRelatio
         if (CollUtil.isEmpty(roleIds)) {
             return 0;
         }
-        return delete(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+        return delete(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
                 .in(SysUserRoleRelationEntity::getRoleId, roleIds));
     }
 
@@ -48,7 +48,7 @@ public interface SysUserRoleRelationMapper extends BaseMapper<SysUserRoleRelatio
         if (userId == null) {
             return 0;
         }
-        return delete(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+        return delete(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
                 .eq(SysUserRoleRelationEntity::getUserId, userId));
     }
 
@@ -56,7 +56,7 @@ public interface SysUserRoleRelationMapper extends BaseMapper<SysUserRoleRelatio
      * 根据用户ID，删除不在指定角色ID集合内的关联
      */
     default int deleteByUserIdAndRoleIdNotIn(Long userId, Collection<Long> roleIds) {
-        return delete(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+        return delete(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
                 .eq(SysUserRoleRelationEntity::getUserId, userId)
                 .notIn(SysUserRoleRelationEntity::getRoleId, roleIds));
     }
@@ -69,7 +69,7 @@ public interface SysUserRoleRelationMapper extends BaseMapper<SysUserRoleRelatio
             return Set.of();
         }
 
-        return selectList(new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+        return selectList(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
                 .select(SysUserRoleRelationEntity::getUserId)
                 .in(SysUserRoleRelationEntity::getRoleId, roleIds)
         ).stream().map(SysUserRoleRelationEntity::getUserId).collect(Collectors.toSet());

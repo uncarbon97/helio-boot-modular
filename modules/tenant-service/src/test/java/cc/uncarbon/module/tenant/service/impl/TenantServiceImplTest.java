@@ -66,7 +66,7 @@ class TenantServiceImplTest {
 
     @Test
     void adminCreateDuplicateCodeRejected() {
-        Mockito.when(tenantMetaMapper.selectOne(Mockito.any())).thenReturn(new TenantMetaEntity().setId(1L));
+        Mockito.when(tenantMetaMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminCreate(createRequest(null)));
@@ -75,7 +75,7 @@ class TenantServiceImplTest {
 
     @Test
     void adminCreateDisabledPackageRejected() {
-        Mockito.when(tenantMetaMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(tenantMetaMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(tenantPackageService.getNonnullById(3L)).thenReturn(
                 new TenantPackageDTO().setId(3L).setStatus(EnabledStatusEnum.DISABLED));
 
@@ -86,7 +86,7 @@ class TenantServiceImplTest {
 
     @Test
     void adminCreateInitializesRoleUserBindingAndAdminMark() {
-        Mockito.when(tenantMetaMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(tenantMetaMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(tenantMetaMapper.insert(Mockito.any(TenantMetaEntity.class))).thenAnswer(inv -> {
             inv.getArgument(0, TenantMetaEntity.class).setId(55L);
             return 1;
@@ -111,7 +111,7 @@ class TenantServiceImplTest {
 
     @Test
     void adminCreateWithoutPackageSkipsPackageChecks() {
-        Mockito.when(tenantMetaMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(tenantMetaMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(tenantMetaMapper.insert(Mockito.any(TenantMetaEntity.class))).thenAnswer(inv -> {
             inv.getArgument(0, TenantMetaEntity.class).setId(56L);
             return 1;

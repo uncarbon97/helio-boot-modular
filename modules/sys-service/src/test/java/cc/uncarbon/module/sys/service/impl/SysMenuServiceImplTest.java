@@ -380,8 +380,7 @@ class SysMenuServiceImplTest {
 
     @Test
     void adminCreateDuplicatePermissionRejected() {
-        Mockito.when(sysMenuMapper.selectOne(Mockito.any())).thenReturn(
-                new SysMenuEntity().setId(1L));
+        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminCreate(upsert(null, 0L, "p1")));
@@ -390,7 +389,7 @@ class SysMenuServiceImplTest {
 
     @Test
     void adminCreateCleansBlankPermission() {
-        Mockito.when(sysMenuMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(sysMenuMapper.insert(Mockito.any(SysMenuEntity.class))).thenAnswer(inv -> {
             inv.getArgument(0, SysMenuEntity.class).setId(8L);
             return 1;
@@ -442,8 +441,8 @@ class SysMenuServiceImplTest {
 
     @Test
     void adminUpdateParentCannotBeSelfOrInferior() {
-        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysMenuMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true, false);
         Mockito.when(sysMenuMapper.selectById(3L)).thenReturn(menu(3L, 1L, MenuTypeEnum.DIR, MenuVisibleScopeEnum.ALL));
 
         var ex = Assertions.assertThrows(BusinessException.class,
@@ -461,8 +460,8 @@ class SysMenuServiceImplTest {
 
     @Test
     void adminUpdateDuplicatePermissionRejected() {
-        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysMenuMapper.selectOne(Mockito.any())).thenReturn(new SysMenuEntity().setId(2L));
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 命中重复
+        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true, true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminUpdate(upsert(1L, 0L, "p1")));
@@ -471,8 +470,8 @@ class SysMenuServiceImplTest {
 
     @Test
     void adminUpdateHappyPathDefaultsRootParent() {
-        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysMenuMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true, false);
 
         // parentId 为空 → 归一为根节点，上级/成环校验直接放行
         service.adminUpdate(upsert(1L, null, null));
@@ -485,8 +484,8 @@ class SysMenuServiceImplTest {
 
     @Test
     void adminUpdateParentChainBreaksOnMissingNode() {
-        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysMenuMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true, false);
         // 3 → 9 → (9 不存在) → 链自然中断，不视为成环
         Mockito.when(sysMenuMapper.selectById(3L)).thenReturn(menu(3L, 9L, MenuTypeEnum.DIR, MenuVisibleScopeEnum.ALL));
         Mockito.when(sysMenuMapper.selectById(9L)).thenReturn(null);
@@ -498,8 +497,8 @@ class SysMenuServiceImplTest {
 
     @Test
     void adminUpdateParentCycleGuardRejected() {
-        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysMenuMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysMenuMapper.exists(Mockito.any())).thenReturn(true, false);
         // 2 ↔ 3 互为父子的脏数据：上溯永不命中自身 → 保护圈数兜底拒绝
         var counter = new AtomicInteger();
         Mockito.when(sysMenuMapper.selectById(Mockito.anyLong())).thenAnswer(inv -> counter.getAndIncrement() % 2 == 0

@@ -59,7 +59,7 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminCreateDuplicateCodeRejected() {
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(new FileStorageEntity().setId(1L));
+        Mockito.when(fileStorageMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminCreate(upsert(null, "st", YesOrNoEnum.NO)));
@@ -68,9 +68,8 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminCreateDuplicatePrimaryRejected() {
-        // 第一次 selectOne（编码查重）为空，第二次（主存储点检查）命中已有主存储点
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(null)
-                .thenReturn(new FileStorageEntity().setId(1L));
+        // 第1次 exists（编码查重）无重复，第2次（主存储点检查）命中已有主存储点
+        Mockito.when(fileStorageMapper.exists(Mockito.any())).thenReturn(false, true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminCreate(upsert(null, "st", YesOrNoEnum.YES)));
@@ -79,7 +78,7 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminCreateSerializesSettingAndPublishesEvent() {
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(fileStorageMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(fileStorageMapper.insert(Mockito.any(FileStorageEntity.class))).thenAnswer(inv -> {
             inv.getArgument(0, FileStorageEntity.class).setId(3L);
             return 1;
@@ -100,7 +99,7 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminUpdateMissingRejected() {
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(fileStorageMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(fileStorageMapper.selectById(9L)).thenReturn(null);
 
         Assertions.assertThrows(NoRecordException.class,
@@ -109,7 +108,7 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminUpdateCodeChangeWhileInUseRejected() {
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(fileStorageMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(fileStorageMapper.selectById(9L)).thenReturn(
                 new FileStorageEntity().setId(9L).setCode("old"));
         Mockito.when(fileMetaMapper.exists(Mockito.any())).thenReturn(true);
@@ -121,7 +120,7 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminUpdateSameCodeSkipsInUseCheck() {
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(fileStorageMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(fileStorageMapper.selectById(9L)).thenReturn(
                 new FileStorageEntity().setId(9L).setCode("st"));
 
@@ -134,7 +133,7 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminDeletePrimaryRejected() {
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(new FileStorageEntity().setId(9L));
+        Mockito.when(fileStorageMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(BusinessException.class,
                 () -> service.adminDelete(List.of(9L)));
@@ -143,7 +142,7 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminDeleteInUseRejected() {
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(fileStorageMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(fileStorageMapper.selectList(Mockito.any()))
                 .thenReturn(List.of(new FileStorageEntity().setId(9L).setCode("st")));
         Mockito.when(fileMetaMapper.exists(Mockito.any())).thenReturn(true);
@@ -155,7 +154,7 @@ class FileStorageDataServiceImplTest {
 
     @Test
     void adminDeleteHappyPath() {
-        Mockito.when(fileStorageMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(fileStorageMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(fileStorageMapper.selectList(Mockito.any()))
                 .thenReturn(List.of(new FileStorageEntity().setId(9L).setCode("st")));
         Mockito.when(fileMetaMapper.exists(Mockito.any())).thenReturn(false);

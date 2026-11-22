@@ -65,8 +65,7 @@ class TenantPackageServiceImplTest {
 
     @Test
     void adminCreateDuplicateCodeRejected() {
-        Mockito.when(tenantPackageMapper.selectOne(Mockito.any()))
-                .thenReturn(new TenantPackageEntity().setId(1L));
+        Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminCreate(upsert(null, "p1")));
@@ -75,7 +74,7 @@ class TenantPackageServiceImplTest {
 
     @Test
     void adminCreateDefaultsDisabled() {
-        Mockito.when(tenantPackageMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(tenantPackageMapper.insert(Mockito.any(TenantPackageEntity.class))).thenAnswer(inv -> {
             inv.getArgument(0, TenantPackageEntity.class).setId(3L);
             return 1;
@@ -91,15 +90,14 @@ class TenantPackageServiceImplTest {
     @Test
     void adminUpdateMissingRejected() {
         Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(false);
-        Mockito.when(tenantPackageMapper.selectOne(Mockito.any())).thenReturn(null);
 
         Assertions.assertThrows(NoRecordException.class, () -> service.adminUpdate(upsert(9L, "p1")));
     }
 
     @Test
     void adminUpdateDuplicateCodeRejected() {
-        Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(tenantPackageMapper.selectOne(Mockito.any())).thenReturn(new TenantPackageEntity().setId(1L));
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 命中重复
+        Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(true, true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminUpdate(upsert(9L, "p1")));
@@ -108,8 +106,8 @@ class TenantPackageServiceImplTest {
 
     @Test
     void adminUpdateHappyPath() {
-        Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(tenantPackageMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(tenantPackageMapper.exists(Mockito.any())).thenReturn(true, false);
 
         service.adminUpdate(upsert(9L, "p1"));
 

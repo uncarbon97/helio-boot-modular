@@ -3,6 +3,7 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.enums.BaseEnum;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.enumdict.EnumDict;
 import cc.uncarbon.module.commons.enumdict.EnumDictContributor;
@@ -28,7 +29,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ClassUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -104,9 +104,9 @@ public class SysDictServiceImpl implements SysDictService {
     public PageResult<SysDictCategoryDTO> adminListCategory(AdminSysDictCategoryListQuery query) {
         Page<SysDictCategoryEntity> entityPage = sysDictCategoryMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new LambdaQueryWrapper<SysDictCategoryEntity>()
+                new LambdaQueryWrapperX<SysDictCategoryEntity>()
                         // 分类编码
-                        .eq(CharSequenceUtil.isNotBlank(query.getCode()), SysDictCategoryEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
+                        .eqIfPresent(SysDictCategoryEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
                         // 排序
                         .orderByDesc(SysDictCategoryEntity::getId)
         );
@@ -170,7 +170,7 @@ public class SysDictServiceImpl implements SysDictService {
     public void adminDeleteCategory(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除分类 >> {}", ids);
         // 分类下仍有字典项时阻断，避免孤儿项在同编码分类重建后"复活"
-        boolean hasItems = sysDictItemMapper.exists(new LambdaQueryWrapper<SysDictItemEntity>()
+        boolean hasItems = sysDictItemMapper.exists(new LambdaQueryWrapperX<SysDictItemEntity>()
                 .select(SysDictItemEntity::getId)
                 .in(SysDictItemEntity::getCategoryId, ids)
                 .last(SQLSegment.LIMIT_1)
@@ -196,7 +196,7 @@ public class SysDictServiceImpl implements SysDictService {
     public PageResult<SysDictItemDTO> adminListItem(AdminSysDictItemListQuery query) {
         Page<SysDictItemEntity> entityPage = sysDictItemMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new LambdaQueryWrapper<SysDictItemEntity>()
+                new LambdaQueryWrapperX<SysDictItemEntity>()
                         // 分类ID
                         .eq(SysDictItemEntity::getCategoryId, query.getCategoryId())
                         // 排序
@@ -279,11 +279,11 @@ public class SysDictServiceImpl implements SysDictService {
         if (Objects.isNull(category)) {
             return List.of();
         }
-        return convertList(sysDictItemMapper.selectList(new LambdaQueryWrapper<SysDictItemEntity>()
+        return convertList(sysDictItemMapper.selectList(new LambdaQueryWrapperX<SysDictItemEntity>()
                         // 分类ID
                         .eq(SysDictItemEntity::getCategoryId, category.getId())
                         // 状态
-                        .in(CollUtil.isNotEmpty(itemStatuses), SysDictItemEntity::getStatus, itemStatuses)
+                        .inIfPresent(SysDictItemEntity::getStatus, itemStatuses)
                         // 排序
                         .orderByAsc(SysDictItemEntity::getSort)
                 )
@@ -368,39 +368,30 @@ public class SysDictServiceImpl implements SysDictService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysDictCategoryUpsertRequest request) throws BusinessException {
-        var entity = sysDictCategoryMapper.selectOne(new LambdaQueryWrapper<SysDictCategoryEntity>()
-                // 仅取主键ID
-                .select(SysDictCategoryEntity::getId)
+        boolean exists = sysDictCategoryMapper.exists(new LambdaQueryWrapperX<SysDictCategoryEntity>()
                 // 并非原地更新
-                .ne(Objects.nonNull(request.getId()), SysDictCategoryEntity::getId, request.getId())
+                .neIfPresent(SysDictCategoryEntity::getId, request.getId())
                 // 分类编码相同
                 .eq(SysDictCategoryEntity::getCode, request.getCode())
                 .last(SQLSegment.LIMIT_1)
         );
-
-        if (entity != null) {
-            throw new HasRepeatRecordException(SysErrorCodeEnum.A01033);
-        }
+        HasRepeatRecordException.throwIfTrue(exists, SysErrorCodeEnum.A01033);
     }
 
     /**
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysDictItemUpsertRequest request) throws BusinessException {
-        var entity = sysDictItemMapper.selectOne(new LambdaQueryWrapper<SysDictItemEntity>()
-                .select(SysDictItemEntity::getId)
+        boolean exists = sysDictItemMapper.exists(new LambdaQueryWrapperX<SysDictItemEntity>()
                 // 并非原地更新
-                .ne(Objects.nonNull(request.getId()), SysDictItemEntity::getId, request.getId())
+                .neIfPresent(SysDictItemEntity::getId, request.getId())
                 // 分类ID相同
                 .eq(SysDictItemEntity::getCategoryId, request.getCategoryId())
                 // 字典项编码相同
                 .eq(SysDictItemEntity::getCode, request.getCode())
                 .last(SQLSegment.LIMIT_1)
         );
-
-        if (entity != null) {
-            throw new HasRepeatRecordException(SysErrorCodeEnum.A01034);
-        }
+        HasRepeatRecordException.throwIfTrue(exists, SysErrorCodeEnum.A01034);
     }
 
     /**
@@ -408,7 +399,7 @@ public class SysDictServiceImpl implements SysDictService {
      */
     private void checkCategoryExistence(Long id) {
         boolean exists = sysDictCategoryMapper.exists(
-                new LambdaQueryWrapper<SysDictCategoryEntity>()
+                new LambdaQueryWrapperX<SysDictCategoryEntity>()
                         .select(SysDictCategoryEntity::getId)
                         .eq(SysDictCategoryEntity::getId, id)
                         .last(SQLSegment.LIMIT_1)
@@ -421,7 +412,7 @@ public class SysDictServiceImpl implements SysDictService {
      */
     private void checkItemExistence(Long id) {
         boolean exists = sysDictItemMapper.exists(
-                new LambdaQueryWrapper<SysDictItemEntity>()
+                new LambdaQueryWrapperX<SysDictItemEntity>()
                         .select(SysDictItemEntity::getId)
                         .eq(SysDictItemEntity::getId, id)
                         .last(SQLSegment.LIMIT_1)

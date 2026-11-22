@@ -1,6 +1,7 @@
 package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.framework.helium.excel.exporter.ExcelBatchExporter;
 import cc.uncarbon.framework.helium.excel.page.CursorPageParam;
 import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
@@ -19,7 +20,6 @@ import cc.uncarbon.module.sys.service.SysUserService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,21 +61,21 @@ public class SysOperateLogServiceImpl implements SysOperateLogService {
 
         Page<SysOperateLogEntity> entityPage = sysOperateLogMapper.selectPage(
                 new Page<SysOperateLogEntity>(query.getPageNum(), query.getPageSize()).setSearchCount(lastId == null),
-                new LambdaQueryWrapper<SysOperateLogEntity>()
+                new LambdaQueryWrapperX<SysOperateLogEntity>()
                         // 兼容游标导出
-                        .lt(lastId != null, SysOperateLogEntity::getId, lastId)
+                        .ltIfPresent(SysOperateLogEntity::getId, lastId)
                         // 业务类型
-                        .like(CharSequenceUtil.isNotBlank(query.getBizType()), SysOperateLogEntity::getBizType, CharSequenceUtil.cleanBlank(query.getBizType()))
+                        .likeIfPresent(SysOperateLogEntity::getBizType, query.getBizType())
                         // 行为
-                        .like(CharSequenceUtil.isNotBlank(query.getBehavior()), SysOperateLogEntity::getBehavior, CharSequenceUtil.cleanBlank(query.getBehavior()))
+                        .likeIfPresent(SysOperateLogEntity::getBehavior, query.getBehavior())
                         // 业务号
-                        .like(CharSequenceUtil.isNotBlank(query.getBizNo()), SysOperateLogEntity::getBizNo, CharSequenceUtil.cleanBlank(query.getBizNo()))
+                        .likeIfPresent(SysOperateLogEntity::getBizNo, query.getBizNo())
                         // 操作人
-                        .in(CollUtil.isNotEmpty(query.getUserIds()), SysOperateLogEntity::getUserId, query.getUserIds())
+                        .inIfPresent(SysOperateLogEntity::getUserId, query.getUserIds())
                         // 结果状态
-                        .eq(Objects.nonNull(query.getResultStatus()), SysOperateLogEntity::getResultStatus, query.getResultStatus())
+                        .eqIfPresent(SysOperateLogEntity::getResultStatus, query.getResultStatus())
                         // 时间区间
-                        .between(Objects.nonNull(query.getBeginAt()) && Objects.nonNull(query.getEndAt()), SysOperateLogEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
+                        .betweenIfPresent(SysOperateLogEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
                         // 排序
                         .orderByDesc(SysOperateLogEntity::getId)
         );

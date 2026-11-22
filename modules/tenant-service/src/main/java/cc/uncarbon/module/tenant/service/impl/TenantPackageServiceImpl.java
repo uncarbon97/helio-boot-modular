@@ -3,6 +3,7 @@ package cc.uncarbon.module.tenant.service.impl;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -24,8 +25,6 @@ import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
 import cc.uncarbon.module.tenant.service.TenantPackageService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.text.CharSequenceUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,13 +56,13 @@ public class TenantPackageServiceImpl implements TenantPackageService {
     public PageResult<TenantPackageDTO> adminList(AdminTenantPackageListQuery query) {
         Page<TenantPackageEntity> entityPage = tenantPackageMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new LambdaQueryWrapper<TenantPackageEntity>()
+                new LambdaQueryWrapperX<TenantPackageEntity>()
                         // 套餐编码
-                        .like(CharSequenceUtil.isNotBlank(query.getCode()), TenantPackageEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
+                        .likeIfPresent(TenantPackageEntity::getCode, query.getCode())
                         // 套餐名称
-                        .like(CharSequenceUtil.isNotBlank(query.getName()), TenantPackageEntity::getName, CharSequenceUtil.cleanBlank(query.getName()))
+                        .likeIfPresent(TenantPackageEntity::getName, query.getName())
                         // 状态
-                        .eq(Objects.nonNull(query.getStatus()), TenantPackageEntity::getStatus, query.getStatus())
+                        .eqIfPresent(TenantPackageEntity::getStatus, query.getStatus())
                         .orderByDesc(TenantPackageEntity::getId)
         );
         return convertPage(entityPage);
@@ -103,7 +102,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
     public void adminDelete(Collection<Long> ids) {
         log.info(LOG_PREFIX + "删除 >> {}", ids);
         // 删除前检查：是否仍有租户依赖这些套餐，避免悬空 packageId 导致租户无法编辑
-        boolean tenantUsing = tenantMetaMapper.exists(new LambdaQueryWrapper<TenantMetaEntity>()
+        boolean tenantUsing = tenantMetaMapper.exists(new LambdaQueryWrapperX<TenantMetaEntity>()
                 .select(TenantMetaEntity::getId)
                 .in(TenantMetaEntity::getPackageId, ids)
                 .last(SQLSegment.LIMIT_1)
@@ -122,7 +121,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
         // 禁用前检查：是否仍有租户依赖当前套餐
         if (EnabledStatusEnum.DISABLED == request.getNewStatus()) {
-            boolean tenantUsing = tenantMetaMapper.exists(new LambdaQueryWrapper<TenantMetaEntity>()
+            boolean tenantUsing = tenantMetaMapper.exists(new LambdaQueryWrapperX<TenantMetaEntity>()
                     .select(TenantMetaEntity::getId)
                     .eq(TenantMetaEntity::getPackageId, request.getId())
                     .last(SQLSegment.LIMIT_1)
@@ -150,7 +149,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
         tenantPackageMenuRelationService.cleanAndBind(request.getId(), request.getMenuIds());
 
         // 查询受影响的租户ID
-        List<TenantMetaEntity> affectedTenants = tenantMetaMapper.selectList(new LambdaQueryWrapper<TenantMetaEntity>()
+        List<TenantMetaEntity> affectedTenants = tenantMetaMapper.selectList(new LambdaQueryWrapperX<TenantMetaEntity>()
                 .select(TenantMetaEntity::getId)
                 .eq(TenantMetaEntity::getPackageId, request.getId())
         );
@@ -166,7 +165,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
 
     @Override
     public List<TenantPackageDTO> adminListSelectOption() {
-        List<TenantPackageEntity> entityList = tenantPackageMapper.selectList(new LambdaQueryWrapper<TenantPackageEntity>()
+        List<TenantPackageEntity> entityList = tenantPackageMapper.selectList(new LambdaQueryWrapperX<TenantPackageEntity>()
                 // 只取特定字段
                 .select(TenantPackageEntity::getId, TenantPackageEntity::getCode, TenantPackageEntity::getName)
                 // 只显示启用中的套餐
@@ -248,18 +247,14 @@ public class TenantPackageServiceImpl implements TenantPackageService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminTenantPackageUpsertRequest request) {
-        var entity = tenantPackageMapper.selectOne(new LambdaQueryWrapper<TenantPackageEntity>()
-                .select(TenantPackageEntity::getId)
+        boolean exists = tenantPackageMapper.exists(new LambdaQueryWrapperX<TenantPackageEntity>()
                 // 并非原地更新
-                .ne(Objects.nonNull(request.getId()), TenantPackageEntity::getId, request.getId())
+                .neIfPresent(TenantPackageEntity::getId, request.getId())
                 // 套餐编码相同
                 .eq(TenantPackageEntity::getCode, request.getCode())
                 .last(SQLSegment.LIMIT_1)
         );
-
-        if (entity != null) {
-            throw new HasRepeatRecordException(TenantErrorCodeEnum.A03004);
-        }
+        HasRepeatRecordException.throwIfTrue(exists, TenantErrorCodeEnum.A03004);
     }
 
     /**
@@ -267,7 +262,7 @@ public class TenantPackageServiceImpl implements TenantPackageService {
      */
     private void checkExistence(Long id) {
         boolean exists = tenantPackageMapper.exists(
-                new LambdaQueryWrapper<TenantPackageEntity>()
+                new LambdaQueryWrapperX<TenantPackageEntity>()
                         .select(TenantPackageEntity::getId)
                         .eq(TenantPackageEntity::getId, id)
                         .last(SQLSegment.LIMIT_1)

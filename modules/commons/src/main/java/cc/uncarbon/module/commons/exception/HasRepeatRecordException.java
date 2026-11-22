@@ -16,4 +16,16 @@ public class HasRepeatRecordException extends BusinessException {
     public HasRepeatRecordException(StructuredErrorCode errorCode) {
         super(errorCode);
     }
+
+    public static void throwIfTrue(boolean val, StructuredErrorCode errorCode) {
+        if (val) {
+            throw new HasRepeatRecordException(errorCode);
+        }
+    }
+
+    public static void throwIfTrue(boolean val, String errorMsg) {
+        if (val) {
+            throw new HasRepeatRecordException(errorMsg);
+        }
+    }
 }

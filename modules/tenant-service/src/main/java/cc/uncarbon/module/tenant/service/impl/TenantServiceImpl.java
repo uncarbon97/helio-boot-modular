@@ -3,6 +3,7 @@ package cc.uncarbon.module.tenant.service.impl;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -28,7 +29,6 @@ import cc.uncarbon.module.tenant.service.TenantService;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,13 +63,13 @@ public class TenantServiceImpl implements TenantService {
     public PageResult<TenantMetaDTO> adminList(AdminTenantMetaListQuery query) {
         Page<TenantMetaEntity> entityPage = tenantMetaMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new LambdaQueryWrapper<TenantMetaEntity>()
-                        // 租户编码
-                        .like(Objects.nonNull(query.getCode()), TenantMetaEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
-                        // 租户名称
-                        .like(CharSequenceUtil.isNotBlank(query.getName()), TenantMetaEntity::getName, CharSequenceUtil.cleanBlank(query.getName()))
+                new LambdaQueryWrapperX<TenantMetaEntity>()
                         // 状态
-                        .eq(Objects.nonNull(query.getStatus()), TenantMetaEntity::getStatus, query.getStatus())
+                        .eqIfPresent(TenantMetaEntity::getStatus, query.getStatus())
+                        // 租户编码
+                        .likeIfPresent(TenantMetaEntity::getCode, query.getCode())
+                        // 租户名称
+                        .likeIfPresent(TenantMetaEntity::getName, query.getName())
                         // 排序
                         .orderByDesc(TenantMetaEntity::getId)
         );
@@ -178,7 +178,7 @@ public class TenantServiceImpl implements TenantService {
 
     @Override
     public List<TenantMetaDTO> listEnabled() {
-        return convertList(tenantMetaMapper.selectList(new LambdaQueryWrapper<TenantMetaEntity>()
+        return convertList(tenantMetaMapper.selectList(new LambdaQueryWrapperX<TenantMetaEntity>()
                 .eq(TenantMetaEntity::getStatus, EnabledStatusEnum.ENABLED)
                 .orderByAsc(TenantMetaEntity::getId)
         ));
@@ -237,16 +237,12 @@ public class TenantServiceImpl implements TenantService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminTenantCreateRequest request) {
-        var entity = tenantMetaMapper.selectOne(new LambdaQueryWrapper<TenantMetaEntity>()
-                .select(TenantMetaEntity::getId)
+        boolean exists = tenantMetaMapper.exists(new LambdaQueryWrapperX<TenantMetaEntity>()
                 // 租户编码相同
                 .eq(TenantMetaEntity::getCode, request.getCode())
                 .last(SQLSegment.LIMIT_1)
         );
-
-        if (entity != null) {
-            throw new HasRepeatRecordException(TenantErrorCodeEnum.A03005);
-        }
+        HasRepeatRecordException.throwIfTrue(exists, TenantErrorCodeEnum.A03005);
     }
 
     /**

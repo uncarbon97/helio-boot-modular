@@ -252,7 +252,7 @@ class SysUserServiceImplTest {
 
     @Test
     void adminCreateDuplicatePinRejected() {
-        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(new SysUserEntity().setId(1L));
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> withUser(0L, () -> service.adminCreate(createRequest(null))));
@@ -261,7 +261,7 @@ class SysUserServiceImplTest {
 
     @Test
     void adminCreateDisabledDeptRejected() {
-        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
         Mockito.when(sysDeptService.getNonnullById(5L)).thenReturn(new SysDeptDTO().setId(5L).setStatus(EnabledStatusEnum.DISABLED));
 
@@ -272,7 +272,7 @@ class SysUserServiceImplTest {
 
     @Test
     void adminCreateHashesPwdAndDisablesByDefault() {
-        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
         Mockito.when(sysUserMapper.insert(Mockito.any(SysUserEntity.class))).thenAnswer(inv -> {
             inv.getArgument(0, SysUserEntity.class).setId(123L);
@@ -296,7 +296,7 @@ class SysUserServiceImplTest {
 
     @Test
     void adminCreateDoubleWritesRelationRow() {
-        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
         Mockito.when(sysUserMapper.insert(Mockito.any(SysUserEntity.class))).thenAnswer(inv -> {
             var entity = inv.getArgument(0, SysUserEntity.class);
@@ -320,7 +320,7 @@ class SysUserServiceImplTest {
     void adminCreateUserFirstDuplicatePinChecksGlobally() {
         Mockito.when(tenantConfigFacade.getLoginMode()).thenReturn(TenantLoginModeEnum.USER_FIRST);
         // USER_FIRST 下 pin 全局唯一，绕过行级过滤也应能查出他租户同名账号
-        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(new SysUserEntity().setId(1L));
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> withUser(0L, () -> service.adminCreate(createRequest(null))));
@@ -337,8 +337,8 @@ class SysUserServiceImplTest {
 
     @Test
     void adminUpdateSelfRejectedForNonSuperAdmin() {
-        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true, false);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
 
         var ex = Assertions.assertThrows(BusinessException.class,
@@ -348,8 +348,8 @@ class SysUserServiceImplTest {
 
     @Test
     void adminUpdateTenantAdminTargetRejected() {
-        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true, false);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
         Mockito.when(userRoleHelper.getSpecifiedUserRole(8L)).thenReturn(
                 new UserRoleScope(List.of(6L), List.of(new SysRoleEntity().setId(6L).setCode(SysConstant.TENANT_ADMIN_ROLE_CODE))));
@@ -434,8 +434,8 @@ class SysUserServiceImplTest {
 
     @Test
     void adminUpdateHappyPathBySuperAdmin() {
-        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true, false);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(UserRoleScope.mockSuperAdmin());
 
         withUser(0L, () -> service.adminUpdate(updateRequest(9L)));
@@ -614,8 +614,8 @@ class SysUserServiceImplTest {
 
     @Test
     void adminUpdateHiddenTargetRejectedForNormalUser() {
-        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysUserMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysUserMapper.exists(Mockito.any())).thenReturn(true, false);
         Mockito.when(userRoleHelper.getCurrentUserRole()).thenReturn(normalScope(7L, List.of(5L)));
         Mockito.when(userRoleHelper.getSpecifiedUserRole(8L)).thenReturn(normalScope(8L, List.of(5L)));
         // 目标用户属于隐藏用户 → 越权拒绝

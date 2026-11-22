@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.service.impl;
 
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexCalculator;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.framework.helium.tenant.enums.TenantLoginModeEnum;
 import cc.uncarbon.module.commons.constant.SQLSegment;
@@ -32,7 +33,6 @@ import cc.uncarbon.module.tenant.facade.TenantFacade;
 import cc.uncarbon.module.tenant.util.TenantUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -201,7 +201,7 @@ public class SysUserFirstTenantServiceImpl implements SysUserFirstTenantService 
             String blindIndex = blindIndexCalculator.compute(SysUserCipherCols.PHONE_FULL_PURPOSE,
                     PiiContractNormalizer.normalizePhone(request.getPhoneNo()));
             return TenantContextHolder.callIgnored(() -> sysUserMapper.selectList(
-                    new LambdaQueryWrapper<SysUserEntity>()
+                    new LambdaQueryWrapperX<SysUserEntity>()
                             .eq(SysUserEntity::getPhoneNoFullBlindIndex, blindIndex)
                             .orderByAsc(SysUserEntity::getId)
                             .last(SQLSegment.LIMIT_5)));

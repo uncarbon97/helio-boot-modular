@@ -2,6 +2,7 @@ package cc.uncarbon.module.file.service.impl;
 
 
 import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
@@ -18,7 +19,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 文件元数据
@@ -49,15 +48,15 @@ public class FileMetaServiceImpl implements FileMetaService {
     public PageResult<FileMetaDTO> adminList(AdminFileMetaListQuery query) {
         Page<FileMetaEntity> entityPage = fileMetaMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new LambdaQueryWrapper<FileMetaEntity>()
+                new LambdaQueryWrapperX<FileMetaEntity>()
                         // 存储点编码
-                        .eq(CharSequenceUtil.isNotBlank(query.getStorageCode()), FileMetaEntity::getStorageCode, CharSequenceUtil.cleanBlank(query.getStorageCode()))
+                        .eqIfPresent(FileMetaEntity::getStorageCode, CharSequenceUtil.cleanBlank(query.getStorageCode()))
                         // 扩展名
-                        .eq(CharSequenceUtil.isNotBlank(query.getExtendName()), FileMetaEntity::getExtendName, CharSequenceUtil.cleanBlank(query.getExtendName()))
+                        .eqIfPresent(FileMetaEntity::getExtendName, CharSequenceUtil.cleanBlank(query.getExtendName()))
                         // 文件主分类
-                        .like(CharSequenceUtil.isNotBlank(query.getCategory()), FileMetaEntity::getCategory, CharSequenceUtil.cleanBlank(query.getCategory()))
+                        .likeIfPresent(FileMetaEntity::getCategory, query.getCategory())
                         // 时间区间
-                        .between(Objects.nonNull(query.getBeginAt()) && Objects.nonNull(query.getEndAt()), FileMetaEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
+                        .betweenIfPresent(FileMetaEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
                         // 排序
                         .orderByDesc(FileMetaEntity::getId)
         );
@@ -102,7 +101,7 @@ public class FileMetaServiceImpl implements FileMetaService {
     @Override
     public FileMetaDTO findByDigestSha256(String sha256) {
         if (CharSequenceUtil.isBlank(sha256)) return null;
-        var entity = fileMetaMapper.selectOne(new LambdaQueryWrapper<FileMetaEntity>()
+        var entity = fileMetaMapper.selectOne(new LambdaQueryWrapperX<FileMetaEntity>()
                 .eq(FileMetaEntity::getDigestSha256, sha256)
                 .last(SQLSegment.LIMIT_1)
         );

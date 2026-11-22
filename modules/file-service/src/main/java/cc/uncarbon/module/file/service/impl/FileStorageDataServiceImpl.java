@@ -4,6 +4,7 @@ package cc.uncarbon.module.file.service.impl;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -22,7 +23,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -35,7 +35,6 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -57,13 +56,13 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
     public PageResult<FileStorageDTO> adminList(AdminFileStorageListQuery query) {
         Page<FileStorageEntity> entityPage = fileStorageMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new LambdaQueryWrapper<FileStorageEntity>()
+                new LambdaQueryWrapperX<FileStorageEntity>()
                         // 存储点编码
-                        .like(CharSequenceUtil.isNotBlank(query.getCode()), FileStorageEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
+                        .likeIfPresent(FileStorageEntity::getCode, query.getCode())
                         // 存储点名称
-                        .like(CharSequenceUtil.isNotBlank(query.getName()), FileStorageEntity::getName, CharSequenceUtil.cleanBlank(query.getName()))
+                        .likeIfPresent(FileStorageEntity::getName, query.getName())
                         // 存储平台类型
-                        .eq(Objects.nonNull(query.getPlatformType()), FileStorageEntity::getPlatformType, query.getPlatformType())
+                        .eqIfPresent(FileStorageEntity::getPlatformType, query.getPlatformType())
                         // 排序
                         .orderByDesc(FileStorageEntity::getId)
         );
@@ -79,7 +78,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
      */
     @Override
     public List<FileStorageDTO> adminListSelectOption() {
-        List<FileStorageEntity> entityList = fileStorageMapper.selectList(new LambdaQueryWrapper<FileStorageEntity>()
+        List<FileStorageEntity> entityList = fileStorageMapper.selectList(new LambdaQueryWrapperX<FileStorageEntity>()
                 // 只取特定字段
                 .select(FileStorageEntity::getId, FileStorageEntity::getName, FileStorageEntity::getCode)
                 // 排序
@@ -159,7 +158,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
     public void adminDelete(Collection<Long> ids) {
         checkNotPrimary(ids);
         // 仍有文件引用的存储点不可删除，否则存量文件无法再下载
-        List<String> codes = fileStorageMapper.selectList(new LambdaQueryWrapper<FileStorageEntity>()
+        List<String> codes = fileStorageMapper.selectList(new LambdaQueryWrapperX<FileStorageEntity>()
                         .select(FileStorageEntity::getCode)
                         .in(FileStorageEntity::getId, ids))
                 .stream().map(FileStorageEntity::getCode).toList();
@@ -184,7 +183,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
 
     @Override
     public FileStorageDTO getByStorageCode(String storageCode) {
-        var entity = fileStorageMapper.selectOne(new LambdaQueryWrapper<FileStorageEntity>()
+        var entity = fileStorageMapper.selectOne(new LambdaQueryWrapperX<FileStorageEntity>()
                 .eq(FileStorageEntity::getCode, storageCode)
         );
         return convertEntity(entity);
@@ -192,7 +191,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
 
     @Override
     public FileStorageDTO getPrimary() {
-        var entity = fileStorageMapper.selectOne(new LambdaQueryWrapper<FileStorageEntity>()
+        var entity = fileStorageMapper.selectOne(new LambdaQueryWrapperX<FileStorageEntity>()
                 // 主存储点标识
                 .eq(FileStorageEntity::getPrimaryFlag, YesOrNoEnum.YES)
                 .last(SQLSegment.LIMIT_1)
@@ -244,36 +243,28 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminFileStorageUpsertRequest request) {
-        var entity = fileStorageMapper.selectOne(new LambdaQueryWrapper<FileStorageEntity>()
-                // 仅取主键ID
-                .select(FileStorageEntity::getId)
+        boolean exists = fileStorageMapper.exists(new LambdaQueryWrapperX<FileStorageEntity>()
                 // 并非原地更新
-                .ne(Objects.nonNull(request.getId()), FileStorageEntity::getId, request.getId())
+                .neIfPresent(FileStorageEntity::getId, request.getId())
                 // 编码相同
                 .eq(FileStorageEntity::getCode, request.getCode())
                 .last(SQLSegment.LIMIT_1)
         );
-
-        if (entity != null) {
-            throw new HasRepeatRecordException(FileErrorCodeEnum.A02007);
-        }
+        HasRepeatRecordException.throwIfTrue(exists, FileErrorCodeEnum.A02007);
     }
 
     /**
      * 检查待删除的存储点中是否包含主存储点
      */
     private void checkNotPrimary(Collection<Long> ids) {
-        var entity = fileStorageMapper.selectOne(new LambdaQueryWrapper<FileStorageEntity>()
-                // 仅取主键ID
-                .select(FileStorageEntity::getId)
+        boolean primaryIn = fileStorageMapper.exists(new LambdaQueryWrapperX<FileStorageEntity>()
                 // 待删除的记录
                 .in(FileStorageEntity::getId, ids)
                 // 是主存储点
                 .eq(FileStorageEntity::getPrimaryFlag, YesOrNoEnum.YES)
                 .last(SQLSegment.LIMIT_1)
         );
-
-        if (entity != null) {
+        if (primaryIn) {
             throw new BusinessException(FileErrorCodeEnum.A02009);
         }
     }
@@ -285,7 +276,7 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
         if (CollUtil.isEmpty(storageCodes)) {
             return;
         }
-        boolean inUse = fileMetaMapper.exists(new LambdaQueryWrapper<FileMetaEntity>()
+        boolean inUse = fileMetaMapper.exists(new LambdaQueryWrapperX<FileMetaEntity>()
                 .select(FileMetaEntity::getId)
                 .in(FileMetaEntity::getStorageCode, storageCodes)
                 .last(SQLSegment.LIMIT_1)
@@ -308,19 +299,14 @@ public class FileStorageDataServiceImpl implements FileStorageDataService {
      */
     private void checkPrimaryFlag(AdminFileStorageUpsertRequest request) {
         if (request.getPrimaryFlag() == YesOrNoEnum.YES) {
-            var entity = fileStorageMapper.selectOne(new LambdaQueryWrapper<FileStorageEntity>()
-                    // 仅取主键ID
-                    .select(FileStorageEntity::getId)
+            boolean exists = fileStorageMapper.exists(new LambdaQueryWrapperX<FileStorageEntity>()
                     // 并非原地更新
-                    .ne(Objects.nonNull(request.getId()), FileStorageEntity::getId, request.getId())
+                    .neIfPresent(FileStorageEntity::getId, request.getId())
                     // 已是主存储点
                     .eq(FileStorageEntity::getPrimaryFlag, YesOrNoEnum.YES)
                     .last(SQLSegment.LIMIT_1)
             );
-
-            if (entity != null) {
-                throw new HasRepeatRecordException(FileErrorCodeEnum.A02008);
-            }
+            HasRepeatRecordException.throwIfTrue(exists, FileErrorCodeEnum.A02008);
         }
     }
 }

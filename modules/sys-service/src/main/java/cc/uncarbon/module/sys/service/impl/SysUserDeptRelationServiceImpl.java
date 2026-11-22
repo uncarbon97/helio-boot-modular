@@ -1,11 +1,11 @@
 package cc.uncarbon.module.sys.service.impl;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.sys.dal.entity.SysUserDeptRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserDeptRelationMapper;
 import cc.uncarbon.module.sys.service.SysUserDeptRelationService;
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
@@ -32,7 +32,7 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
 
     @Override
     public List<Long> listDeptIdsByUser(Long userId) {
-        var entity = sysUserDeptRelationMapper.selectOne(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+        var entity = sysUserDeptRelationMapper.selectOne(new LambdaQueryWrapperX<SysUserDeptRelationEntity>()
                 .eq(SysUserDeptRelationEntity::getUserId, userId)
                 .last(SQLSegment.LIMIT_1)
         );
@@ -49,7 +49,7 @@ public class SysUserDeptRelationServiceImpl implements SysUserDeptRelationServic
             return Set.of();
         }
 
-        return sysUserDeptRelationMapper.selectList(new LambdaQueryWrapper<SysUserDeptRelationEntity>()
+        return sysUserDeptRelationMapper.selectList(new LambdaQueryWrapperX<SysUserDeptRelationEntity>()
                 // 只要用户ID
                 .select(SysUserDeptRelationEntity::getUserId)
                 .in(SysUserDeptRelationEntity::getDeptId, deptIds)

@@ -3,6 +3,7 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.NoRecordException;
 import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
@@ -21,7 +22,6 @@ import cc.uncarbon.module.sys.support.UserRoleHelper;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -206,11 +206,11 @@ public class SysDeptServiceImpl implements SysDeptService {
      */
     private void checkRepeat(AdminSysDeptUpsertRequest request) {
         boolean exists = sysDeptMapper.exists(
-                new LambdaQueryWrapper<SysDeptEntity>()
+                new LambdaQueryWrapperX<SysDeptEntity>()
                         .eq(SysDeptEntity::getName, request.getName())
                         .eq(SysDeptEntity::getParentId, request.getParentId())
                         // 并非原地更新
-                        .ne(request.getId() != null, SysDeptEntity::getId, request.getId())
+                        .neIfPresent(SysDeptEntity::getId, request.getId())
                         .last(SQLSegment.LIMIT_1)
         );
         if (exists) {
@@ -223,7 +223,7 @@ public class SysDeptServiceImpl implements SysDeptService {
      */
     private void checkBeforeDelete(Collection<Long> ids) {
         boolean hasChildren = sysDeptMapper.exists(
-                new LambdaQueryWrapper<SysDeptEntity>()
+                new LambdaQueryWrapperX<SysDeptEntity>()
                         .in(SysDeptEntity::getParentId, ids)
         );
         if (hasChildren || CollUtil.isNotEmpty(sysUserDeptRelationService.listUserIdsByDepts(ids))) {
@@ -238,7 +238,7 @@ public class SysDeptServiceImpl implements SysDeptService {
         if (EnabledStatusEnum.DISABLED == newStatus) {
             // 停用时，存在未停用的下级部门则拒绝
             boolean hasEnabledChildren = sysDeptMapper.exists(
-                    new LambdaQueryWrapper<SysDeptEntity>()
+                    new LambdaQueryWrapperX<SysDeptEntity>()
                             .eq(SysDeptEntity::getParentId, entity.getId())
                             .eq(SysDeptEntity::getStatus, EnabledStatusEnum.ENABLED)
             );

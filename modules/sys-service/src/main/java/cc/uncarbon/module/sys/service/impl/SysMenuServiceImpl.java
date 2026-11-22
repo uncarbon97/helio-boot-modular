@@ -4,6 +4,7 @@ import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.stream.StreamFunction;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -27,7 +28,6 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.text.StrPool;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -57,7 +57,7 @@ public class SysMenuServiceImpl implements SysMenuService {
 
     @Override
     public List<SysMenuDTO> adminList() {
-        List<SysMenuEntity> entityList = sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
+        List<SysMenuEntity> entityList = sysMenuMapper.selectList(new LambdaQueryWrapperX<SysMenuEntity>()
                 // 排序
                 .orderByAsc(SysMenuEntity::getSort)
         );
@@ -225,7 +225,7 @@ public class SysMenuServiceImpl implements SysMenuService {
                         enabledChainMenuIds.removeAll(ref.superAdminOnlySubtreeMenuIds);
                     }
                     permissions = enabledChainMenuIds.isEmpty() ? Set.of()
-                            : sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
+                            : sysMenuMapper.selectList(new LambdaQueryWrapperX<SysMenuEntity>()
                                     .select(SysMenuEntity::getPermission)
                                     .in(SysMenuEntity::getId, enabledChainMenuIds)
                                     .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
@@ -290,7 +290,7 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     private void checkExistence(Long id) {
         boolean exists = sysMenuMapper.exists(
-                new LambdaQueryWrapper<SysMenuEntity>()
+                new LambdaQueryWrapperX<SysMenuEntity>()
                         .select(SysMenuEntity::getId)
                         .eq(SysMenuEntity::getId, id)
                         .last(SQLSegment.LIMIT_1)
@@ -342,7 +342,7 @@ public class SysMenuServiceImpl implements SysMenuService {
      */
     private void checkBeforeDelete(Collection<Long> ids) {
         boolean hasChildren = sysMenuMapper.exists(
-                new LambdaQueryWrapper<SysMenuEntity>()
+                new LambdaQueryWrapperX<SysMenuEntity>()
                         .select(SysMenuEntity::getId)
                         .in(SysMenuEntity::getParentId, ids)
                         .last(SQLSegment.LIMIT_1)
@@ -359,18 +359,14 @@ public class SysMenuServiceImpl implements SysMenuService {
         if (CharSequenceUtil.isNotBlank(request.getPermission())) {
             request.setPermission(CharSequenceUtil.cleanBlank(request.getPermission()));
 
-            var entity = sysMenuMapper.selectOne(new LambdaQueryWrapper<SysMenuEntity>()
-                    .select(SysMenuEntity::getId)
+            boolean exists = sysMenuMapper.exists(new LambdaQueryWrapperX<SysMenuEntity>()
                     // 并非原地更新
-                    .ne(Objects.nonNull(request.getId()), SysMenuEntity::getId, request.getId())
+                    .neIfPresent(SysMenuEntity::getId, request.getId())
                     // 权限标识相同
                     .eq(SysMenuEntity::getPermission, request.getPermission())
                     .last(SQLSegment.LIMIT_1)
             );
-
-            if (entity != null) {
-                throw new HasRepeatRecordException(SysErrorCodeEnum.A01032);
-            }
+            HasRepeatRecordException.throwIfTrue(exists, SysErrorCodeEnum.A01032);
         }
     }
 
@@ -422,7 +418,7 @@ public class SysMenuServiceImpl implements SysMenuService {
      * 查询全量菜单（含禁用），构建 菜单ID-实体 map，用于祖先启用性校验
      */
     private Map<Long, SysMenuEntity> getAllMenuMap() {
-        return sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
+        return sysMenuMapper.selectList(new LambdaQueryWrapperX<SysMenuEntity>()
                 .select(SysMenuEntity::getId, SysMenuEntity::getParentId, SysMenuEntity::getStatus, SysMenuEntity::getVisibleScope)
         ).stream().collect(Collectors.toMap(SysMenuEntity::getId, Function.identity(), StreamFunction.keepExisting()));
     }
@@ -510,7 +506,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             return List.of();
         }
 
-        List<SysMenuEntity> entityList = sysMenuMapper.selectList(new LambdaQueryWrapper<SysMenuEntity>()
+        List<SysMenuEntity> entityList = sysMenuMapper.selectList(new LambdaQueryWrapperX<SysMenuEntity>()
                 .in(SysMenuEntity::getId, ids)
                 .in(SysMenuEntity::getMenuType, menuTypes)
                 // 仅显示启用状态菜单

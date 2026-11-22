@@ -1,5 +1,6 @@
 package cc.uncarbon.module.sys.biz;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.framework.helium.i18n.util.I18nMessageUtil;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
 import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
@@ -11,7 +12,6 @@ import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -121,7 +121,7 @@ public class AuditNicknameFillerImpl implements AuditNicknameFiller {
         List<SysUserEntity> foundUsers = new ArrayList<>();
         // 按用户ID全局查询，忽略租户隔离；@TableLogic 自动排除已逻辑删除用户
         TenantContextHolder.runIgnored(() ->
-                foundUsers.addAll(sysUserMapper.selectList(new LambdaQueryWrapper<SysUserEntity>()
+                foundUsers.addAll(sysUserMapper.selectList(new LambdaQueryWrapperX<SysUserEntity>()
                         .select(SysUserEntity::getId, SysUserEntity::getNickname, SysUserEntity::getPin)
                         .in(SysUserEntity::getId, userIds)))
         );

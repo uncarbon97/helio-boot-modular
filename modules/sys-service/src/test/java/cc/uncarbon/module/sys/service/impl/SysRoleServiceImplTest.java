@@ -89,7 +89,7 @@ class SysRoleServiceImplTest {
 
     @Test
     void adminCreateDuplicateCodeRejected() {
-        Mockito.when(sysRoleMapper.selectOne(Mockito.any())).thenReturn(new SysRoleEntity().setId(1L));
+        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminCreate(upsert(null, "R5")));
@@ -98,7 +98,7 @@ class SysRoleServiceImplTest {
 
     @Test
     void adminCreateUnacceptableCodesRejected() {
-        Mockito.when(sysRoleMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(false);
 
         var ex1 = Assertions.assertThrows(BusinessException.class,
                 () -> service.adminCreate(upsert(null, SysConstant.SUPER_ADMIN_ROLE_CODE)));
@@ -111,7 +111,7 @@ class SysRoleServiceImplTest {
 
     @Test
     void adminCreateHappyPath() {
-        Mockito.when(sysRoleMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(sysRoleMapper.insert(Mockito.any(SysRoleEntity.class))).thenAnswer(inv -> {
             inv.getArgument(0, SysRoleEntity.class).setId(5L);
             return 1;
@@ -129,8 +129,8 @@ class SysRoleServiceImplTest {
 
     @Test
     void adminUpdateBuiltinRoleRejected() {
-        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysRoleMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(true, false);
         Mockito.when(sysRoleMapper.selectById(9L)).thenReturn(builtinRole(9L));
 
         var ex = Assertions.assertThrows(BusinessException.class,
@@ -140,8 +140,8 @@ class SysRoleServiceImplTest {
 
     @Test
     void adminUpdateUnacceptableCodeRejected() {
-        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysRoleMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(true, false);
         Mockito.when(sysRoleMapper.selectById(9L)).thenReturn(null);
 
         var ex = Assertions.assertThrows(BusinessException.class,
@@ -345,8 +345,8 @@ class SysRoleServiceImplTest {
 
     @Test
     void adminUpdateHappyPathUpdatesEntity() {
-        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(sysRoleMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: checkExistence 通过; 第2次: checkRepeat 无重复
+        Mockito.when(sysRoleMapper.exists(Mockito.any())).thenReturn(true, false);
         Mockito.when(sysRoleMapper.selectById(9L)).thenReturn(null);
 
         service.adminUpdate(upsert(9L, "R9"));

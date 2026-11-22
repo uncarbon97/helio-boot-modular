@@ -8,6 +8,7 @@ import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.db.enums.GenderEnum;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
 import cc.uncarbon.framework.helium.db.fieldcrypto.blindindex.BlindIndexCalculator;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.framework.helium.excel.util.ExcelIoUtil;
 import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
 import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
@@ -132,15 +133,13 @@ public class SysUserServiceImpl implements SysUserService {
         String phoneFullBlindIndex = CharSequenceUtil.isBlank(query.getPhoneNoFull()) ? null
                 : blindIndexCalculator.compute(SysUserCipherCols.PHONE_FULL_PURPOSE, PiiContractNormalizer.normalizePhone(query.getPhoneNoFull()));
         Page<SysUserEntity> entityPage = selectUserPage(pageParam.getPageNum(), pageParam.getPageSize(),
-                new LambdaQueryWrapper<SysUserEntity>()
+                new LambdaQueryWrapperX<SysUserEntity>()
                         // 完整手机号
-                        .eq(phoneFullBlindIndex != null,
-                                SysUserEntity::getPhoneNoFullBlindIndex, phoneFullBlindIndex)
+                        .eqIfPresent(SysUserEntity::getPhoneNoFullBlindIndex, phoneFullBlindIndex)
                         // 手机号尾号
-                        .eq(phoneTail4BlindIndex != null,
-                                SysUserEntity::getPhoneNoTail4BlindIndex, phoneTail4BlindIndex)
+                        .eqIfPresent(SysUserEntity::getPhoneNoTail4BlindIndex, phoneTail4BlindIndex)
                         // 根据【手动选择的部门ID】筛选用户
-                        .in(CollUtil.isNotEmpty(userIdsByDept), SysUserEntity::getId, userIdsByDept)
+                        .inIfPresent(SysUserEntity::getId, userIdsByDept)
                         // USER_FIRST 租户域内限定本租户成员
                         .in(byTenantMember, SysUserEntity::getId, memberUserIds)
                         // 不显示特定用户
@@ -166,7 +165,7 @@ public class SysUserServiceImpl implements SysUserService {
         Set<Long> hiddenUserIds = userRoleHelper.listHiddenUserIds();
         // 角色关联表本身租户隔离，ID 集合已限定本租户；USER_FIRST 租户域内成员投影列可能指向他租户，忽略行级隔离取数
         Page<SysUserEntity> entityPage = selectUserPage(query.getPageNum(), query.getPageSize(),
-                new LambdaQueryWrapper<SysUserEntity>()
+                new LambdaQueryWrapperX<SysUserEntity>()
                         // 关键词(账号/昵称)
                         .and(CharSequenceUtil.isNotBlank(keyword), w -> w
                                 .like(SysUserEntity::getPin, keyword)
@@ -354,7 +353,7 @@ public class SysUserServiceImpl implements SysUserService {
             throw new BusinessException(SysErrorCodeEnum.A01021);
         }
         // 角色必须存在于当前租户范围内；租户行级过滤下，外租户/已删除角色查不到
-        boolean exists = sysRoleMapper.exists(new LambdaQueryWrapper<SysRoleEntity>()
+        boolean exists = sysRoleMapper.exists(new LambdaQueryWrapperX<SysRoleEntity>()
                 .select(SysRoleEntity::getId)
                 .eq(SysRoleEntity::getId, roleId)
                 .last(SQLSegment.LIMIT_1)
@@ -582,18 +581,15 @@ public class SysUserServiceImpl implements SysUserService {
      */
     @SneakyThrows
     private void checkRepeat(AdminSysUserUpdateRequest request) {
-        LambdaQueryWrapper<SysUserEntity> qw = new LambdaQueryWrapper<SysUserEntity>()
-                .select(SysUserEntity::getId)
+        LambdaQueryWrapperX<SysUserEntity> qw = new LambdaQueryWrapperX<SysUserEntity>()
                 // 并非原地更新
-                .ne(Objects.nonNull(request.getId()), SysUserEntity::getId, request.getId())
+                .neIfPresent(SysUserEntity::getId, request.getId())
                 .eq(SysUserEntity::getPin, request.getPin())
                 .last(SQLSegment.LIMIT_1);
-        var entity = isUserFirstLoginMode()
-                ? TenantContextHolder.callIgnored(() -> sysUserMapper.selectOne(qw))
-                : sysUserMapper.selectOne(qw);
-        if (entity != null) {
-            throw new HasRepeatRecordException(SysErrorCodeEnum.A01030);
-        }
+        boolean exists = isUserFirstLoginMode()
+                ? TenantContextHolder.callIgnored(() -> sysUserMapper.exists(qw))
+                : sysUserMapper.exists(qw);
+        HasRepeatRecordException.throwIfTrue(exists, SysErrorCodeEnum.A01030);
     }
 
     /**
@@ -608,7 +604,7 @@ public class SysUserServiceImpl implements SysUserService {
      */
     @SneakyThrows
     private void checkExistence(Long id) {
-        LambdaQueryWrapper<SysUserEntity> qw = new LambdaQueryWrapper<SysUserEntity>()
+        var qw = new LambdaQueryWrapperX<SysUserEntity>()
                 .select(SysUserEntity::getId)
                 .eq(SysUserEntity::getId, id)
                 .last(SQLSegment.LIMIT_1);
@@ -948,7 +944,7 @@ public class SysUserServiceImpl implements SysUserService {
         }
         Set<String> ret = new HashSet<>();
         for (List<String> chunk : ListUtil.partition(new ArrayList<>(pins), 500)) {
-            LambdaQueryWrapper<SysUserEntity> qw = new LambdaQueryWrapper<SysUserEntity>()
+            var qw = new LambdaQueryWrapperX<SysUserEntity>()
                     .select(SysUserEntity::getPin)
                     .in(SysUserEntity::getPin, chunk);
             if (isUserFirstLoginMode()) {

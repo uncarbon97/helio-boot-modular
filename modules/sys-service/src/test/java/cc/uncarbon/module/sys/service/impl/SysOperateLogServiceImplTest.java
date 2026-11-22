@@ -158,7 +158,7 @@ class SysOperateLogServiceImplTest {
     }
 
     @Test
-    void adminListOnlyBeginAtSkipsBetween() {
+    void adminListOnlyBeginAtDegradesToGe() {
         Mockito.when(sysOperateLogMapper.selectPage(Mockito.any(), Mockito.any())).thenAnswer(inv -> {
             Page<SysOperateLogEntity> page = inv.getArgument(0);
             page.setRecords(List.of());
@@ -174,8 +174,8 @@ class SysOperateLogServiceImplTest {
         ArgumentCaptor<com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysOperateLogEntity>> wrapperCaptor =
                 ArgumentCaptor.forClass(com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper.class);
         Mockito.verify(sysOperateLogMapper).selectPage(Mockito.any(), wrapperCaptor.capture());
-        // 起止任一为空即不落时间区间条件
-        Assertions.assertFalse(wrapperCaptor.getValue().getSqlSegment().contains("BETWEEN"));
+        // 仅开始时间时降级为 created_at >=
+        Assertions.assertTrue(wrapperCaptor.getValue().getSqlSegment().contains("created_at >="));
     }
 
 

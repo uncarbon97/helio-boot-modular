@@ -1,8 +1,8 @@
 package cc.uncarbon.module.sys.dal.mapper;
 
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -26,7 +26,7 @@ public interface SysRoleMapper extends BaseMapper<SysRoleEntity> {
         if (roleIds == null || roleIds.isEmpty()) {
             return Set.of();
         }
-        return selectList(new LambdaQueryWrapper<SysRoleEntity>()
+        return selectList(new LambdaQueryWrapperX<SysRoleEntity>()
                         // 仅取主键ID
                         .select(SysRoleEntity::getId)
                         // 值相符

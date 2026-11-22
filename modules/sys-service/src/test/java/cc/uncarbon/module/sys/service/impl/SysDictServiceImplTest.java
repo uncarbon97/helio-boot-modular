@@ -100,7 +100,7 @@ class SysDictServiceImplTest {
 
     @Test
     void createCategoryDuplicateRejected() {
-        Mockito.when(categoryMapper.selectOne(Mockito.any())).thenReturn(new SysDictCategoryEntity().setId(1L));
+        Mockito.when(categoryMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminCreateCategory(category(null, "c1")));
@@ -109,7 +109,7 @@ class SysDictServiceImplTest {
 
     @Test
     void createCategoryHappyPath() {
-        Mockito.when(categoryMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(categoryMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(categoryMapper.insert(Mockito.any(SysDictCategoryEntity.class))).thenAnswer(inv -> {
             inv.getArgument(0, SysDictCategoryEntity.class).setId(9L);
             return 1;
@@ -146,7 +146,7 @@ class SysDictServiceImplTest {
 
     @Test
     void createItemDuplicateRejected() {
-        Mockito.when(itemMapper.selectOne(Mockito.any())).thenReturn(new SysDictItemEntity().setId(1L));
+        Mockito.when(itemMapper.exists(Mockito.any())).thenReturn(true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminCreateItem(item(null, 5L, "i1")));
@@ -155,7 +155,7 @@ class SysDictServiceImplTest {
 
     @Test
     void createItemMissingCategoryRejected() {
-        Mockito.when(itemMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(itemMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(categoryMapper.selectById(5L)).thenReturn(null);
 
         Assertions.assertThrows(NoRecordException.class,
@@ -164,7 +164,7 @@ class SysDictServiceImplTest {
 
     @Test
     void createItemHappyPath() {
-        Mockito.when(itemMapper.selectOne(Mockito.any())).thenReturn(null);
+        Mockito.when(itemMapper.exists(Mockito.any())).thenReturn(false);
         Mockito.when(categoryMapper.selectById(5L)).thenReturn(new SysDictCategoryEntity().setId(5L));
         Mockito.when(itemMapper.insert(Mockito.any(SysDictItemEntity.class))).thenAnswer(inv -> {
             inv.getArgument(0, SysDictItemEntity.class).setId(9L);
@@ -316,8 +316,8 @@ class SysDictServiceImplTest {
 
     @Test
     void updateCategoryDuplicateRejected() {
-        Mockito.when(categoryMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(categoryMapper.selectOne(Mockito.any())).thenReturn(new SysDictCategoryEntity().setId(1L));
+        // 第1次 exists: 存在性通过; 第2次: checkRepeat 命中重复
+        Mockito.when(categoryMapper.exists(Mockito.any())).thenReturn(true, true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminUpdateCategory(category(9L, "c1")));
@@ -326,8 +326,8 @@ class SysDictServiceImplTest {
 
     @Test
     void updateCategoryHappyPath() {
-        Mockito.when(categoryMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(categoryMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: 存在性通过; 第2次: checkRepeat 无重复
+        Mockito.when(categoryMapper.exists(Mockito.any())).thenReturn(true, false);
 
         service.adminUpdateCategory(category(9L, "c1"));
 
@@ -336,8 +336,8 @@ class SysDictServiceImplTest {
 
     @Test
     void updateItemDuplicateRejected() {
-        Mockito.when(itemMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(itemMapper.selectOne(Mockito.any())).thenReturn(new SysDictItemEntity().setId(1L));
+        // 第1次 exists: 存在性通过; 第2次: checkRepeat 命中重复
+        Mockito.when(itemMapper.exists(Mockito.any())).thenReturn(true, true);
 
         var ex = Assertions.assertThrows(HasRepeatRecordException.class,
                 () -> service.adminUpdateItem(item(9L, 5L, "i1")));
@@ -346,8 +346,8 @@ class SysDictServiceImplTest {
 
     @Test
     void updateItemHappyPath() {
-        Mockito.when(itemMapper.exists(Mockito.any())).thenReturn(true);
-        Mockito.when(itemMapper.selectOne(Mockito.any())).thenReturn(null);
+        // 第1次 exists: 存在性通过; 第2次: checkRepeat 无重复
+        Mockito.when(itemMapper.exists(Mockito.any())).thenReturn(true, false);
         Mockito.when(categoryMapper.selectById(5L)).thenReturn(new SysDictCategoryEntity().setId(5L));
 
         service.adminUpdateItem(item(9L, 5L, "i1"));

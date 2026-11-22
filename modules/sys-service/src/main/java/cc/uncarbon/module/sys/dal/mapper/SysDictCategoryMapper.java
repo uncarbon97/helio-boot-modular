@@ -1,10 +1,9 @@
 package cc.uncarbon.module.sys.dal.mapper;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.sys.dal.entity.SysDictCategoryEntity;
 import cc.uncarbon.module.sys.enums.DictStatusEnum;
-import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.jspecify.annotations.NonNull;
@@ -20,10 +19,10 @@ import java.util.Collection;
 public interface SysDictCategoryMapper extends BaseMapper<SysDictCategoryEntity> {
 
     default SysDictCategoryEntity selectByCodeAndStatus(@NonNull String code, @Nullable Collection<DictStatusEnum> statuses) {
-        return selectOne(new LambdaQueryWrapper<SysDictCategoryEntity>()
+        return selectOne(new LambdaQueryWrapperX<SysDictCategoryEntity>()
                 .eq(SysDictCategoryEntity::getCode, code)
                 // 状态集合
-                .in(CollUtil.isNotEmpty(statuses), SysDictCategoryEntity::getStatus, statuses)
+                .inIfPresent(SysDictCategoryEntity::getStatus, statuses)
                 .last(SQLSegment.LIMIT_1)
         );
     }

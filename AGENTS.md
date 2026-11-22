@@ -12,6 +12,7 @@
 
 ## 数据访问
 - 数据库写操作（`delete`/`update`）禁止在 service 层直接向 Mapper 传 `Wrapper` 裸调用，必须封装为对应 Mapper 中的具名 `default` 方法；裸读（`select*`/`exists`）不受此限
+- 建表/加列中的时刻字段：MySQL `TIMESTAMP` 有 2038-01-19 上限，存未来时刻（如过期、预约）的列用 `DATETIME`（不携带时区，应用层手动完成时区转换）；PostgreSQL 对应 `timestamptz`，无 2038 问题
 
 ## 错误码
 - 格式 `[A|B|Z][BB][CCC]`：A=用户输入类，B=系统/业务故障类，Z=框架层

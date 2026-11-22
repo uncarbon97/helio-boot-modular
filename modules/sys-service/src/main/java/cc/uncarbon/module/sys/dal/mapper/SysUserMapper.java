@@ -1,7 +1,9 @@
 package cc.uncarbon.module.sys.dal.mapper;
 
 import cc.uncarbon.framework.helium.base.stream.StreamFunction;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
 import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
 import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
@@ -29,7 +31,7 @@ import java.util.stream.Collectors;
 public interface SysUserMapper extends BaseMapper<SysUserEntity> {
 
     default SysUserEntity getByPin(String pin) {
-        return selectOne(new LambdaQueryWrapper<SysUserEntity>()
+        return selectOne(new LambdaQueryWrapperX<SysUserEntity>()
                 .eq(SysUserEntity::getPin, pin)
                 .last(SQLSegment.LIMIT_1)
         );
@@ -37,7 +39,7 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
 
     default Map<Long, String> getPinMapByIds(Collection<Long> ids) {
         if (CollUtil.isEmpty(ids)) return Map.of();
-        return selectList(new LambdaQueryWrapper<SysUserEntity>()
+        return selectList(new LambdaQueryWrapperX<SysUserEntity>()
                 .select(SysUserEntity::getId, SysUserEntity::getPin)
                 .in(SysUserEntity::getId, ids)
         ).stream().collect(Collectors.toMap(SysUserEntity::getId, SysUserEntity::getPin, StreamFunction.keepExisting()));
@@ -45,6 +47,13 @@ public interface SysUserMapper extends BaseMapper<SysUserEntity> {
 
     default List<String> selectPins(LambdaQueryWrapper<SysUserEntity> qw) {
         return selectList(qw).stream().map(SysUserEntity::getPin).toList();
+    }
+
+    default List<Long> selectIdsByStatuses(Collection<EnabledStatusEnum> statusEnums) {
+        return selectList(new LambdaQueryWrapper<SysUserEntity>()
+                .select(SysUserEntity::getId)
+                .in(SysUserEntity::getStatus, statusEnums)
+        ).stream().map(SysUserEntity::getId).toList();
     }
 
     /**

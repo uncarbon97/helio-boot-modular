@@ -1,10 +1,10 @@
 package cc.uncarbon.module.tenant.service.impl;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.tenant.dal.entity.TenantPackageMenuRelationEntity;
 import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMenuRelationMapper;
 import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,7 @@ public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRe
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void cleanAndBind(long packageId, Collection<Long> menuIds) {
-        var menuIdsQuery = new LambdaQueryWrapper<TenantPackageMenuRelationEntity>()
+        var menuIdsQuery = new LambdaQueryWrapperX<TenantPackageMenuRelationEntity>()
                 .select(TenantPackageMenuRelationEntity::getMenuId)
                 .eq(TenantPackageMenuRelationEntity::getPackageId, packageId);
 

@@ -1,10 +1,10 @@
 package cc.uncarbon.module.sys.service.impl;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.sys.dal.entity.SysUserRoleRelationEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
 import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
@@ -33,7 +33,7 @@ public class SysUserRoleRelationServiceImpl implements SysUserRoleRelationServic
         if (CollUtil.isNotEmpty(roleIds)) {
             roleIds = new LinkedHashSet<>(roleIds);
         }
-        var roleIdsQuery = new LambdaQueryWrapper<SysUserRoleRelationEntity>()
+        var roleIdsQuery = new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
                 .select(SysUserRoleRelationEntity::getRoleId)
                 .eq(SysUserRoleRelationEntity::getUserId, userId);
 

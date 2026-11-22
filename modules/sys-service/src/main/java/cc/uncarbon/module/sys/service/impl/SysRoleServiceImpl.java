@@ -3,6 +3,7 @@ package cc.uncarbon.module.sys.service.impl;
 import cc.uncarbon.framework.helium.base.exception.BusinessException;
 import cc.uncarbon.framework.helium.base.page.PageResult;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
 import cc.uncarbon.module.commons.exception.NoRecordException;
@@ -27,8 +28,6 @@ import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
 import cc.uncarbon.module.sys.support.UserRoleHelper;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.text.CharSequenceUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -66,11 +64,11 @@ public class SysRoleServiceImpl implements SysRoleService {
         Set<Long> hiddenRoleIds = userRoleHelper.listHiddenRoleIds();
         Page<SysRoleEntity> entityPage = sysRoleMapper.selectPage(
                 new Page<>(query.getPageNum(), query.getPageSize()),
-                new LambdaQueryWrapper<SysRoleEntity>()
+                new LambdaQueryWrapperX<SysRoleEntity>()
                         // 角色编码
-                        .like(CharSequenceUtil.isNotBlank(query.getCode()), SysRoleEntity::getCode, CharSequenceUtil.cleanBlank(query.getCode()))
+                        .likeIfPresent(SysRoleEntity::getCode, query.getCode())
                         // 角色名称
-                        .like(CharSequenceUtil.isNotBlank(query.getName()), SysRoleEntity::getName, CharSequenceUtil.cleanBlank(query.getName()))
+                        .likeIfPresent(SysRoleEntity::getName, query.getName())
                         // 不显示特定角色
                         .notIn(CollUtil.isNotEmpty(hiddenRoleIds), SysRoleEntity::getId, hiddenRoleIds)
                         // 排序
@@ -173,7 +171,7 @@ public class SysRoleServiceImpl implements SysRoleService {
     @Override
     public List<SysRoleDTO> adminListSelectOption() {
         Set<Long> hiddenRoleIds = userRoleHelper.listHiddenRoleIds();
-        List<SysRoleEntity> entityList = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
+        List<SysRoleEntity> entityList = sysRoleMapper.selectList(new LambdaQueryWrapperX<SysRoleEntity>()
                 // 只取特定字段
                 .select(SysRoleEntity::getId, SysRoleEntity::getName, SysRoleEntity::getCode)
                 // 不显示特定角色
@@ -261,7 +259,7 @@ public class SysRoleServiceImpl implements SysRoleService {
      */
     private void checkExistence(Long id) {
         boolean exists = sysRoleMapper.exists(
-                new LambdaQueryWrapper<SysRoleEntity>()
+                new LambdaQueryWrapperX<SysRoleEntity>()
                         .select(SysRoleEntity::getId)
                         .eq(SysRoleEntity::getId, id)
                         .last(SQLSegment.LIMIT_1)
@@ -273,19 +271,14 @@ public class SysRoleServiceImpl implements SysRoleService {
      * 检查是否存在重复
      */
     private void checkRepeat(AdminSysRoleUpsertRequest request) {
-        var entity = sysRoleMapper.selectOne(new LambdaQueryWrapper<SysRoleEntity>()
-                // 仅取主键ID
-                .select(SysRoleEntity::getId)
+        boolean exists = sysRoleMapper.exists(new LambdaQueryWrapperX<SysRoleEntity>()
                 // 并非原地更新
-                .ne(Objects.nonNull(request.getId()), SysRoleEntity::getId, request.getId())
+                .neIfPresent(SysRoleEntity::getId, request.getId())
                 // 编码相同
                 .eq(SysRoleEntity::getCode, request.getCode())
                 .last(SQLSegment.LIMIT_1)
         );
-
-        if (entity != null) {
-            throw new HasRepeatRecordException(SysErrorCodeEnum.A01031);
-        }
+        HasRepeatRecordException.throwIfTrue(exists, SysErrorCodeEnum.A01031);
     }
 
     /**

@@ -2,6 +2,7 @@ package cc.uncarbon.module.sys.support;
 
 import cc.uncarbon.framework.helium.base.context.UserContextHolder;
 import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.sys.constant.SysConstant;
 import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
 import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
@@ -9,7 +10,6 @@ import cc.uncarbon.module.sys.dal.mapper.SysUserRoleRelationMapper;
 import cc.uncarbon.module.sys.model.internal.UserRoleScope;
 import cc.uncarbon.module.sys.util.SysUtil;
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -69,7 +69,7 @@ public class UserRoleHelper {
             return Set.of(SysConstant.SUPER_ADMIN_ROLE_ID);
         }
         // 普通角色：列表中不显示超级管理员、租户管理员角色
-        Set<Long> ret = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
+        Set<Long> ret = sysRoleMapper.selectList(new LambdaQueryWrapperX<SysRoleEntity>()
                 // 仅取主键ID
                 .select(SysRoleEntity::getId)
                 // 值相符
@@ -100,7 +100,7 @@ public class UserRoleHelper {
         if (CollUtil.isEmpty(userRoleIds)) {
             return new UserRoleScope(List.of(), List.of());
         }
-        List<SysRoleEntity> userRoles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRoleEntity>()
+        List<SysRoleEntity> userRoles = sysRoleMapper.selectList(new LambdaQueryWrapperX<SysRoleEntity>()
                 .in(SysRoleEntity::getId, userRoleIds)
                 .eq(SysRoleEntity::getStatus, EnabledStatusEnum.ENABLED)
                 .orderByAsc(SysRoleEntity::getId)

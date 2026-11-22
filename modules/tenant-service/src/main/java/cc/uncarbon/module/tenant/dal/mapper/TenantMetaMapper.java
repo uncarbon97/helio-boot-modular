@@ -1,8 +1,8 @@
 package cc.uncarbon.module.tenant.dal.mapper;
 
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
 import cc.uncarbon.module.commons.constant.SQLSegment;
 import cc.uncarbon.module.tenant.dal.entity.TenantMetaEntity;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.jspecify.annotations.NonNull;
@@ -20,7 +20,7 @@ public interface TenantMetaMapper extends BaseMapper<TenantMetaEntity> {
     }
 
     default TenantMetaEntity selectByCode(@NonNull String code) {
-        return selectOne(new LambdaQueryWrapper<TenantMetaEntity>()
+        return selectOne(new LambdaQueryWrapperX<TenantMetaEntity>()
                 .eq(TenantMetaEntity::getCode, code)
                 .last(SQLSegment.LIMIT_1)
         );
