@@ -1,4 +1,4 @@
-BEGIN;
+START TRANSACTION;
 
 -- 会话时区，按北京时间墙钟
 SET TIME ZONE 'Asia/Shanghai';
@@ -306,70 +306,71 @@ COMMENT ON COLUMN sys_menu.sort IS '排序';
 COMMENT ON COLUMN sys_menu.component IS '前端组件名称';
 COMMENT ON COLUMN sys_menu.external_link IS '外链地址';
 
-INSERT INTO sys_menu VALUES (1, 0, '2026-10-01 00:00:00', 0, '2026-10-01 00:00:00', 0, '系统管理', 0, 0, 1, '/sys', '', 1, 'ant-design:setting-outlined', 100, NULL, '');
-INSERT INTO sys_menu VALUES (2, 0, '2026-10-01 00:00:00', 0, '2026-10-01 00:00:00', 0, '文件管理', 0, 0, 1, '/file', '', 1, 'ant-design:cloud-outlined', 101, NULL, '');
-INSERT INTO sys_menu VALUES (3, 0, '2026-10-01 00:00:00', 0, '2026-10-01 00:00:00', 0, '租户管理', 0, 0, 2, '/tenant', '', 1, 'ant-design:merge-outlined', 103, NULL, '');
-INSERT INTO sys_menu VALUES (10, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '用户管理', 1, 1, 1, '/sys/user', '', 1, 'ant-design:user-outlined', 100, 'sys/user/index', '');
-INSERT INTO sys_menu VALUES (11, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '角色管理', 1, 1, 1, '/sys/role', '', 1, 'ant-design:user-switch-outlined', 101, 'sys/role/index', '');
-INSERT INTO sys_menu VALUES (12, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '菜单管理', 1, 1, 2, '/sys/menu', '', 1, 'ant-design:appstore-filled', 102, 'sys/menu/index', '');
-INSERT INTO sys_menu VALUES (13, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '部门管理', 1, 1, 1, '/sys/dept', '', 1, 'ant-design:apartment-outlined', 103, '/sys/dept/index', '');
-INSERT INTO sys_menu VALUES (14, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '数据字典', 1, 1, 1, '/sys/dict', '', 1, 'ant-design:book-outlined', 104, '/sys/dict/index', '');
-INSERT INTO sys_menu VALUES (15, 0, '2026-10-01 00:00:00', 0, '2026-10-01 00:00:00', 0, '审计日志', 1, 0, 1, '/audit-log', '', 1, 'ant-design:file-search-outlined', 105, NULL, '');
-INSERT INTO sys_menu VALUES (16, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '登录日志', 15, 1, 1, '/sys/login-log', '', 1, 'ant-design:file-sync-outlined', 100, 'sys/login-log/index', '');
-INSERT INTO sys_menu VALUES (17, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '操作日志', 15, 1, 1, '/sys/operate-log', '', 1, 'ant-design:file-text-outlined', 101, '/sys/operate-log/index', '');
-INSERT INTO sys_menu VALUES (20, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '文件存储点', 2, 1, 1, '/file/storage', '', 1, 'ant-design:cloud-server-outlined', 100, 'file/storage/index', '');
-INSERT INTO sys_menu VALUES (21, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '文件管理', 2, 1, 1, '/file/meta', '', 1, 'ant-design:cloud-upload-outlined', 101, 'file/meta/index', '');
-INSERT INTO sys_menu VALUES (30, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '租户套餐', 3, 1, 1, '/tenant/package', '', 1, 'ant-design:mac-command-outlined', 100, 'tenant/package/index', '');
-INSERT INTO sys_menu VALUES (31, 0, '2026-10-01 00:00:00', NULL, '2026-10-01 00:00:00', 0, '租户管理', 3, 1, 1, '/tenant/meta', '', 1, 'ant-design:idcard-outlined', 101, 'tenant/meta/index', '');
-INSERT INTO sys_menu VALUES (1001, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 10, 2, 1, '', 'sys:user:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (1002, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 10, 2, 1, '', 'sys:user:create', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (1003, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 10, 2, 1, '', 'sys:user:update', 1, '', 3, NULL, '');
-INSERT INTO sys_menu VALUES (1004, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 10, 2, 1, '', 'sys:user:delete', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1005, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '分配角色', 10, 2, 1, '', 'sys:user:bind-role', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1006, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改部门', 10, 2, 1, '', 'sys:user:bind-dept', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1007, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '重置密码', 10, 2, 1, '', 'sys:user:reset-password', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1008, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '踢下线', 10, 2, 1, '', 'sys:user:kick-out', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1009, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '租户成员管理', 10, 2, 1, '', 'sys:user:join', 1, '', 5, NULL, '');
-INSERT INTO sys_menu VALUES (1010, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '批量导入', 10, 2, 1, '', 'sys:user:import', 1, '', 6, NULL, '');
-INSERT INTO sys_menu VALUES (1011, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查看隐私信息明文', 10, 2, 1, '', 'sys:user:read-plain', 1, '', 7, NULL, '');
-INSERT INTO sys_menu VALUES (1101, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 11, 2, 1, '', 'sys:role:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (1102, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 11, 2, 1, '', 'sys:role:create', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (1103, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 11, 2, 1, '', 'sys:role:update', 1, '', 3, NULL, '');
-INSERT INTO sys_menu VALUES (1104, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 11, 2, 1, '', 'sys:role:delete', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1105, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '授权', 11, 2, 1, '', 'sys:role:bind-menu', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1201, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 12, 2, 1, '', 'sys:menu:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (1202, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 12, 2, 1, '', 'sys:menu:create', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (1203, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 12, 2, 1, '', 'sys:menu:update', 1, '', 3, NULL, '');
-INSERT INTO sys_menu VALUES (1204, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 12, 2, 1, '', 'sys:menu:delete', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1301, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 13, 2, 1, '', 'sys:dept:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (1302, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 13, 2, 1, '', 'sys:dept:create', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (1303, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 13, 2, 1, '', 'sys:dept:update', 1, '', 3, NULL, '');
-INSERT INTO sys_menu VALUES (1304, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 13, 2, 1, '', 'sys:dept:delete', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1401, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 14, 2, 1, '', 'sys:dict:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (1402, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 14, 2, 1, '', 'sys:dict:create', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (1403, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 14, 2, 1, '', 'sys:dict:update', 1, '', 3, NULL, '');
-INSERT INTO sys_menu VALUES (1404, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 14, 2, 1, '', 'sys:dict:delete', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (1601, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 16, 2, 1, '', 'sys:login-log:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (1701, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 17, 2, 1, '', 'sys:operate-log:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (1702, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '导出', 17, 2, 1, '', 'sys:operate-log:export', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (2001, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 20, 2, 1, '', 'file:storage:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (2002, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 20, 2, 1, '', 'file:storage:create', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (2003, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 20, 2, 1, '', 'file:storage:update', 1, '', 3, NULL, '');
-INSERT INTO sys_menu VALUES (2004, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 20, 2, 1, '', 'file:storage:delete', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (2005, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '上传文件', 20, 2, 1, '', 'file:storage:upload', 1, '', 5, NULL, '');
-INSERT INTO sys_menu VALUES (2101, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 21, 2, 1, '', 'file:meta:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (2102, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 21, 2, 1, '', 'file:meta:create', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (2103, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 21, 2, 1, '', 'file:meta:update', 1, '', 3, NULL, '');
-INSERT INTO sys_menu VALUES (2104, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 21, 2, 1, '', 'file:meta:delete', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (3001, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 30, 2, 1, '', 'tenant:package:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (3002, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 30, 2, 1, '', 'tenant:package:create', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (3003, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 30, 2, 1, '', 'tenant:package:update', 1, '', 3, NULL, '');
-INSERT INTO sys_menu VALUES (3004, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 30, 2, 1, '', 'tenant:package:delete', 1, '', 4, NULL, '');
-INSERT INTO sys_menu VALUES (3101, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '查询', 31, 2, 1, '', 'tenant:meta:read', 1, '', 1, NULL, '');
-INSERT INTO sys_menu VALUES (3102, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '新增', 31, 2, 1, '', 'tenant:meta:create', 1, '', 2, NULL, '');
-INSERT INTO sys_menu VALUES (3103, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '修改', 31, 2, 1, '', 'tenant:meta:update', 1, '', 3, NULL, '');
-INSERT INTO sys_menu VALUES (3104, 0, '2026-10-01 00:00:00', NULL, NULL, NULL, '删除', 31, 2, 1, '', 'tenant:meta:delete', 1, '', 4, NULL, '');
-SELECT setval(pg_get_serial_sequence('sys_menu', 'id'), 10000, true);
+INSERT INTO sys_menu (id, del_flag, created_at, created_by, updated_at, updated_by, name, parent_id, menu_type, visible_scope, path, permission, status, icon, sort, component, external_link) VALUES
+(1, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '系统管理', 0, 0, 1, '/sys', '', 1, 'ant-design:setting-outlined', 100, NULL, ''),
+(2, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '文件管理', 0, 0, 1, '/file', '', 1, 'ant-design:cloud-outlined', 101, NULL, ''),
+(3, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '租户管理', 0, 0, 2, '/tenant', '', 1, 'ant-design:merge-outlined', 103, NULL, ''),
+(10, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '用户管理', 1, 1, 1, '/sys/user', '', 1, 'ant-design:user-outlined', 100, 'sys/user/index', ''),
+(11, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '角色管理', 1, 1, 1, '/sys/role', '', 1, 'ant-design:user-switch-outlined', 101, 'sys/role/index', ''),
+(12, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '菜单管理', 1, 1, 2, '/sys/menu', '', 1, 'ant-design:appstore-filled', 102, 'sys/menu/index', ''),
+(13, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '部门管理', 1, 1, 1, '/sys/dept', '', 1, 'ant-design:apartment-outlined', 103, 'sys/dept/index', ''),
+(14, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '数据字典', 1, 1, 1, '/sys/dict', '', 1, 'ant-design:book-outlined', 104, 'sys/dict/index', ''),
+(15, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '审计日志', 1, 0, 1, '/audit-log', '', 1, 'ant-design:file-search-outlined', 105, NULL, ''),
+(16, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '登录日志', 15, 1, 1, '/sys/login-log', '', 1, 'ant-design:file-sync-outlined', 100, 'sys/login-log/index', ''),
+(17, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '操作日志', 15, 1, 1, '/sys/operate-log', '', 1, 'ant-design:file-text-outlined', 101, 'sys/operate-log/index', ''),
+(20, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '文件存储点', 2, 1, 1, '/file/storage', '', 1, 'ant-design:cloud-server-outlined', 100, 'file/storage/index', ''),
+(21, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '文件管理', 2, 1, 1, '/file/meta', '', 1, 'ant-design:cloud-upload-outlined', 101, 'file/meta/index', ''),
+(30, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '租户套餐', 3, 1, 1, '/tenant/package', '', 1, 'ant-design:mac-command-outlined', 100, 'tenant/package/index', ''),
+(31, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '租户管理', 3, 1, 1, '/tenant/meta', '', 1, 'ant-design:idcard-outlined', 101, 'tenant/meta/index', ''),
+(1001, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 10, 2, 1, '', 'sys:user:read', 1, '', 1, NULL, ''),
+(1002, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '新增', 10, 2, 1, '', 'sys:user:create', 1, '', 2, NULL, ''),
+(1003, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改', 10, 2, 1, '', 'sys:user:update', 1, '', 3, NULL, ''),
+(1004, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '删除', 10, 2, 1, '', 'sys:user:delete', 1, '', 4, NULL, ''),
+(1005, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '分配角色', 10, 2, 1, '', 'sys:user:bind-role', 1, '', 4, NULL, ''),
+(1006, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改部门', 10, 2, 1, '', 'sys:user:bind-dept', 1, '', 4, NULL, ''),
+(1007, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '重置密码', 10, 2, 1, '', 'sys:user:reset-password', 1, '', 4, NULL, ''),
+(1008, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '踢下线', 10, 2, 1, '', 'sys:user:kick-out', 1, '', 4, NULL, ''),
+(1009, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '租户成员管理', 10, 2, 1, '', 'sys:user:join', 1, '', 5, NULL, ''),
+(1010, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '批量导入', 10, 2, 1, '', 'sys:user:import', 1, '', 6, NULL, ''),
+(1011, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查看隐私信息明文', 10, 2, 1, '', 'sys:user:read-plain', 1, '', 7, NULL, ''),
+(1101, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 11, 2, 1, '', 'sys:role:read', 1, '', 1, NULL, ''),
+(1102, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '新增', 11, 2, 1, '', 'sys:role:create', 1, '', 2, NULL, ''),
+(1103, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改', 11, 2, 1, '', 'sys:role:update', 1, '', 3, NULL, ''),
+(1104, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '删除', 11, 2, 1, '', 'sys:role:delete', 1, '', 4, NULL, ''),
+(1105, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '授权', 11, 2, 1, '', 'sys:role:bind-menu', 1, '', 4, NULL, ''),
+(1201, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 12, 2, 1, '', 'sys:menu:read', 1, '', 1, NULL, ''),
+(1202, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '新增', 12, 2, 1, '', 'sys:menu:create', 1, '', 2, NULL, ''),
+(1203, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改', 12, 2, 1, '', 'sys:menu:update', 1, '', 3, NULL, ''),
+(1204, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '删除', 12, 2, 1, '', 'sys:menu:delete', 1, '', 4, NULL, ''),
+(1301, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 13, 2, 1, '', 'sys:dept:read', 1, '', 1, NULL, ''),
+(1302, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '新增', 13, 2, 1, '', 'sys:dept:create', 1, '', 2, NULL, ''),
+(1303, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改', 13, 2, 1, '', 'sys:dept:update', 1, '', 3, NULL, ''),
+(1304, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '删除', 13, 2, 1, '', 'sys:dept:delete', 1, '', 4, NULL, ''),
+(1401, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 14, 2, 1, '', 'sys:dict:read', 1, '', 1, NULL, ''),
+(1402, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '新增', 14, 2, 1, '', 'sys:dict:create', 1, '', 2, NULL, ''),
+(1403, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改', 14, 2, 1, '', 'sys:dict:update', 1, '', 3, NULL, ''),
+(1404, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '删除', 14, 2, 1, '', 'sys:dict:delete', 1, '', 4, NULL, ''),
+(1601, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 16, 2, 1, '', 'sys:login-log:read', 1, '', 1, NULL, ''),
+(1701, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 17, 2, 1, '', 'sys:operate-log:read', 1, '', 1, NULL, ''),
+(1702, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '批量导出', 17, 2, 1, '', 'sys:operate-log:export', 1, '', 2, NULL, ''),
+(2001, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 20, 2, 1, '', 'file:storage:read', 1, '', 1, NULL, ''),
+(2002, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '新增', 20, 2, 1, '', 'file:storage:create', 1, '', 2, NULL, ''),
+(2003, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改', 20, 2, 1, '', 'file:storage:update', 1, '', 3, NULL, ''),
+(2004, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '删除', 20, 2, 1, '', 'file:storage:delete', 1, '', 4, NULL, ''),
+(2005, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '上传文件', 20, 2, 1, '', 'file:storage:upload', 1, '', 5, NULL, ''),
+(2101, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 21, 2, 1, '', 'file:meta:read', 1, '', 1, NULL, ''),
+(2102, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '新增', 21, 2, 1, '', 'file:meta:create', 1, '', 2, NULL, ''),
+(2103, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改', 21, 2, 1, '', 'file:meta:update', 1, '', 3, NULL, ''),
+(2104, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '删除', 21, 2, 1, '', 'file:meta:delete', 1, '', 4, NULL, ''),
+(3001, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 30, 2, 1, '', 'tenant:package:read', 1, '', 1, NULL, ''),
+(3002, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '新增', 30, 2, 1, '', 'tenant:package:create', 1, '', 2, NULL, ''),
+(3003, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改', 30, 2, 1, '', 'tenant:package:update', 1, '', 3, NULL, ''),
+(3004, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '删除', 30, 2, 1, '', 'tenant:package:delete', 1, '', 4, NULL, ''),
+(3101, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '查询', 31, 2, 1, '', 'tenant:meta:read', 1, '', 1, NULL, ''),
+(3102, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '新增', 31, 2, 1, '', 'tenant:meta:create', 1, '', 2, NULL, ''),
+(3103, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '修改', 31, 2, 1, '', 'tenant:meta:update', 1, '', 3, NULL, ''),
+(3104, 0, '2026-10-01 00:00:00', 0, NULL, NULL, '删除', 31, 2, 1, '', 'tenant:meta:delete', 1, '', 4, NULL, '');
+SELECT setval(pg_get_serial_sequence('sys_menu', 'id'), 10000, false);
 
 
 DROP TABLE IF EXISTS sys_operate_log;

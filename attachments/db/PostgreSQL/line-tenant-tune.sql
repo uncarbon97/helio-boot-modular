@@ -1,5 +1,5 @@
--- 行级多租户调优
-BEGIN;
+-- 行级多租户调优，仅在 isolation-strategy=LINE 部署时，于 init.sql 之后执行
+START TRANSACTION;
 
 -- 日志时间范围分页：created_at 时间窗口覆盖全部租户
 DROP INDEX IF EXISTS idx_sys_login_log_created_at;

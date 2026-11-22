@@ -1,5 +1,5 @@
 -- 行级多租户调优，仅在 isolation-strategy=LINE 部署时，于 init.sql 之后执行
-BEGIN;
+START TRANSACTION;
 
 SET NAMES utf8mb4;
 
