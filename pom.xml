@@ -34,7 +34,7 @@
 
         <!-- 固定其他第三方依赖版本 -->
         <!-- 密码哈希 -->
-        <bouncycastle.version>1.86</bouncycastle.version>
+        <bouncycastle.version>1.87</bouncycastle.version>
         <!-- IP 地址归属地查询 -->
         <ip2region.version>3.3.7</ip2region.version>
         <!-- 文件上传 -->
@@ -48,6 +48,8 @@
         <tika-core.safe-version>3.2.2</tika-core.safe-version>
         <jackson2.safe-version>2.22.4</jackson2.safe-version>
         <jackson3.safe-version>3.2.4</jackson3.safe-version>
+        <commons-codec.safe-version>1.23.0</commons-codec.safe-version>
+        <tomcat-embed.safe-version>11.0.29</tomcat-embed.safe-version>
         <!-- https://repo1.maven.org/maven2/tools/jackson/jackson-bom/3.2.4/jackson-bom-3.2.4.pom -->
         <jackson-annotations.compatible-version>2.22</jackson-annotations.compatible-version>
 
@@ -153,6 +155,24 @@
                 <groupId>tools.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson3.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons-codec.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${tomcat-embed.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-websocket</artifactId>
+                <version>${tomcat-embed.safe-version}</version>
             </dependency>
 
             <dependency>

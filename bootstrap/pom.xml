@@ -17,7 +17,7 @@
 
     <properties>
         <!-- 制品版本号，建议每次打包发布时都调整以作区分 -->
-        <products.version>1.0.0</products.version>
+        <products.version>4.0.0</products.version>
 
         <!-- 制品文件名 -->
         <products.filename>helium-monolith</products.filename>

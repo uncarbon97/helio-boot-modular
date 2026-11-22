@@ -48,7 +48,9 @@ spring:
 
 ---
 "helium.db.field-crypto":
-  # 生产环境密钥必须由环境变量 / KMS 注入
+  # ⭐生产环境密钥必须由环境变量 / KMS 注入
+  # ⭐生产环境下必须重新生成（参考命令  openssl rand -base64 32），并严格保管避免泄露
+  # 2个根密钥，不得相同！
   data-root-key: ${FIELD_CRYPTO_DATA_ROOT_KEY}
   index-root-key: ${FIELD_CRYPTO_INDEX_ROOT_KEY}
   data-key-ids:

@@ -1,5 +1,6 @@
 # https://hub.docker.com/_/eclipse-temurin/tags
-FROM eclipse-temurin:25-jre
+# docker.m.daocloud.io/ 是由 DaoCloud 提供服务的国内镜像源，代理加速下载 OpenJRE
+FROM docker.m.daocloud.io/eclipse-temurin:25-jre
 COPY ./bootstrap/target/*-exec.jar ./app.jar
 COPY docker-entrypoint.sh /
 RUN chmod +x ./docker-entrypoint.sh && \
