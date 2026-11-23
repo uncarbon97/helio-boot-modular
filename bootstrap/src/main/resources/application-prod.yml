@@ -59,24 +59,3 @@ spring:
   canary:
     enabled: true
     allow-overwrite: false
-
----
-
-# actuator
-management:
-  endpoints:
-    web:
-      exposure:
-        # 生产端点白名单：禁 heapdump/threaddump/env/configprops/beans
-        include: health,info,metrics
-  endpoint:
-    env:
-      show-values: NEVER
-    configprops:
-      show-values: NEVER
-    beans:
-      enabled: false
-    heapdump:
-      enabled: false
-    threaddump:
-      enabled: false
