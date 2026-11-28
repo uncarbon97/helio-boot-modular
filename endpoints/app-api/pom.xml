@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>cc.uncarbon.module</groupId>
+        <artifactId>helium-monolith</artifactId>
+        <version>${revision}</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>app-api</artifactId>
+    <version>${revision}</version>
+    <name>App-API | APP API 端点</name>
+
+    <properties>
+    </properties>
+
+    <dependencies>
+        <!-- 引用其他第三方依赖 -->
+
+
+        <!-- 引用下游实现 -->
+
+
+        <!-- 引用其他契约 -->
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>commons</artifactId>
+            <version>${commons.version}</version>
+        </dependency>
+
+
+        <!-- 引用框架启动包 -->
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-openapi3</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-satoken</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cc.uncarbon.framework</groupId>
+            <artifactId>helium-starter-web-security</artifactId>
+        </dependency>
+
+
+        <!-- 引用其他第三方依赖 -->
+    </dependencies>
+</project>

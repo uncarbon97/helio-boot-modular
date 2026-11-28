@@ -1,0 +1,77 @@
+package cc.uncarbon.module.adminapi.controller.file;
+
+
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
+import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
+import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
+import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.PermPattern;
+import cc.uncarbon.module.commons.model.request.IdRequest;
+import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.file.model.query.AdminFileMetaListQuery;
+import cc.uncarbon.module.file.model.request.AdminFileMetaDeleteRequest;
+import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
+import cc.uncarbon.module.file.service.FileMetaService;
+import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.annotation.SaCheckPermission;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Set;
+
+@Tag(name = "后台管理-" + AdminFileMetaController.BIZ_TYPE)
+@Slf4j
+@RequiredArgsConstructor
+@RestController
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/file/meta")
+@SaCheckLogin(type = StpLoginType.ADMIN)
+public class AdminFileMetaController {
+
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "file:meta:";
+    static final String BIZ_TYPE = "文件管理";
+
+    private final FileMetaService fileMetaService;
+
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
+    @Operation(summary = "分页查询")
+    @PostMapping(value = "/list")
+    public ApiResult<PageResult<FileMetaDTO>> list(@RequestBody @Valid AdminFileMetaListQuery query) {
+        return ApiResult.success(fileMetaService.adminList(query));
+    }
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
+    @Operation(summary = "详情")
+    @PostMapping(value = "/detail")
+    public ApiResult<FileMetaDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
+        return ApiResult.success(fileMetaService.getNonnullById(request.getId()));
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除文件",
+            bizNo = "{{#request.id}}",
+            success = "被操作文件：{{#old.getStorageFilenameFull()}}(存储点：{{#old.storageCode}})；是否一并删除远端原始文件：{{#request.deleteRemoteFile.getLabel()}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
+    @Operation(summary = "删除")
+    @PostMapping(value = "/delete")
+    public ApiResult<Void> delete(@RequestBody @Valid AdminFileMetaDeleteRequest request) {
+        var old = fileMetaService.getNonnullById(request.getId());
+        fileMetaService.adminDelete(Set.of(request.getId()), YesOrNoEnum.YES == request.getDeleteRemoteFile());
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
+}

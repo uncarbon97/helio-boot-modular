@@ -1,0 +1,176 @@
+package cc.uncarbon.module.sys.service.impl;
+
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
+import cc.uncarbon.framework.helium.tenant.context.TenantContextHolder;
+import cc.uncarbon.framework.helium.web.context.VisitorContext;
+import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.sys.dal.entity.SysLoginLogEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysLoginLogMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
+import cc.uncarbon.module.sys.iplocation.IPLocationResolver;
+import cc.uncarbon.module.sys.model.query.AdminSysLoginLogListQuery;
+import cc.uncarbon.module.sys.model.request.SysLoginLogCreateRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysLoginLogDTO;
+import cc.uncarbon.module.sys.service.SysLoginLogService;
+import cc.uncarbon.module.sys.service.SysUserService;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.http.useragent.UserAgent;
+import cn.hutool.http.useragent.UserAgentUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
+
+/**
+ * 系统登录日志
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class SysLoginLogServiceImpl implements SysLoginLogService {
+
+    /**
+     * UA可以接受的最大长度
+     */
+    public static final int USER_AGENT_MAX_LENGTH = 255;
+
+    private final SysLoginLogMapper sysLoginLogMapper;
+    private final SysUserMapper sysUserMapper;
+    private final SysUserService sysUserService;
+    private final List<IPLocationResolver> ipLocationResolvers;
+
+
+    /**
+     * 后台管理-分页查询
+     */
+    @Override
+    public PageResult<SysLoginLogDTO> adminList(AdminSysLoginLogListQuery query) {
+        // 过滤查询条件中的用户ID，防止越权枚举隐藏用户
+        sysUserService.checkUserQueryAccess(query.getUserIds());
+
+        boolean userIdsNotEmpty = CollUtil.isNotEmpty(query.getUserIds());
+        Collection<String> userPins;
+        if (userIdsNotEmpty) {
+            userPins = sysUserMapper.getPinMapByIds(query.getUserIds()).values();
+        } else {
+            userPins = List.of();
+        }
+        boolean userPinsNotEmpty = CollUtil.isNotEmpty(userPins);
+
+        Page<SysLoginLogEntity> entityPage = sysLoginLogMapper.selectPage(
+                new Page<>(query.getPageNum(), query.getPageSize()),
+                new LambdaQueryWrapperX<SysLoginLogEntity>()
+                        // 状态
+                        .eqIfPresent(SysLoginLogEntity::getResultStatus, query.getResultStatus())
+                        // 操作人：成功登录有userId，失败登录只有userPin，两者取并集
+                        .and(userIdsNotEmpty, wrapper -> wrapper
+                                .in(SysLoginLogEntity::getUserId, query.getUserIds())
+                                .or(userPinsNotEmpty)
+                                .in(userPinsNotEmpty, SysLoginLogEntity::getUserPin, userPins)
+                        )
+                        // 时间区间
+                        .betweenIfPresent(SysLoginLogEntity::getCreatedAt, query.getBeginAt(), query.getEndAt())
+                        // 排序
+                        .orderByDesc(SysLoginLogEntity::getId)
+        );
+        return convertPage(entityPage);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Long create(SysLoginLogCreateRequest request) {
+        var entity = new SysLoginLogEntity();
+        BeanUtil.copyProperties(request, entity);
+        // 按需改写字段
+        VisitorContext visitorContext = request.getVisitorContext();
+        String ua = visitorContext.getUserAgent();
+        if (CharSequenceUtil.length(ua) > USER_AGENT_MAX_LENGTH) {
+            // 超长度截断
+            ua = CharSequenceUtil.subPre(ua, USER_AGENT_MAX_LENGTH);
+        }
+
+        String ipLocation = null, clientIp = visitorContext.getClientIp();
+        if (Objects.nonNull(clientIp)) {
+            for (IPLocationResolver locationResolver : ipLocationResolvers) {
+                ipLocation = locationResolver.resolve(clientIp);
+                if (ipLocation != null) break;
+            }
+        }
+
+        entity.setVisitorIp(clientIp)
+                .setVisitorUserAgent(ua)
+                .setVisitorIpLocation(ipLocation);
+
+        // 登录日志 tenant_id 由业务显式写入（登录失败时可能尚无租户上下文），忽略租户态落库；读取仍走租户隔离
+        TenantContextHolder.runIgnored(() -> sysLoginLogMapper.insert(entity));
+        return entity.getId();
+    }
+
+    @Override
+    public SysLoginLogDTO getById(Long id) {
+        if (id == null) return null;
+        var entity = sysLoginLogMapper.selectById(id);
+        return convertEntity(entity);
+    }
+
+    @Override
+    public SysLoginLogDTO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 实体转值对象
+     */
+    private SysLoginLogDTO convertEntity(SysLoginLogEntity entity) {
+        if (entity == null) return null;
+
+        var ret = new SysLoginLogDTO();
+        BeanUtil.copyProperties(entity, ret);
+        // 按需改写字段
+        if (CharSequenceUtil.isNotBlank(entity.getVisitorUserAgent())) {
+            UserAgent parsedUa = UserAgentUtil.parse(entity.getVisitorUserAgent());
+            ret
+                    .setVisitorBrowser("%s %s".formatted(parsedUa.getBrowser().getName(), parsedUa.getVersion()))
+                    .setVisitorOs("%s %s".formatted(parsedUa.getOs().getName(), parsedUa.getOsVersion()));
+        }
+
+        return ret;
+    }
+
+    /**
+     * 实体转值对象
+     */
+    private List<SysLoginLogDTO> convertList(List<SysLoginLogEntity> entityList) {
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+        return entityList.stream().map(this::convertEntity).toList();
+    }
+
+    /**
+     * 实体转值对象
+     */
+    private PageResult<SysLoginLogDTO> convertPage(Page<SysLoginLogEntity> entityPage) {
+        return new PageResult<SysLoginLogDTO>()
+                .setCurrent(entityPage.getCurrent())
+                .setSize(entityPage.getSize())
+                .setTotal(entityPage.getTotal())
+                .setRecords(convertList(entityPage.getRecords()));
+    }
+
+}

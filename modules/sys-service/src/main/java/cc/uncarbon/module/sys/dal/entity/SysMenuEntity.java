@@ -1,0 +1,89 @@
+package cc.uncarbon.module.sys.dal.entity;
+
+import cc.uncarbon.framework.helium.db.entity.AbstractGenericEntity;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.module.commons.model.valueobj.AuditingUserSource;
+import cc.uncarbon.module.sys.enums.MenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuVisibleScopeEnum;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serial;
+
+
+/**
+ * 系统菜单
+ */
+@TableName(value = "sys_menu")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+public class SysMenuEntity extends AbstractGenericEntity implements AuditingUserSource {
+
+	@Serial
+	private static final long serialVersionUID = 1L;
+
+
+	@Schema(description = "主键ID")
+	@TableId(type = IdType.AUTO)
+	private Long id;
+
+	@Schema(description = "名称")
+	@TableField(value = "name")
+	private String name;
+
+	@Schema(description = "上级菜单ID(根菜单设置为0)")
+	@TableField(value = "parent_id")
+	private Long parentId;
+
+	@Schema(description = "菜单类型")
+	@TableField(value = "menu_type")
+	private MenuTypeEnum menuType;
+
+	@Schema(description = "路由地址(目录为可读slug, 页面为全路径)")
+	@TableField(value = "path")
+	private String path;
+
+	@Schema(description = "授权标识")
+	@TableField(value = "permission")
+	private String permission;
+
+	@Schema(description = "状态")
+	@TableField(value = "status")
+	private EnabledStatusEnum status;
+
+	@Schema(description = "可见范围")
+	@TableField(value = "visible_scope")
+	private MenuVisibleScopeEnum visibleScope;
+
+	@Schema(description = "图标")
+	@TableField(value = "icon")
+	private String icon;
+
+	@Schema(description = "排序(数值越小越优先)")
+	@TableField(value = "sort")
+	private Integer sort;
+
+	@Schema(description = "前端组件名称")
+	@TableField(value = "component")
+	private String component;
+
+	@Schema(description = "外链地址")
+	@TableField(value = "external_link")
+	private String externalLink;
+
+	public boolean doesSuperAdminOnly() {
+		return MenuVisibleScopeEnum.SUPER_ADMIN_ONLY == getVisibleScope();
+	}
+
+}

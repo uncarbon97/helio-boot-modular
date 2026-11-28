@@ -1,0 +1,30 @@
+package cc.uncarbon.module.commons.model.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.util.Collection;
+
+/**
+ * 同时接收多个主键 ID，兼容任意类型的主键
+ * 使用时，根据需要手动加上 @RequestBody @Valid 等注解
+ *
+ * @param <T> 主键数据类型
+ * @author Uncarbon
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+public class IdsRequest<T extends Serializable> implements Serializable {
+
+    @Schema(description = "主键ID数组", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotEmpty(message = "ID必填")
+    private Collection<T> ids;
+
+}

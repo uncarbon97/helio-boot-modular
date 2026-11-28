@@ -1,0 +1,41 @@
+package cc.uncarbon.module.tenant.model.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+
+
+/**
+ * 租户套餐-后台管理-新增/修改
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+public class AdminTenantPackageUpsertRequest implements Serializable {
+
+
+    @Schema(description = "主键ID", title = "仅修改时使用")
+    private Long id;
+
+    @Schema(description = "套餐编码", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 100, message = "套餐编码最长{max}位")
+    @NotBlank(message = "套餐编码必填")
+    private String code;
+
+    @Schema(description = "套餐名称", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 100, message = "套餐名称最长{max}位")
+    @NotBlank(message = "套餐名称必填")
+    private String name;
+
+    @Schema(description = "套餐描述")
+    @Size(max = 255, message = "套餐描述最长{max}位")
+    private String description;
+
+}

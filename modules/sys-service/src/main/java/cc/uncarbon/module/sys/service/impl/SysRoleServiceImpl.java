@@ -1,0 +1,363 @@
+package cc.uncarbon.module.sys.service.impl;
+
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
+import cc.uncarbon.module.commons.constant.SQLSegment;
+import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.sys.constant.SysConstant;
+import cc.uncarbon.module.sys.dal.entity.SysRoleEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
+import cc.uncarbon.module.sys.enums.SysRoleFlagEnum;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.model.internal.UserRoleScope;
+import cc.uncarbon.module.sys.model.query.AdminSysRoleListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysRoleBindMenuRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysRoleUpsertRequest;
+import cc.uncarbon.module.sys.model.request.TenantRoleCreateRequest;
+import cc.uncarbon.module.sys.model.response.TenantRoleCreateResult;
+import cc.uncarbon.module.sys.model.valueobj.SysRoleDTO;
+import cc.uncarbon.module.sys.service.SysMenuService;
+import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
+import cc.uncarbon.module.sys.service.SysRoleService;
+import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
+import cc.uncarbon.module.sys.support.UserRoleHelper;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+
+/**
+ * 系统角色
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class SysRoleServiceImpl implements SysRoleService {
+
+    private static final String LOG_PREFIX = "[系统管理][角色管理]";
+    private static final Set<String> UNACCEPTABLE_ROLE_CODES = Set.of(
+            SysConstant.SUPER_ADMIN_ROLE_CODE, SysConstant.TENANT_ADMIN_ROLE_CODE);
+
+    private final SysRoleMapper sysRoleMapper;
+    private final SysUserRoleRelationService sysUserRoleRelationService;
+    private final SysRoleMenuRelationService sysRoleMenuRelationService;
+    private final SysMenuService sysMenuService;
+    private final UserRoleHelper userRoleHelper;
+    private final AuditNicknameFiller auditNicknameFiller;
+
+
+    @Override
+    public PageResult<SysRoleDTO> adminList(AdminSysRoleListQuery query) {
+        Set<Long> hiddenRoleIds = userRoleHelper.listHiddenRoleIds();
+        Page<SysRoleEntity> entityPage = sysRoleMapper.selectPage(
+                new Page<>(query.getPageNum(), query.getPageSize()),
+                new LambdaQueryWrapperX<SysRoleEntity>()
+                        // 角色编码
+                        .likeIfPresent(SysRoleEntity::getCode, query.getCode())
+                        // 角色名称
+                        .likeIfPresent(SysRoleEntity::getName, query.getName())
+                        // 不显示特定角色
+                        .notIn(CollUtil.isNotEmpty(hiddenRoleIds), SysRoleEntity::getId, hiddenRoleIds)
+                        // 排序
+                        .orderByDesc(SysRoleEntity::getId)
+        );
+        var ret = convertPage(entityPage);
+        fillMenu(ret.getRecords());
+        return ret;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Long adminCreate(AdminSysRoleUpsertRequest request) {
+        log.info(LOG_PREFIX + "新增 >> {}", request);
+        // 保留编码属静态非法入参，先于查库的重复校验快速失败
+        checkBeforeCreate(request);
+        checkRepeat(request);
+
+        request.setId(null);
+        var entity = new SysRoleEntity();
+        BeanUtil.copyProperties(request, entity);
+        // 新建角色默认启用
+        if (entity.getStatus() == null) {
+            entity.setStatus(EnabledStatusEnum.ENABLED);
+        }
+
+        sysRoleMapper.insert(entity);
+        return entity.getId();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminUpdate(AdminSysRoleUpsertRequest request) {
+        log.info(LOG_PREFIX + "修改 >> {}", request);
+        checkExistence(request.getId());
+        checkRepeat(request);
+        checkBeforeUpdate(request);
+
+        // 暂不检查该角色是否为当前用户关联的角色
+
+        var entity = new SysRoleEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        sysRoleMapper.updateById(entity);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminDelete(Collection<Long> ids) {
+        log.info(LOG_PREFIX + "删除 >> {}", ids);
+        checkBeforeDelete(ids);
+        // 一并清理关联关系，避免孤儿数据
+        sysUserRoleRelationService.deleteByRoleIds(ids);
+        sysRoleMenuRelationService.deleteByRoleIds(ids);
+        sysRoleMapper.deleteByIds(ids);
+    }
+
+    @Override
+    public SysRoleDTO getById(Long id) {
+        if (id == null) return null;
+        var entity = sysRoleMapper.selectById(id);
+        var ret = auditNicknameFiller.fillOne(entity, this::convertEntity);
+        if (ret != null) {
+            fillMenu(List.of(ret));
+        }
+        return ret;
+    }
+
+    @Override
+    public SysRoleDTO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminBindMenu(AdminSysRoleBindMenuRequest request) {
+        checkExistence(request.getRoleId());
+        checkBeforeBindRoleMenuRelation(request);
+        sysRoleMenuRelationService.cleanAndBind(request.getRoleId(), request.getMenuIds());
+        sysMenuService.getPermissionsByRole(Set.of(request.getRoleId()))
+                .getOrDefault(request.getRoleId(), Set.of());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        Long id = request.getId();
+        var entity = sysRoleMapper.selectById(id);
+        NoRecordException.throwIfNull(entity);
+        denyBuiltinOp(entity, SysErrorCodeEnum.A01013);
+        SysRoleEntity template = new SysRoleEntity()
+                .setId(id)
+                .setStatus(request.getNewStatus());
+        sysRoleMapper.updateById(template);
+    }
+
+    /**
+     * 后台管理-下拉框数据
+     */
+    @Override
+    public List<SysRoleDTO> adminListSelectOption() {
+        Set<Long> hiddenRoleIds = userRoleHelper.listHiddenRoleIds();
+        List<SysRoleEntity> entityList = sysRoleMapper.selectList(new LambdaQueryWrapperX<SysRoleEntity>()
+                // 只取特定字段
+                .select(SysRoleEntity::getId, SysRoleEntity::getName, SysRoleEntity::getCode)
+                // 不显示特定角色
+                .notIn(CollUtil.isNotEmpty(hiddenRoleIds), SysRoleEntity::getId, hiddenRoleIds)
+                // 排序
+                .orderByAsc(SysRoleEntity::getId)
+        );
+        // 无需填充关联菜单IDs
+        return convertList(entityList);
+    }
+
+    @Override
+    public TenantRoleCreateResult createTenantRole(TenantRoleCreateRequest request) {
+        var entity = new SysRoleEntity();
+        BeanUtil.copyProperties(request, entity);
+        // 按需改写字段
+        if (request.isTenantAdmin()) {
+            entity
+                    .setCode(SysConstant.TENANT_ADMIN_ROLE_CODE)
+                    .setName(request.getTenantName() + "主管理员")
+                    .setDescription("具有所有功能权限和全部数据可见范围")
+                    .assignFlags(List.of(SysRoleFlagEnum.BUILTIN));
+        }
+
+        sysRoleMapper.insert(entity);
+        return new TenantRoleCreateResult(entity.getId(), request.isTenantAdmin());
+    }
+
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 实体转值对象
+     */
+    private SysRoleDTO convertEntity(SysRoleEntity entity) {
+        if (entity == null) return null;
+
+        var ret = new SysRoleDTO();
+        BeanUtil.copyProperties(entity, ret, "flags");
+        // 按需改写字段
+        ret.setFlags(entity.resolveFlags());
+        return ret;
+    }
+
+    /**
+     * 实体转值对象
+     */
+    private List<SysRoleDTO> convertList(List<SysRoleEntity> entityList) {
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
+    }
+
+    /**
+     * 实体转值对象
+     */
+    private PageResult<SysRoleDTO> convertPage(Page<SysRoleEntity> entityPage) {
+        return new PageResult<SysRoleDTO>()
+                .setCurrent(entityPage.getCurrent())
+                .setSize(entityPage.getSize())
+                .setTotal(entityPage.getTotal())
+                .setRecords(convertList(entityPage.getRecords()));
+    }
+
+    /**
+     * 填充关联菜单IDs
+     */
+    private void fillMenu(Collection<SysRoleDTO> collection) {
+        if (CollUtil.isNotEmpty(collection)) {
+            for (SysRoleDTO item : collection) {
+                if (item != null) {
+                    item.setMenuIds(sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(item.getId())));
+                }
+            }
+        }
+    }
+
+    /**
+     * 检查是否存在
+     */
+    private void checkExistence(Long id) {
+        boolean exists = sysRoleMapper.exists(
+                new LambdaQueryWrapperX<SysRoleEntity>()
+                        .select(SysRoleEntity::getId)
+                        .eq(SysRoleEntity::getId, id)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        NoRecordException.throwIfFalse(exists);
+    }
+
+    /**
+     * 检查是否存在重复
+     */
+    private void checkRepeat(AdminSysRoleUpsertRequest request) {
+        boolean exists = sysRoleMapper.exists(new LambdaQueryWrapperX<SysRoleEntity>()
+                // 并非原地更新
+                .neIfPresent(SysRoleEntity::getId, request.getId())
+                // 编码相同
+                .eq(SysRoleEntity::getCode, request.getCode())
+                .last(SQLSegment.LIMIT_1)
+        );
+        HasRepeatRecordException.throwIfTrue(exists, SysErrorCodeEnum.A01031);
+    }
+
+    /**
+     * 新增前检查
+     */
+    private void checkBeforeCreate(AdminSysRoleUpsertRequest request) {
+        if (CollUtil.contains(UNACCEPTABLE_ROLE_CODES, request.getCode())) {
+            throw new BusinessException(SysErrorCodeEnum.A01010, request.getCode());
+        }
+    }
+
+    /**
+     * 修改前检查
+     */
+    private void checkBeforeUpdate(AdminSysRoleUpsertRequest request) {
+        var entity = sysRoleMapper.selectById(request.getId());
+        denyBuiltinOp(entity, SysErrorCodeEnum.A01013);
+        if (CollUtil.contains(UNACCEPTABLE_ROLE_CODES, request.getCode())) {
+            throw new BusinessException(SysErrorCodeEnum.A01010, request.getCode());
+        }
+    }
+
+    /**
+     * 删除前检查
+     */
+    private void checkBeforeDelete(Collection<Long> ids) {
+        List<SysRoleEntity> entityList = sysRoleMapper.selectByIds(ids);
+        for (SysRoleEntity entity : entityList) {
+            denyBuiltinOp(entity, SysErrorCodeEnum.A01011);
+        }
+
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (CollUtil.containsAny(me.getRelatedRoleIds(), ids)) {
+            throw new BusinessException(SysErrorCodeEnum.A01012);
+        }
+    }
+
+    /**
+     * 绑定角色与菜单关联关系前检查
+     * 防止越权访问漏洞
+     */
+    private void checkBeforeBindRoleMenuRelation(AdminSysRoleBindMenuRequest request) {
+        var entity = sysRoleMapper.selectById(request.getRoleId());
+        denyBuiltinOp(entity, SysErrorCodeEnum.A01013);
+
+        UserRoleScope me = userRoleHelper.getCurrentUserRole();
+        if (CollUtil.contains(me.getRelatedRoleIds(), request.getRoleId())) {
+            throw new BusinessException(SysErrorCodeEnum.A01014);
+        }
+
+        if (CollUtil.isNotEmpty(request.getMenuIds())) {
+            // 「仅超管可见」菜单及其子孙不允许绑定给任何角色（含超级管理员操作），
+            // 需先在菜单管理中调整为通用可见，再行授权
+            Set<Long> superAdminOnlySubtreeMenuIds = sysMenuService.listSuperAdminOnlySubtreeMenuIds();
+            if (CollUtil.containsAny(request.getMenuIds(), superAdminOnlySubtreeMenuIds)) {
+                throw new BusinessException(SysErrorCodeEnum.A01016);
+            }
+
+            if (!me.isSuperAdmin()) {
+                // 超级管理员之外的角色，都需要校验自身菜单范围是否满足输入值
+                Set<Long> visibleMenuIds = sysRoleMenuRelationService.listMenuIdsByRoles(me.getRelatedRoleIds());
+                if (!CollUtil.containsAll(visibleMenuIds, request.getMenuIds())) {
+                    // 可能存在超自身权限赋权
+                    throw new BusinessException(SysErrorCodeEnum.A01015);
+                }
+            }
+        }
+    }
+
+    /**
+     * 阻止对 {@link SysRoleFlagEnum#BUILTIN} 角色的操作
+     */
+    private static void denyBuiltinOp(SysRoleEntity entity, SysErrorCodeEnum errorCode) {
+        if (entity == null) {
+            return;
+        }
+        List<SysRoleFlagEnum> roleFlags = entity.resolveFlags();
+        if (CollUtil.contains(roleFlags, SysRoleFlagEnum.BUILTIN)) {
+            throw new BusinessException(errorCode);
+        }
+    }
+}

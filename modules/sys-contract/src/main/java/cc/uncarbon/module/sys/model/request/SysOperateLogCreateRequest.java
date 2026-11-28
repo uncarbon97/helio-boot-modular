@@ -1,0 +1,65 @@
+package cc.uncarbon.module.sys.model.request;
+
+import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
+import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+
+
+/**
+ * 系统操作日志-新增
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+public class SysOperateLogCreateRequest implements Serializable {
+
+    @Schema(description = "业务类型")
+    private String bizType;
+
+    @Schema(description = "行为")
+    private String behavior;
+
+    @Schema(description = "业务号")
+    private String bizNo;
+
+    @Schema(description = "操作内容")
+    private String operation;
+
+    @Schema(description = "额外业务信息")
+    private String bizExtra;
+
+    @Schema(description = "用户ID")
+    private Long userId;
+
+    @Schema(description = "用户类型编码")
+    private UserTypeCodeEnum userTypeCode;
+
+    @Schema(description = "HTTP请求方法")
+    private String requestMethod;
+
+    @Schema(description = "HTTP请求路径")
+    private String requestPath;
+
+    @Schema(description = "来源IP地址")
+    private String visitorIp;
+
+    @Schema(description = "来源UA")
+    private String visitorUserAgent;
+
+    @Schema(description = "IP地址归属地")
+    private String visitorIpLocation;
+
+    @Schema(description = "结果状态")
+    private LogResultStatusEnum resultStatus;
+
+    @Schema(description = "失败原因文本")
+    private String failedMsg;
+
+}

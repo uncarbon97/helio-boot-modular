@@ -7,57 +7,58 @@
 
     <parent>
         <groupId>cc.uncarbon.module</groupId>
-        <artifactId>helio-boot-modular</artifactId>
+        <artifactId>helium-monolith</artifactId>
         <version>${revision}</version>
     </parent>
 
     <artifactId>bootstrap</artifactId>
-    <version>${products.version}</version>
+    <version>${revision}</version>
+    <name>Bootstrap | 项目主入口，负责启动 SpringBoot</name>
 
     <properties>
         <!-- 制品版本号，建议每次打包发布时都调整以作区分 -->
-        <!-- 全新项目可从 1.0.0 开始计数 -->
-        <products.version>${revision}</products.version>
+        <products.version>2026.11.28</products.version>
 
         <!-- 制品文件名 -->
-        <products.filename>helio-boot</products.filename>
-
-        <!-- 引入 HTTP-API 模块 -->
-        <!-- 后台管理 HTTP-API -->
-        <admin-api.version>${revision}</admin-api.version>
-        <!-- C端 HTTP-API -->
-        <app-api.version>${revision}</app-api.version>
+        <products.filename>helium-monolith</products.filename>
     </properties>
 
     <dependencies>
-        <!-- 引入 HTTP-API 模块 -->
+        <!-- 后台管理 API 端点 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>admin-api</artifactId>
             <version>${admin-api.version}</version>
         </dependency>
 
+        <!-- APP API 端点 -->
         <dependency>
             <groupId>cc.uncarbon.module</groupId>
             <artifactId>app-api</artifactId>
             <version>${app-api.version}</version>
         </dependency>
 
-        <!-- 引入单元测试支持 -->
+        <!-- 国际化 -->
         <dependency>
             <groupId>cc.uncarbon.framework</groupId>
-            <artifactId>helio-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>helium-starter-i18n</artifactId>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <!-- Spring Boot 打包插件 -->
+            <!--
+                classifier=exec：repackage 后的 fat jar 带上 -exec 后缀，
+                普通 classes jar 保留为主制品，供 integration-tests 模块作为依赖使用。
+                部署/启动脚本请改用 helium-monolith-${products.version}-exec.jar。
+            -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
+                <configuration>
+                    <classifier>exec</classifier>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -67,6 +68,6 @@
                 </executions>
             </plugin>
         </plugins>
-        <finalName>${products.filename}-${parent.version}</finalName>
+        <finalName>${products.filename}-${products.version}</finalName>
     </build>
 </project>

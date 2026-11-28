@@ -1,0 +1,46 @@
+package cc.uncarbon.module.sys.model.request;
+
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+
+
+/**
+ * 字典分类-后台管理-新增/修改
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+public class AdminSysDictCategoryUpsertRequest implements Serializable {
+
+    @Schema(description = "主键ID", title = "仅修改时使用")
+    private Long id;
+
+    @Schema(description = "字典编码", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 100, message = "字典编码最长{max}位")
+    @NotBlank(message = "字典编码必填")
+    private String code;
+
+    @Schema(description = "字典名称", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 100, message = "字典名称最长{max}位")
+    @NotBlank(message = "字典名称必填")
+    private String name;
+
+    @Schema(description = "状态", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "状态必填")
+    private DictStatusEnum status;
+
+    @Schema(description = "字典描述")
+    @Size(max = 255, message = "字典描述最长{max}位")
+    private String description;
+
+}

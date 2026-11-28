@@ -1,0 +1,77 @@
+package cc.uncarbon.module.sys.dal.mapper;
+
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
+import cc.uncarbon.module.sys.dal.entity.SysUserRoleRelationEntity;
+import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * 系统用户-角色关联关系
+ */
+@Mapper
+public interface SysUserRoleRelationMapper extends BaseMapper<SysUserRoleRelationEntity> {
+
+    /**
+     * 根据用户ID，查询关联的角色IDs
+     */
+    default List<Long> listRoleIdsByUser(Long userId) {
+        if (userId == null) {
+            return List.of();
+        }
+        return selectList(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
+                .select(SysUserRoleRelationEntity::getRoleId)
+                .eq(SysUserRoleRelationEntity::getUserId, userId)
+        ).stream().map(SysUserRoleRelationEntity::getRoleId).toList();
+    }
+
+    /**
+     * 根据角色IDs，删除关联
+     */
+    default int deleteByRoleIds(Collection<Long> roleIds) {
+        if (CollUtil.isEmpty(roleIds)) {
+            return 0;
+        }
+        return delete(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
+                .in(SysUserRoleRelationEntity::getRoleId, roleIds));
+    }
+
+    /**
+     * 根据用户ID，删除关联
+     */
+    default int deleteByUserId(Long userId) {
+        if (userId == null) {
+            return 0;
+        }
+        return delete(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
+                .eq(SysUserRoleRelationEntity::getUserId, userId));
+    }
+
+    /**
+     * 根据用户ID，删除不在指定角色ID集合内的关联
+     */
+    default int deleteByUserIdAndRoleIdNotIn(Long userId, Collection<Long> roleIds) {
+        return delete(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
+                .eq(SysUserRoleRelationEntity::getUserId, userId)
+                .notIn(SysUserRoleRelationEntity::getRoleId, roleIds));
+    }
+
+    /**
+     * 根据角色IDs，查询关联的用户IDs
+     */
+    default Set<Long> listUserIdsByRoles(Collection<Long> roleIds) {
+        if (CollUtil.isEmpty(roleIds)) {
+            return Set.of();
+        }
+
+        return selectList(new LambdaQueryWrapperX<SysUserRoleRelationEntity>()
+                .select(SysUserRoleRelationEntity::getUserId)
+                .in(SysUserRoleRelationEntity::getRoleId, roleIds)
+        ).stream().map(SysUserRoleRelationEntity::getUserId).collect(Collectors.toSet());
+    }
+}

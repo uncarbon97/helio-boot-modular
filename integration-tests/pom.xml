@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>cc.uncarbon.module</groupId>
+        <artifactId>helium-monolith</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>integration-tests</artifactId>
+    <name>Integration-Tests | 集成测试</name>
+    <version>${revision}</version>
+    <description>
+        集成测试
+    </description>
+
+    <properties>
+        <!-- failsafe 版本与 surefire 对齐 -->
+        <maven-failsafe-plugin.version>${maven-surefire-plugin.version}</maven-failsafe-plugin.version>
+
+        <!--
+            按大模块分类跑集成测试：sys / auth / tenant / file
+            例：mvn -pl integration-tests -am -Prun-it verify -Dit.groups=tenant
+            留空 = 跑全部
+        -->
+        <it.groups/>
+    </properties>
+
+    <dependencies>
+        <!--
+            依赖 bootstrap 拿到 @SpringBootApplication 主类 + 全量应用上下文（含各业务模块的传递依赖）。
+            前置：bootstrap/pom.xml 的 spring-boot-maven-plugin 已加 <classifier>exec</classifier>，
+            保留普通 classes jar 作主制品，否则 integration-tests 拿到的是 repackage 后的 fat jar，编译期找不到 Bootstrap 类。
+        -->
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>bootstrap</artifactId>
+            <version>${bootstrap.version}</version>
+        </dependency>
+
+        <!--
+            显式直依赖各业务模块：report-aggregate 只聚合「本模块依赖图中可见的模块」，
+            仅靠 bootstrap 传递依赖时，单独构建本模块（-pl integration-tests，不带 -am）会漏掉全部业务模块，
+            聚合报告只剩 bootstrap 自身，数字无效。
+        -->
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>commons</artifactId>
+            <version>${commons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>sys-contract</artifactId>
+            <version>${sys.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>sys-service</artifactId>
+            <version>${sys.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>file-contract</artifactId>
+            <version>${file.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>file-service</artifactId>
+            <version>${file.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>tenant-contract</artifactId>
+            <version>${tenant.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>tenant-service</artifactId>
+            <version>${tenant.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>admin-api</artifactId>
+            <version>${admin-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cc.uncarbon.module</groupId>
+            <artifactId>app-api</artifactId>
+            <version>${app-api.version}</version>
+        </dependency>
+
+        <!--
+            IT 启动全量上下文时，顺带侦测废弃/迁移过的配置键
+            仅限本测试模块内使用。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-properties-migrator</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                跨模块聚合覆盖率报告（版本与执行继承自根 pom 的 jacoco-maven-plugin）：
+                汇总本模块及依赖（bootstrap 传递全量业务模块）的 jacoco.exec / jacoco-it.exec，
+                输出 integration-tests/target/site/jacoco-aggregate/index.html。
+                前提：与各模块在同一 reactor 构建中，如 mvn -Dskip-unit-tests=false -Prun-it verify
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>report-aggregate</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!--
+            默认不跑集成测试（需要外部 DB/Redis 在跑）。
+            触发：mvn -pl integration-tests -am -Prun-it verify
+            failsafe 绑定 integration-test / verify 阶段，跑 src/test/java 下的 *IT.java，不受根 pom 的 surefire skipTests=true 影响。
+        -->
+        <profile>
+            <id>run-it</id>
+            <properties>
+                <skip-unit-tests>false</skip-unit-tests>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven-failsafe-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <!-- 大模块分类（JUnit5 @Tag）：-Dit.groups=sys|auth|tenant|file，留空跑全部 -->
+                        <configuration>
+                            <groups>${it.groups}</groups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

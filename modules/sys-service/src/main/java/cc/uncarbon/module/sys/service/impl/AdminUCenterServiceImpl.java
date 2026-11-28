@@ -1,0 +1,74 @@
+package cc.uncarbon.module.sys.service.impl;
+
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.db.enums.YesOrNoEnum;
+import cc.uncarbon.module.sys.dal.entity.SysUserEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysUserMapper;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.model.request.AdminUpdateMyPasswordRequest;
+import cc.uncarbon.module.sys.model.request.AdminUpdateMyProfileRequest;
+import cc.uncarbon.module.sys.model.valueobj.MyProfileDTO;
+import cc.uncarbon.module.sys.service.AdminUCenterService;
+import cc.uncarbon.module.sys.service.SysUserService;
+import cc.uncarbon.module.sys.util.PwdUtil;
+import cn.hutool.core.bean.BeanUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+
+/**
+ * 后台管理-用户中心
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class AdminUCenterServiceImpl implements AdminUCenterService {
+
+    private final SysUserService sysUserService;
+    private final SysUserMapper sysUserMapper;
+
+
+    @Override
+    public MyProfileDTO getMyProfile() {
+        var me = sysUserService.getNonnullBasicProfileById(UserContextHolder.getUserId());
+        var ret = new MyProfileDTO();
+        BeanUtil.copyProperties(me, ret);
+        return ret;
+    }
+
+    @Override
+    public void updateMyPassword(AdminUpdateMyPasswordRequest request) {
+        if (!Objects.equals(request.getNeo(), request.getConfirmNeo())) {
+            throw new BusinessException(SysErrorCodeEnum.A01003);
+        }
+        Long userId = UserContextHolder.getUserId();
+        assert userId != null;
+        var entity = sysUserMapper.selectById(userId);
+        if (entity == null || !PwdUtil.verify(request.getOld(), entity.getPwd())) {
+            throw new BusinessException(SysErrorCodeEnum.A01004);
+        }
+        final String encryptPwd = PwdUtil.hash(request.getNeo());
+        if (entity.getPwd().equals(encryptPwd)) {
+            throw new BusinessException(SysErrorCodeEnum.A01006);
+        }
+        sysUserMapper.updateEncryptedPwd(userId, encryptPwd, YesOrNoEnum.NO);
+    }
+
+    @Override
+    public void updateMyProfile(AdminUpdateMyProfileRequest request) {
+        var entity = new SysUserEntity();
+        BeanUtil.copyProperties(request, entity);
+        entity.setId(UserContextHolder.getUserId())
+                .setCleanPhoneNo(request.getPhoneNo())
+                .setCleanEmail(request.getEmail());
+        sysUserMapper.updateById(entity);
+    }
+
+    @Override
+    public void updateMyAvatar(String url) {
+        sysUserMapper.updateAvatarUrl(UserContextHolder.getUserId(), url);
+    }
+}

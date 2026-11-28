@@ -1,0 +1,172 @@
+package cc.uncarbon.module.adminapi.controller.sys;
+
+
+import cc.uncarbon.framework.helium.base.context.SimpleUserContext;
+import cc.uncarbon.framework.helium.base.context.UserContext;
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.tenant.context.TenantContext;
+import cc.uncarbon.framework.helium.web.context.VisitorContextHolder;
+import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.adminapi.errorcode.AdminApiErrorCodeEnum;
+import cc.uncarbon.module.adminapi.helper.RolePermissionCacheHelper;
+import cc.uncarbon.module.adminapi.model.valueobj.AdminSessionPermissionVO;
+import cc.uncarbon.module.adminapi.props.LoginChallengeProperties;
+import cc.uncarbon.module.adminapi.support.loginchallenge.enums.LoginChallengeStrategyTypeEnum;
+import cc.uncarbon.module.adminapi.support.loginchallenge.strategy.LoginChallengeStrategy;
+import cc.uncarbon.module.adminapi.support.loginchallenge.valueobj.AdminAuthChallengeVO;
+import cc.uncarbon.module.adminapi.support.loginguard.LoginFailureGuard;
+import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.enums.UserTypeCodeEnum;
+import cc.uncarbon.module.commons.satoken.StpKit;
+import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.sys.constant.SysConstant;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.model.request.AdminAuthPasswordLoginRequest;
+import cc.uncarbon.module.sys.model.response.SysUserLoginResult;
+import cc.uncarbon.module.sys.model.valueobj.SysUserLoginVO;
+import cc.uncarbon.module.sys.service.AdminLoginService;
+import cc.uncarbon.module.sys.util.SysUtil;
+import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.stp.StpLogic;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Set;
+
+
+@Tag(name = "后台管理--鉴权接口")
+@Slf4j
+@RequiredArgsConstructor
+@RestController
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/auth")
+public class AdminAuthController {
+
+    private final AdminLoginService adminLoginService;
+    private final LoginChallengeProperties loginChallengeProperties;
+    private final List<LoginChallengeStrategy> loginChallengeStrategies;
+    private final LoginFailureGuard loginFailureGuard;
+    private final RolePermissionCacheHelper rolePermissionCacheHelper;
+
+
+    /**
+     * fail-fast：配置了挑战策略但无对应实现时，启动即失败，避免静默降级为无验证码登录
+     */
+    @PostConstruct
+    void validateChallengeStrategyConfig() {
+        var type = loginChallengeProperties.getStrategy();
+        if (type != null && type != LoginChallengeStrategyTypeEnum.NONE && resolveChallengeStrategy() == null) {
+            throw new IllegalStateException("已配置登录挑战策略 " + type + "，但容器中无对应实现，拒绝启动");
+        }
+    }
+
+    @Operation(summary = "登录")
+    @PostMapping(value = "/password-login")
+    public ApiResult<SysUserLoginVO> login(@RequestBody @Valid AdminAuthPasswordLoginRequest request) {
+        LoginChallengeStrategy strategy = resolveChallengeStrategy();
+        if (strategy != null && !strategy.validate(request.getCaptchaId(), request.getCaptchaAnswer())) {
+            throw new BusinessException(AdminApiErrorCodeEnum.A04001);
+        }
+
+        loginFailureGuard.assertNotLocked(request.getTenantCode(), request.getPin());
+
+        SysUserLoginResult loginResult;
+        try {
+            loginResult = adminLoginService.passwordLogin(request, VisitorContextHolder.getContext());
+        } catch (BusinessException be) {
+            if (SysErrorCodeEnum.A01001.equals(be.getErrorCode())) {
+                // 账号不存在与密码错误统一计数，兼顾防撞库与防枚举
+                loginFailureGuard.recordFailure(request.getTenantCode(), request.getPin());
+            }
+            throw be;
+        }
+        loginFailureGuard.clear(request.getTenantCode(), request.getPin());
+
+        if (SysUtil.isSuperAdmin(loginResult.getId())) {
+            // 超管角色权限为全量菜单并集，重新登录时清除其权限缓存，使手工调整菜单（如执行补丁 SQL）无需额外操作即可生效
+            rolePermissionCacheHelper.delayedDoubleDelete(Set.of(SysConstant.SUPER_ADMIN_ROLE_ID));
+        }
+
+        // 构造用户上下文
+        UserContext userContext = new SimpleUserContext()
+                .setUserId(loginResult.getId())
+                .setUserPin(loginResult.getPin())
+                .setUserTypeCode(UserTypeCodeEnum.ADMIN_USER.getValue())
+                .setRoleIds(loginResult.getRoleIds())
+                .setRoleCodes(loginResult.getRoleCodes())
+                .setUserPhoneNo(loginResult.getPhoneNo())
+                .setUserNickname(loginResult.getNickname());
+
+        // 注册到 SA-Token ，并附加一些业务字段
+        final StpLogic stpUtil = StpKit.ADMIN;
+        stpUtil.login(loginResult.getId(), false);
+        stpUtil.getSession().set(UserContext.CAMEL_NAME, userContext);
+        stpUtil.getSession().set(TenantContext.CAMEL_NAME, loginResult.getTenantContext());
+
+        // 返回用户态
+        SysUserLoginVO tokenInfo = new SysUserLoginVO()
+                .setToken(stpUtil.getTokenValue())
+                .setRoles(loginResult.getRoleCodes())
+                .setPermissions(loginResult.getPermissions())
+                .setSelectableTenants(loginResult.getSelectableTenants());
+        return ApiResult.success(tokenInfo);
+    }
+
+    @SaCheckLogin(type = StpLoginType.ADMIN)
+    @Operation(summary = "登出")
+    @PostMapping(value = "/logout")
+    public ApiResult<Void> logout() {
+        final StpLogic stpUtil = StpKit.ADMIN;
+        stpUtil.logout();
+        return ApiResult.success();
+    }
+
+    @SaCheckLogin(type = StpLoginType.ADMIN)
+    @Operation(summary = "获取当前会话角色与权限")
+    @PostMapping(value = "/permissions")
+    public ApiResult<AdminSessionPermissionVO> permissions() {
+        UserContext context = UserContextHolder.getContext();
+        return ApiResult.success(new AdminSessionPermissionVO()
+                .setRoles(context == null ? List.of() : context.getRoleCodes())
+                .setPermissions(rolePermissionCacheHelper.getCurrentUserPermissions()));
+    }
+
+    @Operation(summary = "获取登录挑战")
+    @PostMapping(value = "/login-challenge")
+    public ApiResult<AdminAuthChallengeVO> challenge() {
+        LoginChallengeStrategy strategy = resolveChallengeStrategy();
+        if (strategy == null) {
+            return ApiResult.success(AdminAuthChallengeVO.noChallenge());
+        }
+        return ApiResult.success(strategy.generate());
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 按配置的策略解析挑战处理器；无挑战或未注册的策略返回 null
+     */
+    private LoginChallengeStrategy resolveChallengeStrategy() {
+        var type = loginChallengeProperties.getStrategy();
+        if (type == null || type == LoginChallengeStrategyTypeEnum.NONE) {
+            return null;
+        }
+
+        return loginChallengeStrategies.stream().filter(strategy -> type == strategy.type())
+                .findFirst().orElse(null);
+    }
+
+}

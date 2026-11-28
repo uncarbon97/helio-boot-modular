@@ -1,0 +1,71 @@
+package cc.uncarbon.module.tenant.service.impl;
+
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
+import cc.uncarbon.module.tenant.dal.entity.TenantPackageMenuRelationEntity;
+import cc.uncarbon.module.tenant.dal.mapper.TenantPackageMenuRelationMapper;
+import cc.uncarbon.module.tenant.service.TenantPackageMenuRelationService;
+import cn.hutool.core.collection.CollUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+
+/**
+ * 租户套餐-菜单关联
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class TenantPackageMenuRelationServiceImpl implements TenantPackageMenuRelationService {
+
+    private final TenantPackageMenuRelationMapper tenantPackageMenuRelationMapper;
+
+
+    @Override
+    public List<Long> listMenuIdsByPackage(long packageId) {
+        return tenantPackageMenuRelationMapper.listMenuIdsByPackage(packageId);
+    }
+
+    /**
+     * 绑定套餐ID与菜单ID关联关系，增量更新
+     *
+     * @param packageId 套餐ID
+     * @param menuIds   新菜单ID集合
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void cleanAndBind(long packageId, Collection<Long> menuIds) {
+        var menuIdsQuery = new LambdaQueryWrapperX<TenantPackageMenuRelationEntity>()
+                .select(TenantPackageMenuRelationEntity::getMenuId)
+                .eq(TenantPackageMenuRelationEntity::getPackageId, packageId);
+
+        if (CollUtil.isEmpty(menuIds)) {
+            tenantPackageMenuRelationMapper.deleteByPackageId(packageId);
+            return;
+        }
+
+        // 先删除不再需要的关联关系
+        tenantPackageMenuRelationMapper.deleteByPackageIdAndMenuIdNotIn(packageId, menuIds);
+
+        // 取出需要增量更新的部分
+        Set<Long> existingMenuIds = tenantPackageMenuRelationMapper.selectList(menuIdsQuery)
+                .stream().map(TenantPackageMenuRelationEntity::getMenuId)
+                .collect(Collectors.toSet());
+        // 拷贝入参，避免原地修改调用方集合（入参可能是不可变集合）
+        Set<Long> toInsertMenuIds = new HashSet<>(menuIds);
+        toInsertMenuIds.removeAll(existingMenuIds);
+
+        if (CollUtil.isNotEmpty(toInsertMenuIds)) {
+            List<TenantPackageMenuRelationEntity> entityList = toInsertMenuIds.stream()
+                    .map(menuId -> TenantPackageMenuRelationEntity.of(packageId, menuId)).toList();
+            tenantPackageMenuRelationMapper.insert(entityList);
+        }
+    }
+}

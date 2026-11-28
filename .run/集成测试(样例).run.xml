@@ -1,0 +1,58 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="集成测试(样例)" type="MavenRunConfiguration" factoryName="Maven">
+    <MavenSettings>
+      <option name="myGeneralSettings" />
+      <option name="myRunnerSettings">
+        <MavenRunnerSettings>
+          <option name="delegateBuildToMaven" value="false" />
+          <option name="environmentProperties">
+            <map>
+              <entry key="DB_HOST" value="按实际填写" />
+              <entry key="DB_NAME" value="helium_it" />
+              <entry key="DB_PASSWORD" value="按实际填写" />
+              <entry key="DB_PORT" value="按实际填写" />
+              <entry key="DB_USERNAME" value="helium_it" />
+              <entry key="JAVA_TOOL_OPTIONS" value="-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8" />
+              <entry key="REDIS_HOST" value="按实际填写" />
+              <entry key="REDIS_PASSWORD" value="按实际填写" />
+            </map>
+          </option>
+          <option name="jreName" value="#USE_PROJECT_JDK" />
+          <option name="mavenProperties">
+            <map />
+          </option>
+          <option name="passParentEnv" value="true" />
+          <option name="skipTests" value="false" />
+          <option name="vmOptions" value="" />
+        </MavenRunnerSettings>
+      </option>
+      <option name="myRunnerParameters">
+        <MavenRunnerParameters>
+          <option name="cmdOptions" />
+          <option name="profiles">
+            <set />
+          </option>
+          <option name="goals">
+            <list>
+              <option value="-Dskip-unit-tests=true" />
+              <option value="verify" />
+            </list>
+          </option>
+          <option name="multimoduleDir" />
+          <option name="pomFileName" value="pom.xml" />
+          <option name="profilesMap">
+            <map>
+              <entry key="run-it" value="true" />
+            </map>
+          </option>
+          <option name="projectsCmdOptionValues">
+            <list />
+          </option>
+          <option name="resolveToWorkspace" value="false" />
+          <option name="workingDirPath" value="$PROJECT_DIR$" />
+        </MavenRunnerParameters>
+      </option>
+    </MavenSettings>
+    <method v="2" />
+  </configuration>
+</component>

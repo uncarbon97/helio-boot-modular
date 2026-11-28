@@ -1,0 +1,75 @@
+# 集成测试专用 profile
+# 假定外部 DB/Redis 已启动；按实际测试环境修改以下连接信息
+# @ActiveProfiles("it") 会覆盖 application.yml 中的 dev,local，故数据源/Redis/文件存储必须在此提供
+
+---
+spring:
+  datasource:
+    dynamic:
+      primary: it-mysql
+      datasource:
+        # 集成测试专用数据源-MySQL
+        it-mysql:
+          url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${DB_TIMEZONE}
+          username: ${DB_USERNAME:helium}
+          password: ${DB_PASSWORD:helium}
+          lazy: true
+        # 集成测试专用数据源-PG
+        it-postgres:
+          url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:helium}?reWriteBatchedInserts=true&TimeZone=${DB_TIMEZONE}
+          username: ${DB_USERNAME:helium}
+          password: ${DB_PASSWORD:helium}
+          lazy: true
+  data:
+    redis:
+      # Redis 主机
+      host: ${REDIS_HOST:127.0.0.1}
+      # Redis 端口
+      port: ${REDIS_PORT:6379}
+      # 如果没有设置密码，下面这行直接注释掉，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
+      # password: ${REDIS_PASSWORD}
+      # Redis 数据库序号
+      database: ${REDIS_DATABASE:2}
+
+---
+# 多租户：四种组合（隔离策略 × 登录模式）用环境变量切换
+# LINE + TENANT_FIRST 为默认；DATASOURCE 需要额外配置租户数据源路由后再切换
+"helium.tenant":
+  isolation-strategy: ${HELIUM_TENANT_ISOLATION_STRATEGY:LINE}
+  login-mode: ${HELIUM_TENANT_LOGIN_MODE:TENANT_FIRST}
+
+---
+# 敏感字段加密（sys_user 手机号/邮箱等）
+# 不配置则 FieldCipher/BlindIndexCalculator 不装配，依赖字段加密的 Bean（如密钥轮换服务）启动即失败
+# 根密钥取 configs/helium-all.yml 的默认值，便于兼容既有测试库中同根密钥的历史密文
+"helium.db.field-crypto":
+  data-root-key: VWXdGdmLstm8gRyjnUg9g39/753vIxJRs2O6hq9RnwY=
+  index-root-key: VUor7frshJ4XMA676d+B2gkv06slY5ILzzamwqv9UQY=
+  data-key-ids:
+    - k1
+  active-data-key-id: k1
+  canary:
+    # 测试库根密钥指纹不参与对账，避免与本地开发库的 canary 记录互相冲突
+    enabled: false
+
+---
+mybatis-plus:
+  configuration:
+    # 测试环境下打印 SQL，便于排查
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+---
+# 文件存储（全量上下文启动需要；与 application-dev.yml 对齐，使用本地存储）
+dromara:
+  x-file-storage:
+    default-platform: local-plus-1
+    thumbnail-suffix: ".min.jpg"
+    local-plus:
+      - platform: local-plus-1
+        enable-storage: true
+        enable-access: false
+        domain: ""
+        base-path: /
+        path-patterns: /**
+        # TODO 按实际测试环境改为可写目录
+        storage-path: ./target/it-file-storage

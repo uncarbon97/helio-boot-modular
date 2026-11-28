@@ -1,0 +1,54 @@
+package cc.uncarbon.module.file.service;
+
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.file.model.internal.FacadeUploadOptions;
+import cc.uncarbon.module.file.model.query.AdminFileMetaListQuery;
+import cc.uncarbon.module.file.model.request.FileAttrExtraRequest;
+import cc.uncarbon.module.file.model.valueobj.FileMetaDTO;
+import cc.uncarbon.module.file.model.valueobj.FileStorageDTO;
+import org.dromara.x.file.storage.core.FileInfo;
+import org.jspecify.annotations.NonNull;
+
+import java.util.Collection;
+
+/**
+ * 文件元数据
+ */
+public interface FileMetaService {
+
+    /**
+     * 后台管理-分页查询
+     */
+    PageResult<FileMetaDTO> adminList(AdminFileMetaListQuery query);
+
+    /**
+     * 后台管理-删除
+     *
+     * @param deleteRemoteFile true=一并尽力删除底层物理文件（远端文件不存在或已被删除时，仍直接删除元数据）；
+     *                         false=仅删除元数据
+     */
+    void adminDelete(Collection<Long> ids, boolean deleteRemoteFile);
+
+    /**
+     * 根据 ID 取详情
+     */
+    FileMetaDTO getById(Long id);
+
+    /**
+     * 根据 ID 取详情，未取到会抛出 {@link NoRecordException}
+     */
+    FileMetaDTO getNonnullById(Long id) throws NoRecordException;
+
+    /**
+     * 根据 SHA256，查找是否已有文件
+     */
+    FileMetaDTO findByDigestSha256(String sha256);
+
+    /**
+     * 上传成功后，保存文件元数据
+     */
+    FileMetaDTO save(@NonNull FileInfo fileInfo, @NonNull FileStorageDTO storage,
+                     @NonNull FacadeUploadOptions options, @NonNull FileAttrExtraRequest attr);
+
+}

@@ -1,0 +1,79 @@
+# Helium 框架层相关的配置，都写在本文件内
+---
+
+"helium.db":
+  # ID 生成器
+  idgen:
+    snowflake:
+      # 雪花ID-数据中心ID
+      datacenter-id: ${DATACENTER_ID:0}
+      # 雪花ID-起始日期-可以选用项目开工的日期-这个一旦确定就不要改动了
+      epoch-date: '2026-10-01'
+  # Mybatis-plus
+  mybatis-plus:
+    optimistic-lock:
+      # 是否开启乐观锁
+      enabled: true
+  # 敏感字段加密
+  field-crypto:
+    # 数据根密钥，长周期使用；⭐生产环境下必须重新生成（参考命令  openssl rand -base64 32），并严格保管避免泄露
+    data-root-key: ${FIELD_CRYPTO_DATA_ROOT_KEY:VWXdGdmLstm8gRyjnUg9g39/753vIxJRs2O6hq9RnwY=}
+    # 盲索引根密钥，长周期使用；⭐生产环境下必须重新生成（参考命令  openssl rand -base64 32），并严格保管避免泄露
+    index-root-key: ${FIELD_CRYPTO_INDEX_ROOT_KEY:VUor7frshJ4XMA676d+B2gkv06slY5ILzzamwqv9UQY=}
+    # 数据加密可用 keyId，轮换时加入例如 k2、k3 等
+    data-key-ids:
+      - k1
+    active-data-key-id: ${FIELD_CRYPTO_ACTIVE_DATA_KEY_ID:k1}
+    # 数据根密钥泄露时，处置临时开启（成对配置，收尾即移除）：
+#    previous-data-root-key: ${FIELD_CRYPTO_PREVIOUS_DATA_ROOT_KEY}
+    # 不得与 data-key-ids 有交集（即存在相同的 keyId）
+#    previous-data-key-ids:
+#      - k1
+#      - k2
+    canary:
+      # 根密钥双指纹启动期对账，建议开启，避免错误的配置项，污染了 DB
+      enabled: true
+      # 轮换覆写维护开关，仅根密钥轮换时临时置 true，平时必须 false
+      allow-overwrite: false
+
+---
+"helium.openapi3":
+  nextdoc4j:
+    enabled: true
+
+---
+"helium.tenant":
+  # 多租户隔离策略
+  isolation-strategy: NONE
+  # 严格模式：子线程漏传租户上下文时直接报错，而非静默拼 NULL 查空
+  strict: true
+  # 数据表默认参与隔离，表必须有 tenant_id 列
+  participate-by-default: true
+  # 【行级】多租户忽略的表
+  ignored-tables:
+    # 系统菜单
+    - sys_menu
+    # 多租户
+    - sys_user_tenant_relation
+    - tenant_meta
+    - tenant_package
+    - tenant_package_menu_relation
+
+
+---
+"helium.bizlog":
+  # 启用业务日志记录能力
+  enabled: true
+  # 操作日志 diff 忽略的敏感字段
+  ignored-diff-fields:
+    # 口令及凭据
+    - pwd
+    - initPwd
+    - randomPassword
+    - tenantAdminPwd
+    # 文件存储点连接配置（含 AK/SK 等凭据）
+    - settingBody
+    - settingJson
+    # 个人敏感信息
+    - email
+    - phoneNo

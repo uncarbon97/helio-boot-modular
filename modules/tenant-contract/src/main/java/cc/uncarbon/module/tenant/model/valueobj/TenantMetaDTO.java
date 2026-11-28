@@ -1,0 +1,66 @@
+package cc.uncarbon.module.tenant.model.valueobj;
+
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.tenant.context.SimpleTenantContext;
+import cc.uncarbon.framework.helium.tenant.context.TenantContext;
+import cc.uncarbon.module.commons.model.valueobj.AuditUserDisplayAware;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+import org.jspecify.annotations.NonNull;
+
+import java.io.Serializable;
+import java.time.Instant;
+
+
+/**
+ * 租户主数据
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+public class TenantMetaDTO implements Serializable, AuditUserDisplayAware {
+
+    @Schema(description = "主键ID")
+    private Long id;
+
+    @Schema(description = "创建时刻")
+    private Instant createdAt;
+
+    @Schema(description = "创建者")
+    private String createdBy;
+
+    @Schema(description = "更新时刻")
+    private Instant updatedAt;
+
+    @Schema(description = "更新者")
+    private String updatedBy;
+
+    @Schema(description = "租户编码")
+    private String code;
+
+    @Schema(description = "租户名称")
+    private String name;
+
+    @Schema(description = "状态")
+    private EnabledStatusEnum status;
+
+    @Schema(description = "租户管理员用户ID")
+    private Long adminUserId;
+
+    @Schema(description = "所属租户套餐ID")
+    private Long packageId;
+
+    @Schema(description = "租户管理员用户资料")
+    private TenantUserBasicProfileVO adminUserProfile;
+
+    /**
+     * 转换成 {@link TenantContext} 实例
+     */
+    public @NonNull TenantContext toTenantContext() {
+        return new SimpleTenantContext(getId(), getName(), getCode());
+    }
+}

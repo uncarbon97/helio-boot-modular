@@ -1,0 +1,41 @@
+package cc.uncarbon.module.sys.model.query;
+
+import cc.uncarbon.framework.helium.base.page.PageParam;
+import cc.uncarbon.framework.helium.base.page.PageQuery;
+import cc.uncarbon.module.sys.enums.LogResultStatusEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.Collection;
+
+
+/**
+ * 系统登录日志-后台管理-分页查询
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+public class AdminSysLoginLogListQuery implements Serializable, PageQuery {
+
+    @Schema(description = "分页查询参数")
+    private PageParam pageParam;
+
+    @Schema(description = "时间区间起")
+    private Instant beginAt;
+
+    @Schema(description = "时间区间止")
+    private Instant endAt;
+
+    @Schema(description = "结果状态")
+    private LogResultStatusEnum resultStatus;
+
+    @Schema(description = "操作人用户ID数组")
+    private Collection<Long> userIds;
+
+}

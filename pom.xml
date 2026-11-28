@@ -7,42 +7,95 @@
 
     <parent>
         <groupId>cc.uncarbon.framework</groupId>
-        <artifactId>helio-starters</artifactId>
-        <version>2.5.0</version>
+        <artifactId>helium-starters-parent</artifactId>
+        <version>4.0.0</version>
     </parent>
 
     <groupId>cc.uncarbon.module</groupId>
-    <artifactId>helio-boot-modular</artifactId>
-    <description>Helio 多模块版单体脚手架</description>
+    <artifactId>helium-monolith</artifactId>
     <version>${revision}</version>
+    <description>Helium 快速开发平台脚手架</description>
 
     <properties>
-        <!-- 当前工程内，所有Maven模块统一版本号 -->
-        <revision>2.5.0</revision>
-        <!-- 如果实际开发使用的是JDK 21，则下面改成'21' -->
-        <java.version>17</java.version>
+        <!-- 根据实际开发的 JDK 版本确定 -->
+        <java.version>25</java.version>
 
-        <!-- 这里管理全局第三方依赖版本，避免冲突 -->
-        <!-- 统一版本号插件 -->
-        <flatten-maven-plugin.version>1.7.0</flatten-maven-plugin.version>
 
+        <!-- 当前工程内，所有Maven模块统一版本号；增加 -SNAPSHOT 后缀，方便开发期间 Maven 自动忽略缓存，更新依赖项 -->
+        <!-- 发版前，修改 bootstrap/pom.xml 中的 products.version -->
+        <revision>4.0.0-SNAPSHOT</revision>
+        <bootstrap.version>${revision}</bootstrap.version>
+        <admin-api.version>${revision}</admin-api.version>
+        <app-api.version>${revision}</app-api.version>
+        <commons.version>${revision}</commons.version>
+        <sys.version>${revision}</sys.version>
+        <file.version>${revision}</file.version>
+        <tenant.version>${revision}</tenant.version>
+
+
+        <!-- 固定其他第三方依赖版本 -->
+        <!-- 密码哈希 -->
+        <bouncycastle.version>1.87</bouncycastle.version>
+        <!-- IP 地址归属地查询 -->
+        <ip2region.version>3.3.7</ip2region.version>
         <!-- 文件上传 -->
-        <x-file-storage.version>2.2.1</x-file-storage.version>
+        <x-file-storage.version>2.3.0</x-file-storage.version>
         <minio.version>8.5.17</minio.version>
+        <s3-sdk-v1.version>1.12.797</s3-sdk-v1.version>
+        <s3-sdk-v2.version>2.31.3</s3-sdk-v2.version>
+        <aliyun-sdk-oss.version>3.18.5</aliyun-sdk-oss.version>
+
+        <!-- 缓解第三方依赖漏洞 -->
+        <tika-core.safe-version>3.2.2</tika-core.safe-version>
+        <jackson2.safe-version>2.22.4</jackson2.safe-version>
+        <jackson3.safe-version>3.2.4</jackson3.safe-version>
+        <commons-codec.safe-version>1.23.0</commons-codec.safe-version>
+        <tomcat-embed.safe-version>11.0.29</tomcat-embed.safe-version>
+        <!-- https://repo1.maven.org/maven2/tools/jackson/jackson-bom/3.2.4/jackson-bom-3.2.4.pom -->
+        <jackson-annotations.compatible-version>2.22</jackson-annotations.compatible-version>
+
+
+        <!--
+            单元测试默认跳过（保持既有构建行为）；
+            需要执行时：mvn test -Dskip-unit-tests=false
+        -->
+        <skip-unit-tests>true</skip-unit-tests>
+
+        <!-- 单元测试覆盖率（JaCoCo），需支持 Java 25 字节码 -->
+        <jacoco.version>0.8.14</jacoco.version>
     </properties>
 
     <modules>
         <module>bootstrap</module>
-        <module>middleware/biz-common</module>
-        <module>api/admin-api</module>
-        <module>api/app-api</module>
-        <module>service-module/sys</module>
-        <module>service-module/oss</module>
+        <module>integration-tests</module>
+        <module>endpoints/admin-api</module>
+        <module>endpoints/app-api</module>
+        <module>modules/commons</module>
+        <module>modules/sys-contract</module>
+        <module>modules/sys-service</module>
+        <module>modules/tenant-contract</module>
+        <module>modules/tenant-service</module>
+        <module>modules/file-contract</module>
+        <module>modules/file-service</module>
     </modules>
 
     <dependencyManagement>
-        <!-- 这里管理全局第三方依赖版本，避免冲突 -->
         <dependencies>
+            <!-- 其他第三方依赖 -->
+            <!-- 密码哈希 -->
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+
+            <!-- IP 地址归属地查询 -->
+            <dependency>
+                <groupId>org.lionsoul</groupId>
+                <artifactId>ip2region</artifactId>
+                <version>${ip2region.version}</version>
+            </dependency>
+
             <!-- 文件上传 -->
             <!-- 对象存储工具类 https://gitee.com/dromara/x-file-storage -->
             <dependency>
@@ -50,7 +103,7 @@
                 <artifactId>x-file-storage-spring</artifactId>
                 <version>${x-file-storage.version}</version>
                 <exclusions>
-                    <!-- hutool版本冲突，用 helio-core 的版本 -->
+                    <!-- hutool 版本冲突，用框架统一的版本 -->
                     <exclusion>
                         <groupId>cn.hutool</groupId>
                         <artifactId>hutool-core</artifactId>
@@ -58,14 +111,102 @@
                 </exclusions>
             </dependency>
 
-            <!-- MinIO 依赖包 -->
+            <!-- Amazon S3 依赖包（SDK v1） -->
             <dependency>
-                <groupId>io.minio</groupId>
-                <artifactId>minio</artifactId>
-                <version>${minio.version}</version>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-s3</artifactId>
+                <version>${s3-sdk-v1.version}</version>
+            </dependency>
+
+            <!-- Amazon S3 依赖包（SDK v2） -->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>s3</artifactId>
+                <version>${s3-sdk-v2.version}</version>
+            </dependency>
+
+            <!-- 阿里云 OSS 依赖包 -->
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${aliyun-sdk-oss.version}</version>
+            </dependency>
+
+
+            <!-- 缓解第三方依赖漏洞 -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-core</artifactId>
+                <version>${tika-core.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson2.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-cbor</artifactId>
+                <version>${jackson2.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>tools.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson3.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons-codec.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-core</artifactId>
+                <version>${tomcat-embed.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-websocket</artifactId>
+                <version>${tomcat-embed.safe-version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson-annotations.compatible-version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <!-- 引入单元测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <!-- 屏蔽传递来的有缺陷依赖 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.minidev</groupId>
+                    <artifactId>json-smart</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.vaadin.external.google</groupId>
+                    <artifactId>android-json</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
 
     <build>
         <!-- 支持 mybatis XML 放置在 java 包下 -->
@@ -87,14 +228,49 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>${skip-unit-tests}</skipTests>
                 </configuration>
+            </plugin>
+
+            <!--
+                单元测试覆盖率（JaCoCo）：
+                prepare-agent / prepare-agent-integration 分别为 surefire / failsafe 注入探针
+                verify 阶段输出各模块自身报告 target/site/jacoco/index.html；
+                跨模块聚合报告见 integration-tests 模块（report-aggregate）。
+                用法：mvn -Dskip-unit-tests=false verify [-Prun-it]
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>prepare-agent-integration</id>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- 编译时，不执行 mvn deploy -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
+                <version>${maven-deploy-plugin.version}</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
@@ -122,25 +298,25 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>${flatten-maven-plugin.version}</version>
+                <version>1.2.7</version>
                 <configuration>
-                    <flattenMode>oss</flattenMode>
                     <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
                 </configuration>
                 <executions>
                     <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>flatten</goal>
                         </goals>
-                        <id>flatten</id>
-                        <phase>process-resources</phase>
                     </execution>
                     <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
                         <goals>
                             <goal>clean</goal>
                         </goals>
-                        <id>flatten.clean</id>
-                        <phase>clean</phase>
                     </execution>
                 </executions>
             </plugin>

@@ -1,0 +1,91 @@
+package cc.uncarbon.module.sys.service;
+
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.module.commons.enumdict.EnumDict;
+import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
+import cc.uncarbon.module.sys.model.query.AdminSysDictCategoryListQuery;
+import cc.uncarbon.module.sys.model.query.AdminSysDictItemListQuery;
+import cc.uncarbon.module.sys.model.request.AdminSysDictCategoryUpsertRequest;
+import cc.uncarbon.module.sys.model.request.AdminSysDictItemUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysDictBuiltinDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysDictCategoryDTO;
+import cc.uncarbon.module.sys.model.valueobj.SysDictItemDTO;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * 字典
+ */
+public interface SysDictService {
+
+    /**
+     * 后台管理-分页查询字典分类
+     */
+    PageResult<SysDictCategoryDTO> adminListCategory(AdminSysDictCategoryListQuery query);
+
+    /**
+     * 后台管理-分页查询内置枚举字典
+     * <p>
+     * 数据来源：启动时扫描标了 {@link EnumDict} 且
+     * {@code enabled=true} 的 {@link cc.uncarbon.framework.helium.base.enums.BaseEnum} 枚举，缓存于内存；
+     * 在内存中按 code/name 模糊匹配并分页返回
+     */
+    PageResult<SysDictBuiltinDTO> adminListBuiltin(AdminSysDictCategoryListQuery query);
+
+    /**
+     * 后台管理-新增字典分类
+     */
+    Long adminCreateCategory(AdminSysDictCategoryUpsertRequest request);
+
+    /**
+     * 后台管理-修改字典分类
+     */
+    void adminUpdateCategory(AdminSysDictCategoryUpsertRequest request);
+
+    /**
+     * 后台管理-删除字典分类
+     */
+    void adminDeleteCategory(Collection<Long> ids);
+
+    /**
+     * 根据分类 ID 取详情，未取到会抛出 {@link NoRecordException}
+     */
+    SysDictCategoryDTO getCategoryNonnullById(Long id) throws NoRecordException;
+
+    /**
+     * 后台管理-分页查询字典项
+     */
+    PageResult<SysDictItemDTO> adminListItem(AdminSysDictItemListQuery query);
+
+    /**
+     * 后台管理-新增字典项
+     */
+    Long adminCreateItem(AdminSysDictItemUpsertRequest request);
+
+    /**
+     * 后台管理-修改字典项
+     */
+    void adminUpdateItem(AdminSysDictItemUpsertRequest request);
+
+    /**
+     * 后台管理-删除字典项
+     */
+    void adminDeleteItem(Collection<Long> ids);
+
+    /**
+     * 根据字典项 ID 取详情，未取到会抛出 {@link NoRecordException}
+     */
+    SysDictItemDTO getItemNonnullById(Long id) throws NoRecordException;
+
+    /**
+     * 根据分类编码，查询下属字典项
+     *
+     * @param itemStatuses 可以指定字典项状态集合，如 {@code List.of(ENABLED, DEPRECATED)}；为空则不过滤状态
+     */
+    List<SysDictItemDTO> listItemsByCategory(@NonNull String categoryCode, @Nullable Collection<DictStatusEnum> itemStatuses);
+
+}

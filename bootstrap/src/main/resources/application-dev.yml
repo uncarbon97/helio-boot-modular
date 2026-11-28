@@ -1,66 +1,50 @@
-helio:
-  crud:
-    # JDBC驱动类名，根据数据库类型自行修改
-    db-driver-class: com.mysql.cj.jdbc.Driver
-    # 数据库类型
-    db-type: mysql
-    # 数据库连接主机
-    db-host: 127.0.0.1
-    # 数据库端口
-    db-port: 3306
-    # 数据库登录账号
-    db-username: root
-    # 数据库登录密码
-    db-password: root
-    # 数据库名
-    db-name: helio_boot
-  web:
-    logging:
-      # 是否启用 Web 访问日志切面；开发、测试环境可以开启，生产环境不开启
-      enabled: false
-
 spring:
+  datasource:
+    dynamic:
+      # 下方同时给出了 MySQL 数据源与 PG 数据源的写法示例
+      # 如果实际用的是 PG 数据源，要改成 primary: postgres
+      primary: mysql
+      datasource:
+        # MySQL 数据源
+        mysql:
+          url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:helium}?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=${DB_TIMEZONE}
+          username: ${DB_USERNAME:helium}
+          password: ${DB_PASSWORD:helium}
+          # 设置 false 会在工程启动时就初始化数据源
+          lazy: false
+        # PG 数据源
+        postgres:
+          url: jdbc:postgresql://${DB_HOST:127.0.0.1}:${DB_PORT:5432}/${DB_NAME:helium}?reWriteBatchedInserts=true&TimeZone=${DB_TIMEZONE}
+          username: ${DB_USERNAME:helium}
+          password: ${DB_PASSWORD:helium}
+          # 设置 true 则不会在工程启动时就初始化数据源
+          lazy: true
   data:
     redis:
-      # Redis连接主机
-      host: 127.0.0.1
-      # Redis连接端口
-      port: 6379
-      # Redis登录密码；如果没有设置密码，请注释掉下面这行，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
-      password:
-      # Redis数据库序号
-      database: 1
+      # Redis 主机
+      host: ${REDIS_HOST:127.0.0.1}
+      # Redis 端口
+      port: ${REDIS_PORT:6379}
+      # 如果没有设置密码，下面这行直接注释掉，避免向 Redis-server 发送 AUTH 鉴权请求，引发程序启动失败
+      # password: ${REDIS_PASSWORD}
+      # Redis 数据库序号
+      database: ${REDIS_DATABASE:0}
 
-knife4j:
-  # 生产环境务必设为true
-  production: false
+---
+"helium.web-security":
+  cors:
+    allowed-origins:
+      # 设置为 * 只是方便开发，生产部署时需要严格限制来源
+      - "*"
 
+---
 mybatis-plus:
   configuration:
     # 生产环境下建议去除该配置项，不在控制台打印SQL
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
-dromara:
-  x-file-storage:
-    # 文档：https://x-file-storage.xuyanwu.cn/
-    # 默认使用 local-plus-1 存储平台
-    default-platform: local-plus-1
-    # 缩略图后缀
-    thumbnail-suffix: ".min.jpg"
-    local-plus: # 本地存储升级版，不使用的情况下可以不写
-      - platform: local-plus-1 # 存储平台标识
-        enable-storage: true  #启用存储
-        enable-access: false #启用访问（线上请使用 Nginx 配置，效率更高）
-        domain: "" # 访问域名，例如：“http://127.0.0.1:8030/”，注意后面要和 path-patterns 保持一致，“/”结尾，本地存储建议使用相对路径，方便后期更换域名
-        base-path: / # 基础路径
-        path-patterns: /** # 访问路径
-        storage-path: （实际本地存储路径，如 D:/local-plus-1） # 实际本地存储路径
-    minio: # MinIO，由于 MinIO SDK 支持 AWS S3，其它兼容 AWS S3 协议的存储平台也都可配置在这里
-      - platform: minio-1 # 存储平台标识
-        enable-storage: true  # 启用存储
-        access-key: （MinIO AK）
-        secret-key: （MinIO SK）
-        end-point: http://127.0.0.1:9000
-        bucket-name: helio
-        domain: http://127.0.0.1:9000/helio/ # 访问域名，注意“/”结尾，例如：http://minio.abc.com/abc/
-        base-path: / # 基础路径
+---
+"sys.ip2region":
+  # 是否启用 ip2region 离线IP归属地查询
+  # 详见 resources/ip2region/README.md
+  enabled: false

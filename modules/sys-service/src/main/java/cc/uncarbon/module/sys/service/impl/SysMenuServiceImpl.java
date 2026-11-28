@@ -1,0 +1,562 @@
+package cc.uncarbon.module.sys.service.impl;
+
+import cc.uncarbon.framework.helium.base.context.UserContextHolder;
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.stream.StreamFunction;
+import cc.uncarbon.framework.helium.db.enums.EnabledStatusEnum;
+import cc.uncarbon.framework.helium.db.mybatisplus.conditions.query.LambdaQueryWrapperX;
+import cc.uncarbon.module.commons.constant.SQLSegment;
+import cc.uncarbon.module.commons.exception.HasRepeatRecordException;
+import cc.uncarbon.module.commons.exception.NoRecordException;
+import cc.uncarbon.module.commons.facade.AuditNicknameFiller;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.sys.constant.SysConstant;
+import cc.uncarbon.module.sys.dal.entity.SysMenuEntity;
+import cc.uncarbon.module.sys.dal.mapper.SysMenuMapper;
+import cc.uncarbon.module.sys.dal.mapper.SysRoleMapper;
+import cc.uncarbon.module.sys.enums.MenuTypeEnum;
+import cc.uncarbon.module.sys.enums.MenuVisibleScopeEnum;
+import cc.uncarbon.module.sys.errorcode.SysErrorCodeEnum;
+import cc.uncarbon.module.sys.model.request.AdminSysMenuUpsertRequest;
+import cc.uncarbon.module.sys.model.valueobj.SysMenuDTO;
+import cc.uncarbon.module.sys.service.SysMenuService;
+import cc.uncarbon.module.sys.service.SysRoleMenuRelationService;
+import cc.uncarbon.module.sys.support.UserRoleHelper;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.text.StrPool;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+
+/**
+ * 系统菜单
+ */
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class SysMenuServiceImpl implements SysMenuService {
+
+    private static final String LOG_PREFIX = "[系统管理][菜单]";
+
+    private final SysMenuMapper sysMenuMapper;
+    private final SysRoleMapper sysRoleMapper;
+    private final SysRoleMenuRelationService sysRoleMenuRelationService;
+    private final UserRoleHelper userRoleHelper;
+    private final AuditNicknameFiller auditNicknameFiller;
+
+
+    @Override
+    public List<SysMenuDTO> adminList() {
+        List<SysMenuEntity> entityList = sysMenuMapper.selectList(new LambdaQueryWrapperX<SysMenuEntity>()
+                // 排序
+                .orderByAsc(SysMenuEntity::getSort)
+        );
+
+        // 非超级管理员剔除「仅超管可见」菜单及其子孙
+        if (doesMeNotSuperAdmin()) {
+            Map<Long, SysMenuEntity> allMenuMap = getAllMenuMap();
+            Set<Long> superAdminOnlySubtreeMenuIds = listSuperAdminOnlySubtreeMenuIds(allMenuMap);
+            if (CollUtil.isNotEmpty(superAdminOnlySubtreeMenuIds)) {
+                entityList = entityList.stream()
+                        .filter(entity -> !superAdminOnlySubtreeMenuIds.contains(entity.getId()))
+                        .toList();
+            }
+        }
+        return convertList(entityList);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public Long adminCreate(AdminSysMenuUpsertRequest request) {
+        log.info(LOG_PREFIX + "新增 >> {}", request);
+        checkRepeat(request);
+
+        if (ObjectUtil.isNull(request.getParentId())) {
+            request.setParentId(SysConstant.ROOT_PARENT_ID);
+        }
+        checkParentUsable(request.getParentId());
+
+        request.setId(null);
+        if (ObjectUtil.isNull(request.getVisibleScope())) {
+            request.setVisibleScope(MenuVisibleScopeEnum.ALL);
+        }
+
+        var entity = new SysMenuEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        sysMenuMapper.insert(entity);
+        return entity.getId();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminUpdate(AdminSysMenuUpsertRequest request) {
+        log.info(LOG_PREFIX + "修改 >> {}", request);
+        checkExistence(request.getId());
+        checkRepeat(request);
+
+        if (ObjectUtil.isNull(request.getParentId())) {
+            request.setParentId(SysConstant.ROOT_PARENT_ID);
+        }
+        checkParentUsable(request.getParentId());
+        checkParentNotSelfOrInferior(request.getId(), request.getParentId());
+
+        var entity = new SysMenuEntity();
+        BeanUtil.copyProperties(request, entity);
+
+        sysMenuMapper.updateById(entity);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminDelete(Collection<Long> ids) {
+        log.info(LOG_PREFIX + "删除 >> {}", ids);
+        checkBeforeDelete(ids);
+        // 清理角色-菜单关联关系，避免孤儿数据
+        sysRoleMenuRelationService.deleteByMenuIds(ids);
+        sysMenuMapper.deleteByIds(ids);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public void adminSetStatus(AdminSetStatusRequest<Long, EnabledStatusEnum> request) {
+        log.info(LOG_PREFIX + "修改状态 >> {}", request);
+        Long id = request.getId();
+        var entity = sysMenuMapper.selectById(id);
+        NoRecordException.throwIfNull(entity);
+
+        SysMenuEntity template = new SysMenuEntity()
+                .setId(id)
+                .setStatus(request.getNewStatus());
+        sysMenuMapper.updateById(template);
+    }
+
+    @Override
+    public SysMenuDTO getById(Long id) {
+        if (id == null) return null;
+        var entity = sysMenuMapper.selectById(id);
+
+        // 非超级管理员视角下，「仅超管可见」菜单及其子孙等同于不存在
+        if (entity != null && doesMeNotSuperAdmin()
+                && listSuperAdminOnlySubtreeMenuIds().contains(id)) {
+            return null;
+        }
+        return auditNicknameFiller.fillOne(entity, this::convertEntity);
+    }
+
+    @Override
+    public SysMenuDTO getNonnullById(Long id) throws NoRecordException {
+        return NoRecordException.throwIfNull(getById(id));
+    }
+
+    @Override
+    public List<SysMenuDTO> adminListSideMenus() {
+        Set<Long> visibleMenuIds = listCurrentUserVisibleMenuIds();
+        return listByIds(visibleMenuIds, MenuTypeEnum.forAdminSide())
+                .stream().peek(menu -> menu.setPermission(null)).toList();
+    }
+
+    @Override
+    public List<SysMenuDTO> adminListVisibleMenus() {
+        Set<Long> visibleMenuIds = listCurrentUserVisibleMenuIds();
+        return listByIds(visibleMenuIds, MenuTypeEnum.all())
+                .stream().peek(menu -> menu.setPermission(null)).toList();
+    }
+
+    @Override
+    public Map<Long, Set<String>> getPermissionsByRole(Collection<Long> roleIds) {
+        if (CollUtil.isEmpty(roleIds)) {
+            return Map.of();
+        }
+        Map<Long, Set<String>> ret = new HashMap<>(roleIds.size(), 1);
+        // 祖先启用性校验用的全量菜单map，懒加载
+        var ref = new Object() {
+            // for lambda final
+            Map<Long, SysMenuEntity> allMenuMap = null;
+            // 「仅超管可见」菜单及其子孙，懒加载
+            Set<Long> superAdminOnlySubtreeMenuIds = null;
+        };
+        // 一次性过滤出启用状态的角色；已禁用、已删除的角色一律视为无权限
+        Set<Long> enabledRoleIds = sysRoleMapper.listEnabledRoleIds(roleIds);
+        for (Long roleId : roleIds) {
+            Set<String> permissions;
+
+            if (SysConstant.SUPER_ADMIN_ROLE_ID.equals(roleId)) {
+                // 超级管理员读取所有权限，不管有没有被禁用
+                // 超管角色固定在平台自营域，超管切入其他租户视角后行级过滤查不到角色0，
+                // 不能依赖启用角色判定，须先于此分支直接放行
+                permissions = sysMenuMapper.selectList(null).stream()
+                        .map(SysMenuEntity::getPermission)
+                        .filter(CharSequenceUtil::isNotEmpty)
+                        .collect(Collectors.toSet());
+            } else if (!enabledRoleIds.contains(roleId)) {
+                // 已禁用或已不存在的角色不参与鉴权；仍写入空集合，确保空结果被缓存
+                permissions = Set.of();
+                ret.put(roleId, permissions);
+                continue;
+            } else {
+                // 查询角色关联菜单
+                Set<Long> menuIds = sysRoleMenuRelationService.listMenuIdsByRoles(Set.of(roleId));
+                if (CollUtil.isEmpty(menuIds)) {
+                    permissions = Set.of();
+                } else {
+                    // 剔除自身或任一祖先被禁用的菜单（如目录被禁用后，子按钮权限一并收回）
+                    if (ref.allMenuMap == null) {
+                        ref.allMenuMap = getAllMenuMap();
+                    }
+                    Set<Long> enabledChainMenuIds = menuIds.stream()
+                            .filter(menuId -> selfAndAncestorsAllEnabled(ref.allMenuMap, menuId))
+                            .collect(Collectors.toSet());
+                    // 再剔除「仅超管可见」菜单及其子孙，防止历史脏绑定漏出权限串
+                    if (!enabledChainMenuIds.isEmpty()) {
+                        if (ref.superAdminOnlySubtreeMenuIds == null) {
+                            ref.superAdminOnlySubtreeMenuIds = listSuperAdminOnlySubtreeMenuIds(ref.allMenuMap);
+                        }
+                        enabledChainMenuIds.removeAll(ref.superAdminOnlySubtreeMenuIds);
+                    }
+                    permissions = enabledChainMenuIds.isEmpty() ? Set.of()
+                            : sysMenuMapper.selectList(new LambdaQueryWrapperX<SysMenuEntity>()
+                                    .select(SysMenuEntity::getPermission)
+                                    .in(SysMenuEntity::getId, enabledChainMenuIds)
+                                    .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
+                            )
+                            .stream()
+                            .map(SysMenuEntity::getPermission)
+                            .filter(StrUtil::isNotEmpty)
+                            .collect(Collectors.toSet());
+                }
+            }
+            ret.put(roleId, permissions);
+        }
+        return ret;
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 实体转值对象
+     */
+    private SysMenuDTO convertEntity(SysMenuEntity entity) {
+        if (entity == null) return null;
+
+        var ret = new SysMenuDTO();
+        BeanUtil.copyProperties(entity, ret);
+        // 按需改写字段
+        if (SysConstant.ROOT_PARENT_ID.equals(ret.getParentId())) {
+            ret.setParentId(null);
+        }
+
+        // 防止用户忘记加了, 主动补充/
+        if (CharSequenceUtil.isNotBlank(ret.getPath()) && !ret.getPath().startsWith(StrPool.SLASH)) {
+            ret.setPath(StrPool.SLASH + ret.getPath());
+        }
+
+        switch (ret.getMenuType()) {
+            case DIR, BUTTON -> ret
+                    .setComponent(null)
+                    .setExternalLink(null);
+            case MENU -> ret.setExternalLink(null);
+            case EXTERNAL_LINK -> ret.setComponent(null);
+        }
+        return ret;
+    }
+
+    /**
+     * 实体转值对象
+     */
+    private List<SysMenuDTO> convertList(List<SysMenuEntity> entityList) {
+        if (CollUtil.isEmpty(entityList)) {
+            return List.of();
+        }
+        return auditNicknameFiller.fill(entityList, this::convertEntity);
+    }
+
+    /**
+     * 检查是否存在
+     */
+    private void checkExistence(Long id) {
+        boolean exists = sysMenuMapper.exists(
+                new LambdaQueryWrapperX<SysMenuEntity>()
+                        .select(SysMenuEntity::getId)
+                        .eq(SysMenuEntity::getId, id)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        NoRecordException.throwIfFalse(exists);
+    }
+
+    /**
+     * 上级菜单须存在且启用
+     */
+    private void checkParentUsable(Long parentId) {
+        if (parentId == null || SysConstant.ROOT_PARENT_ID.equals(parentId)) {
+            return;
+        }
+        SysMenuEntity parent = sysMenuMapper.selectById(parentId);
+        NoRecordException.throwIfNull(parent);
+        if (EnabledStatusEnum.DISABLED == parent.getStatus()) {
+            throw new BusinessException(SysErrorCodeEnum.A01044);
+        }
+    }
+
+    /**
+     * 上级菜单不能是自身或自己的下级菜单，防止菜单树成环
+     */
+    private void checkParentNotSelfOrInferior(Long id, Long parentId) {
+        if (id == null || parentId == null || SysConstant.ROOT_PARENT_ID.equals(parentId)) {
+            return;
+        }
+        Long cursor = parentId;
+        int guard = 0;
+        while (cursor != null && !SysConstant.ROOT_PARENT_ID.equals(cursor)) {
+            if (cursor.equals(id)) {
+                throw new BusinessException(SysErrorCodeEnum.A01041);
+            }
+            SysMenuEntity node = sysMenuMapper.selectById(cursor);
+            if (node == null) {
+                break;
+            }
+            cursor = node.getParentId();
+            if (++guard > 100) {
+                // 历史脏数据疑似成环：宁可拒绝也不放行
+                throw new BusinessException(SysErrorCodeEnum.A01041);
+            }
+        }
+    }
+
+    /**
+     * 删除前检查：仍包含下级菜单时不能删除，需先处理下级
+     */
+    private void checkBeforeDelete(Collection<Long> ids) {
+        boolean hasChildren = sysMenuMapper.exists(
+                new LambdaQueryWrapperX<SysMenuEntity>()
+                        .select(SysMenuEntity::getId)
+                        .in(SysMenuEntity::getParentId, ids)
+                        .last(SQLSegment.LIMIT_1)
+        );
+        if (hasChildren) {
+            throw new BusinessException(SysErrorCodeEnum.A01042);
+        }
+    }
+
+    /**
+     * 检查是否存在重复
+     */
+    private void checkRepeat(AdminSysMenuUpsertRequest request) {
+        if (CharSequenceUtil.isNotBlank(request.getPermission())) {
+            request.setPermission(CharSequenceUtil.cleanBlank(request.getPermission()));
+
+            boolean exists = sysMenuMapper.exists(new LambdaQueryWrapperX<SysMenuEntity>()
+                    // 并非原地更新
+                    .neIfPresent(SysMenuEntity::getId, request.getId())
+                    // 权限标识相同
+                    .eq(SysMenuEntity::getPermission, request.getPermission())
+                    .last(SQLSegment.LIMIT_1)
+            );
+            HasRepeatRecordException.throwIfTrue(exists, SysErrorCodeEnum.A01032);
+        }
+    }
+
+    /**
+     * 取当前账号可见菜单Ids
+     *
+     * @return 菜单Ids
+     */
+    private Set<Long> listCurrentUserVisibleMenuIds() {
+        assert UserContextHolder.getContext() != null;
+        // 1. 取当前账号拥有角色Ids
+        var roleIds = UserContextHolder.getContext().getRoleIds();
+        if (CollUtil.isEmpty(roleIds)) {
+            return Set.of();
+        }
+
+        // 2. 得到全量 菜单ID-实体 map（含禁用，用于祖先启用性校验），备用
+        Map<Long, SysMenuEntity> allMenuMap = getAllMenuMap();
+
+        // 3. 超级管理员直接返回所有可见菜单（自身及祖先均启用）
+        if (roleIds.contains(SysConstant.SUPER_ADMIN_ROLE_ID)) {
+            return allMenuMap.keySet().stream()
+                    .filter(menuId -> selfAndAncestorsAllEnabled(allMenuMap, menuId))
+                    .collect(Collectors.toSet());
+        }
+
+        // 4. 根据现有角色，获取直接关联的菜单ID
+        Set<Long> directlyRelatedMenuIds = sysRoleMenuRelationService.listMenuIdsByRoles(roleIds);
+        if (CollUtil.isEmpty(directlyRelatedMenuIds)) {
+            return Set.of();
+        }
+
+        // 5. 因为直接关联的菜单ID，可能不包含父级菜单，使得级联关系缺失，这里得给他补上
+        Map<Long, Long> parentIdById = allMenuMap.values().stream()
+                .collect(Collectors.toMap(SysMenuEntity::getId, SysMenuEntity::getParentId, StreamFunction.keepExisting()));
+        Set<Long> tracedMenuIds = traceParentMenuIds(parentIdById, directlyRelatedMenuIds);
+
+        // 6. 剔除自身或任一祖先被禁用的菜单（如目录被禁用后，整棵子树不再可见）
+        Set<Long> ret = tracedMenuIds.stream()
+                .filter(menuId -> selfAndAncestorsAllEnabled(allMenuMap, menuId))
+                .collect(Collectors.toSet());
+
+        // 7. 剔除「仅超管可见」菜单及其子孙
+        ret.removeAll(listSuperAdminOnlySubtreeMenuIds(allMenuMap));
+        return ret;
+    }
+
+    /**
+     * 查询全量菜单（含禁用），构建 菜单ID-实体 map，用于祖先启用性校验
+     */
+    private Map<Long, SysMenuEntity> getAllMenuMap() {
+        return sysMenuMapper.selectList(new LambdaQueryWrapperX<SysMenuEntity>()
+                .select(SysMenuEntity::getId, SysMenuEntity::getParentId, SysMenuEntity::getStatus, SysMenuEntity::getVisibleScope)
+        ).stream().collect(Collectors.toMap(SysMenuEntity::getId, Function.identity(), StreamFunction.keepExisting()));
+    }
+
+    @Override
+    public Set<Long> listSuperAdminOnlySubtreeMenuIds() {
+        return listSuperAdminOnlySubtreeMenuIds(getAllMenuMap());
+    }
+
+    /**
+     * 列举「仅超管可见」菜单及全部子孙菜单IDs
+     * <p>
+     * 子孙一并纳入，与「目录禁用后整棵子树隐藏」的既有级联口径保持一致，
+     * 也避免子节点脱离受保护父级后在前端渲染成悬空节点
+     */
+    private Set<Long> listSuperAdminOnlySubtreeMenuIds(Map<Long, SysMenuEntity> allMenuMap) {
+        Set<Long> rootIds = allMenuMap.values().stream()
+                .filter(SysMenuEntity::doesSuperAdminOnly)
+                .map(SysMenuEntity::getId)
+                .collect(Collectors.toSet());
+        if (rootIds.isEmpty()) {
+            return Set.of();
+        }
+
+        // 反向建 子菜单ID集合-父菜单ID map，向下广度优先展开
+        Map<Long, Set<Long>> childrenIdsByParentId = new HashMap<>(allMenuMap.size() << 1);
+        for (SysMenuEntity entity : allMenuMap.values()) {
+            childrenIdsByParentId.computeIfAbsent(entity.getParentId(), k -> new HashSet<>()).add(entity.getId());
+        }
+
+        Set<Long> ret = new HashSet<>(rootIds);
+        Deque<Long> pending = new ArrayDeque<>(rootIds);
+        while (!pending.isEmpty()) {
+            Set<Long> children = childrenIdsByParentId.get(pending.poll());
+            if (children != null) {
+                for (Long childId : children) {
+                    if (ret.add(childId)) {
+                        pending.add(childId);
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * 用户态非空，且登录者不是超级管理员时返回 true
+     * <p>
+     * 无用户上下文（系统内部调用、定时任务等）时返回 false，不做剔除
+     */
+    private boolean doesMeNotSuperAdmin() {
+        var context = UserContextHolder.getContext();
+        return context != null
+                && CollUtil.isNotEmpty(context.getRoleIds())
+                && !context.getRoleIds().contains(SysConstant.SUPER_ADMIN_ROLE_ID);
+    }
+
+    /**
+     * 菜单自身及所有祖先均为启用状态时返回 true；链上任一节点被禁用返回 false
+     * <p>
+     * parentId 悬空（父级已被删除）或到达根节点视为链结束，不剔除；
+     * visited 集合防止 parentId 成环导致死循环
+     */
+    private boolean selfAndAncestorsAllEnabled(Map<Long, SysMenuEntity> allMenuMap, Long menuId) {
+        Set<Long> visited = new HashSet<>();
+        Long cursor = menuId;
+        while (cursor != null && visited.add(cursor)) {
+            SysMenuEntity entity = allMenuMap.get(cursor);
+            if (entity == null) {
+                // 悬空或已到根节点（根parentId不在map中），链结束
+                return true;
+            }
+            if (EnabledStatusEnum.ENABLED != entity.getStatus()) {
+                // 自身或任一祖先被禁用
+                return false;
+            }
+            cursor = entity.getParentId();
+        }
+        // 成环但环上无禁用节点，视为通过
+        return true;
+    }
+
+    private List<SysMenuDTO> listByIds(Collection<Long> ids, List<MenuTypeEnum> menuTypes) {
+        if (CollUtil.isEmpty(ids)) {
+            return List.of();
+        }
+
+        List<SysMenuEntity> entityList = sysMenuMapper.selectList(new LambdaQueryWrapperX<SysMenuEntity>()
+                .in(SysMenuEntity::getId, ids)
+                .in(SysMenuEntity::getMenuType, menuTypes)
+                // 仅显示启用状态菜单
+                .eq(SysMenuEntity::getStatus, EnabledStatusEnum.ENABLED)
+                .orderByAsc(SysMenuEntity::getSort)
+        );
+        return convertList(entityList);
+    }
+
+    /**
+     * 追溯并补充可能缺失的级联上级菜单ID
+     *
+     * @param allMenuMap             完整的 菜单ID-上级菜单ID map
+     * @param directlyRelatedMenuIds 当前用户直接关联的菜单ID集合
+     * @return Set<Long> 已经补充好的、完整的菜单ID集合
+     */
+    private Set<Long> traceParentMenuIds(Map<Long, Long> allMenuMap, Collection<Long> directlyRelatedMenuIds) {
+        // 返回值
+        Set<Long> ret = new HashSet<>(directlyRelatedMenuIds.size() << 1);
+        ret.addAll(directlyRelatedMenuIds);
+
+        // 本次循环要遍历的菜单ID集合
+        HashSet<Long> thisLoop;
+        // 下次循环要遍历的菜单ID集合
+        HashSet<Long> nextLoop = new HashSet<>(directlyRelatedMenuIds);
+
+        do {
+            // 深拷贝数据，用于本次循环
+            thisLoop = new HashSet<>(nextLoop);
+            nextLoop.clear();
+
+            for (Long menuId : thisLoop) {
+                Long parentId = allMenuMap.get(menuId);
+
+                if (Objects.nonNull(parentId)) {
+                    // 上级菜单可能还会有祖级菜单，需要继续上溯
+                    nextLoop.add(parentId);
+                }
+            }
+
+            // 防止 parentId 成环导致死循环：无新增节点即结束
+            nextLoop.removeAll(ret);
+            if (nextLoop.isEmpty()) {
+                break;
+            }
+
+            ret.addAll(nextLoop);
+
+        } while (true);
+
+        return ret;
+    }
+}

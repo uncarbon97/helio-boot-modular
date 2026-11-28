@@ -1,0 +1,301 @@
+package cc.uncarbon.module.adminapi.controller.sys;
+
+import cc.uncarbon.framework.helium.base.exception.BusinessException;
+import cc.uncarbon.framework.helium.base.page.PageResult;
+import cc.uncarbon.framework.helium.bizlog.context.LogRecordContext;
+import cc.uncarbon.framework.helium.bizlog.service.impl.DiffParseFunction;
+import cc.uncarbon.framework.helium.ratelimiter.annotation.UseRateLimit;
+import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.adminapi.annotation.SysOperateLog;
+import cc.uncarbon.module.adminapi.constant.AdminPermissionConstant;
+import cc.uncarbon.module.adminapi.event.KickOutSysUsersEvent;
+import cc.uncarbon.module.adminapi.event.RefreshSysUserSessionEvent;
+import cc.uncarbon.module.adminapi.support.excel.ExcelResponseUtil;
+import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import cc.uncarbon.module.commons.constant.ExcelConstant;
+import cc.uncarbon.module.commons.constant.PermPattern;
+import cc.uncarbon.module.commons.errorcode.DefaultErrorCodeEnum;
+import cc.uncarbon.module.commons.model.request.AdminSetStatusRequest;
+import cc.uncarbon.module.commons.model.request.IdRequest;
+import cc.uncarbon.module.commons.satoken.StpLoginType;
+import cc.uncarbon.module.sys.enums.SysUserStatusEnum;
+import cc.uncarbon.module.sys.model.query.AdminSysUserListQuery;
+import cc.uncarbon.module.sys.model.request.*;
+import cc.uncarbon.module.sys.model.response.SysUserImportResult;
+import cc.uncarbon.module.sys.model.valueobj.SysUserDTO;
+import cc.uncarbon.module.sys.model.valueobj.TenantUserLookupVO;
+import cc.uncarbon.module.sys.service.SysDeptService;
+import cc.uncarbon.module.sys.service.SysUserFirstTenantService;
+import cc.uncarbon.module.sys.service.SysUserRoleRelationService;
+import cc.uncarbon.module.sys.service.SysUserService;
+import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.io.file.FileNameUtil;
+import cn.hutool.core.text.StrPool;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+
+@Tag(name = "后台管理-" + AdminSysUserController.BIZ_TYPE)
+@Slf4j
+@RequiredArgsConstructor
+@RestController
+@RequestMapping(value = ApiPathPrefix.ADMIN + "/v1/sys/user")
+@SaCheckLogin(type = StpLoginType.ADMIN)
+public class AdminSysUserController {
+
+    /**
+     * 权限码前缀
+     */
+    private static final String PERM_PREFIX = "sys:user:";
+    static final String BIZ_TYPE = "系统用户管理";
+
+    private final SysUserService sysUserService;
+    private final SysUserFirstTenantService sysUserFirstTenantService;
+    private final SysDeptService sysDeptService;
+    private final SysUserRoleRelationService sysUserRoleRelationService;
+    private final ApplicationEventPublisher eventPublisher;
+
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
+    @Operation(summary = "分页查询")
+    @PostMapping(value = "/list")
+    public ApiResult<PageResult<SysUserDTO>> list(@RequestBody @Valid AdminSysUserListQuery query) {
+        return ApiResult.success(sysUserService.adminList(query));
+    }
+
+    @UseRateLimit(mark = "sys-user-detail", duration = 60, max = 30)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
+    @Operation(summary = "详情")
+    @PostMapping(value = "/detail")
+    public ApiResult<SysUserDTO> detail(@RequestBody @Valid IdRequest<Long> request) {
+        return ApiResult.success(sysUserService.getNonnullOperableById(request.getId()));
+    }
+
+    /**
+     * 隐私信息明文属于高敏数据，独立权限串 + 限流，与普通详情隔离
+     */
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "查看隐私信息明文",
+            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
+    @UseRateLimit(mark = "sys-user-detail-plain", duration = 60, max = 30)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "read-plain")
+    @Operation(summary = "详情（含隐私信息明文）")
+    @PostMapping(value = "/detail-plain")
+    public ApiResult<SysUserDTO> detailPlain(@RequestBody @Valid IdRequest<Long> request) {
+        SysUserDTO ret = sysUserService.getNonnullPlainOperableById(request.getId());
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, ret);
+        return ApiResult.success(ret);
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "新增用户", success = "新增用户：{{#request.pin}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.CREATE)
+    @Operation(summary = "新增")
+    @PostMapping(value = "/create")
+    public ApiResult<Void> create(@RequestBody @Valid AdminSysUserCreateRequest request) {
+        sysUserService.adminCreate(request);
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改用户",
+            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}：{_DIFF{#request}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
+    @Operation(summary = "修改")
+    @PostMapping(value = "/update")
+    public ApiResult<Void> update(@RequestBody @Valid AdminSysUserUpdateRequest request) {
+        var old = sysUserService.getNonnullOperableById(request.getId());
+        sysUserService.adminUpdate(request);
+        // 用于操作日志；用于 Diff 比较的两个对象，类型必须一致
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, BeanUtil.toBean(old, request.getClass()));
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "删除用户",
+            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.DELETE)
+    @Operation(summary = "删除")
+    @PostMapping(value = "/delete")
+    public ApiResult<Void> delete(@RequestBody @Valid IdRequest<Long> request) {
+        var old = sysUserService.getNonnullOperableById(request.getId());
+        sysUserService.adminDelete(Set.of(request.getId()));
+        kickOutAsync(request.getId());
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改用户状态",
+            success = "被操作用户ID：{{#request.id}}，新状态：{{#request.newStatus.label}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.UPDATE)
+    @Operation(summary = "修改用户状态")
+    @PostMapping(value = "/set-status")
+    public ApiResult<Void> setStatus(@RequestBody @Valid AdminSetStatusRequest<Long, SysUserStatusEnum> request) {
+        sysUserService.adminSetStatus(request);
+        if (request.getNewStatus() == SysUserStatusEnum.DISABLED) {
+            kickOutAsync(request.getId());
+        }
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "分配角色",
+            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}，分配后角色：{{#roleNames}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "bind-role")
+    @Operation(summary = "分配角色")
+    @PostMapping(value = "/bind-role")
+    public ApiResult<Void> bindRole(@RequestBody @Valid AdminSysUserBindRoleRequest request) {
+        var result = sysUserService.adminBindRole(request);
+        // 原位刷新该用户会话快照，新角色立即生效，无需重新登录
+        eventPublisher.publishEvent(new RefreshSysUserSessionEvent(
+                new RefreshSysUserSessionEvent.EventData(Set.of(request.getUserId()))
+        ));
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, result.getOld());
+        LogRecordContext.putVariable("roleNames", String.join(StrPool.COMMA, result.getRoleNames()));
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "修改部门",
+            bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}，目标部门：{{#deptName}}（ID：{{#request.deptId}}）")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = AdminPermissionConstant.BIND_DEPT)
+    @Operation(summary = "修改部门")
+    @PostMapping(value = "/bind-dept")
+    public ApiResult<Void> bindDept(@RequestBody @Valid AdminSysUserBindDeptRequest request) {
+        sysUserService.adminBindDept(request);
+        // 用于操作日志
+        var old = sysUserService.getNonnullOperableById(request.getUserId());
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        if (request.getDeptId() != null) {
+            LogRecordContext.putVariable("deptName", sysDeptService.getNonnullById(request.getDeptId()).getName());
+        }
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "重置密码",
+            bizNo = "{{#request.userId}}", success = "被操作用户：{{#old.pin}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "reset-password")
+    @Operation(summary = "重置密码")
+    @PostMapping(value = "/reset-password")
+    public ApiResult<Void> resetPassword(@RequestBody @Valid AdminSysUserResetPasswordRequest request) {
+        sysUserService.adminResetPassword(request);
+        kickOutAsync(request.getUserId());
+        // 用于操作日志
+        var old = sysUserService.getNonnullOperableById(request.getUserId());
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "踢下线",
+            bizNo = "{{#request.id}}", success = "被操作用户：{{#old.pin}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "kick-out")
+    @Operation(summary = "踢下线")
+    @PostMapping(value = "/kick-out")
+    public ApiResult<Void> kickOut(@RequestBody @Valid IdRequest<Long> request) {
+        kickOutAsync(request.getId());
+        // 用于操作日志
+        var old = sysUserService.getNonnullOperableById(request.getId());
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
+    @Operation(summary = "取指定用户关联角色ID")
+    @PostMapping(value = "/list-related-role")
+    public ApiResult<List<Long>> listRelatedRole(@RequestBody @Valid IdRequest<Long> request) {
+        // 防止跨租户/越权枚举用户关联角色
+        sysUserService.checkUserQueryAccess(request.getId());
+        return ApiResult.success(sysUserRoleRelationService.listRoleIdsByUser(request.getId()));
+    }
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + PermPattern.READ)
+    @Operation(summary = "全局找人（仅用户优先模式）")
+    @PostMapping(value = "/lookup")
+    public ApiResult<List<TenantUserLookupVO>> lookup(@RequestBody @Valid TenantUserLookupRequest request) {
+        return ApiResult.success(sysUserFirstTenantService.lookupUsers(request));
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "拉入本租户", bizNo = "{{#request.pin}}",
+            success = "拉入本租户：{{#request.pin}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "join")
+    @Operation(summary = "拉入本租户（仅用户优先模式）")
+    @PostMapping(value = "/tenant-join")
+    public ApiResult<Void> tenantJoin(@RequestBody @Valid TenantUserJoinRequest request) {
+        sysUserFirstTenantService.joinTenant(request);
+        return ApiResult.success();
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "移出本租户", bizNo = "{{#old.pin}}",
+            success = "移出本租户：{{#old.pin}}")
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "join")
+    @Operation(summary = "移出本租户（仅用户优先模式）")
+    @PostMapping(value = "/tenant-expel")
+    public ApiResult<Void> tenantExpel(@RequestBody @Valid TenantUserExpelRequest request) {
+        var old = sysUserFirstTenantService.expelTenantMember(request);
+        // 成员资格变更后强制下线，按剩余关联租户重新登录
+        kickOutAsync(request.getUserId());
+        // 用于操作日志
+        LogRecordContext.putVariable(DiffParseFunction.OLD_OBJECT, old);
+        return ApiResult.success();
+    }
+
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "import")
+    @Operation(summary = "下载批量导入模板")
+    @PostMapping(value = "/import/download-template")
+    public void downloadTemplate(HttpServletResponse servletResponse) throws IOException {
+        ExcelResponseUtil.writeXlsx(servletResponse, "用户导入模板", sysUserService::adminWriteImportTemplate);
+    }
+
+    @SysOperateLog(bizType = BIZ_TYPE, behavior = "批量导入",
+            success = "批量导入：共{{#result.totalRows}}行，成功{{#result.successCount}}行，失败{{#result.failedCount}}行",
+            successCondition = "{{#result.failedCount == 0}}",
+            fail = "批量导入：共{{#result.totalRows}}行，成功{{#result.successCount}}行，失败{{#result.failedCount}}行")
+    @UseRateLimit(mark = "sys-user-import", duration = 60, max = 5)
+    @SaCheckPermission(type = StpLoginType.ADMIN, value = PERM_PREFIX + "import")
+    @Operation(summary = "批量导入Excel")
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResult<SysUserImportResult> imports(@RequestPart(value = "file") MultipartFile file,
+                                                  @RequestPart(value = "attr") @Valid AdminSysUserImportRequest attr) throws IOException {
+        if (!ExcelConstant.XLSX_SUFFIX.equalsIgnoreCase(FileNameUtil.getSuffix(file.getOriginalFilename()))) {
+            throw new BusinessException(DefaultErrorCodeEnum.A00006);
+        }
+        var result = sysUserService.adminImport(file.getInputStream(), file.getOriginalFilename(), attr);
+        // 用于操作日志
+        LogRecordContext.putVariable("result", result);
+        return ApiResult.success(result);
+    }
+
+    /*
+    ----------------------------------------------------------------
+                        私有方法
+    ----------------------------------------------------------------
+     */
+
+    /**
+     * 异步强制登出指定用户
+     */
+    private void kickOutAsync(long userId) {
+        kickOutAsync(Set.of(userId));
+    }
+
+    /**
+     * 异步强制登出指定用户
+     */
+    private void kickOutAsync(Collection<Long> userIds) {
+        eventPublisher.publishEvent(new KickOutSysUsersEvent(
+                new KickOutSysUsersEvent.EventData(userIds)
+        ));
+    }
+}

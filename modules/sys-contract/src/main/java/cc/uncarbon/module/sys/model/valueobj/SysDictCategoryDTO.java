@@ -1,0 +1,51 @@
+package cc.uncarbon.module.sys.model.valueobj;
+
+import cc.uncarbon.module.commons.model.valueobj.AuditUserDisplayAware;
+import cc.uncarbon.module.sys.enums.DictStatusEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.time.Instant;
+
+
+/**
+ * 字典分类
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+public class SysDictCategoryDTO implements Serializable, AuditUserDisplayAware {
+
+    @Schema(description = "主键ID")
+    private Long id;
+
+    @Schema(description = "创建时刻")
+    private Instant createdAt;
+
+    @Schema(description = "创建者")
+    private String createdBy;
+
+    @Schema(description = "更新时刻")
+    private Instant updatedAt;
+
+    @Schema(description = "更新者")
+    private String updatedBy;
+
+    @Schema(description = "字典编码")
+    private String code;
+
+    @Schema(description = "字典名称")
+    private String name;
+
+    @Schema(description = "状态")
+    private DictStatusEnum status;
+
+    @Schema(description = "字典描述")
+    private String description;
+
+}

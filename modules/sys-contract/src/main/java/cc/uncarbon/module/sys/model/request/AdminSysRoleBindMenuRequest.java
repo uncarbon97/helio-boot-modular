@@ -1,0 +1,30 @@
+package cc.uncarbon.module.sys.model.request;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.util.Set;
+
+
+/**
+ * 系统角色-后台管理-绑定角色菜单
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+public class AdminSysRoleBindMenuRequest implements Serializable {
+
+    @Schema(description = "菜单IDs；如果为空则视为解除所有绑定")
+    private Set<Long> menuIds;
+
+    @Schema(description = "角色ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "角色ID必填")
+    private Long roleId;
+
+}

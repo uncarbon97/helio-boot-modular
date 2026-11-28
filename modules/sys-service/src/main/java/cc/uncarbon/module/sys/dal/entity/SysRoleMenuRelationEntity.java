@@ -1,0 +1,50 @@
+package cc.uncarbon.module.sys.dal.entity;
+
+import cc.uncarbon.framework.helium.db.entity.AbstractTenantRelationEntity;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serial;
+
+/**
+ * 系统角色-菜单关联关系
+ */
+@TableName(value = "sys_role_menu_relation")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+public class SysRoleMenuRelationEntity extends AbstractTenantRelationEntity {
+
+	@Serial
+	private static final long serialVersionUID = 1L;
+
+
+	@Schema(description = "主键ID")
+	@TableId(type = IdType.AUTO)
+	private Long id;
+
+	@Schema(description = "角色ID")
+	@TableField(value = "role_id")
+	private Long roleId;
+
+	@Schema(description = "菜单ID")
+	@TableField(value = "menu_id")
+	private Long menuId;
+
+	public static SysRoleMenuRelationEntity of(Long roleId, Long menuId) {
+		SysRoleMenuRelationEntity ret = new SysRoleMenuRelationEntity();
+		ret.roleId = roleId;
+		ret.menuId = menuId;
+		return ret;
+	}
+}

@@ -1,0 +1,35 @@
+package cc.uncarbon.module.adminapi.errorcode;
+
+import cc.uncarbon.framework.helium.base.errorcode.StructuredErrorCode;
+import cc.uncarbon.module.commons.errorcode.ErrorCodeBizGroup;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+
+/**
+ * 后台管理 API 端点错误枚举
+ * 错误码格式 [A][BB][CCC]
+ * [BB] 本枚举内固定为 {@link ErrorCodeBizGroup#ADMIN_API}
+ * [CCC] 具体错误代号
+ */
+@Getter
+@AllArgsConstructor
+public enum AdminApiErrorCodeEnum implements StructuredErrorCode {
+
+    /*
+     A 开头错误码，表示一般性错误，如用户输入有误
+     */
+    A04001("验证码不正确，请重新输入"),
+    A04002("不支持的图片格式"),
+    A04003("不能使用该文件作为头像"),
+    A04004("登录失败次数过多，账号已临时锁定，请稍后重试"),
+    A04005("当前处于租户切换状态，请先退出切换后再操作"),
+
+    /*
+     B 开头错误码，表示本服务内部错误
+     */
+    B04001("生成验证码失败"),
+
+    ;private final String errorMsgFriendly;
+
+}

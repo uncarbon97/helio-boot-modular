@@ -1,0 +1,28 @@
+package cc.uncarbon.module.appapi.controller;
+
+
+import cc.uncarbon.framework.helium.web.model.response.ApiResult;
+import cc.uncarbon.module.commons.constant.ApiPathPrefix;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+
+@Tag(name = "APP-鉴权接口")
+@Slf4j
+@RequiredArgsConstructor
+@RestController
+@RequestMapping(ApiPathPrefix.APP + "/v1/auth")
+public class AppAuthController {
+
+    @Operation(summary = "登录")
+    @PostMapping("/login")
+    public ApiResult<Void> login() {
+        return ApiResult.success();
+    }
+
+}
