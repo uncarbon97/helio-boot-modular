@@ -8,7 +8,7 @@
     <parent>
         <groupId>cc.uncarbon.framework</groupId>
         <artifactId>helium-starters-parent</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>4.0.0</version>
     </parent>
 
     <groupId>cc.uncarbon.module</groupId>
@@ -21,8 +21,9 @@
         <java.version>25</java.version>
 
 
-        <!-- 当前工程内，所有Maven模块统一版本号 -->
-        <revision>4.0.1-SNAPSHOT</revision>
+        <!-- 当前工程内，所有Maven模块统一版本号；增加 -SNAPSHOT 后缀，方便开发期间 Maven 自动忽略缓存，更新依赖项 -->
+        <!-- 发版前，修改 bootstrap/pom.xml 中的 products.version -->
+        <revision>4.0.0-SNAPSHOT</revision>
         <bootstrap.version>${revision}</bootstrap.version>
         <admin-api.version>${revision}</admin-api.version>
         <app-api.version>${revision}</app-api.version>

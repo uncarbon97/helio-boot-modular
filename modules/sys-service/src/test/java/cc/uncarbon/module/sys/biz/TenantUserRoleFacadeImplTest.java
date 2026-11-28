@@ -160,10 +160,8 @@ class TenantUserRoleFacadeImplTest {
 
     @Test
     void listUserIdsByTenantExcludesSuperAdmin() {
-        Mockito.when(sysUserMapper.selectList(Mockito.any())).thenReturn(List.of(
-                new SysUserEntity().setId(1L),
-                new SysUserEntity().setId(0L),   // 超管排除
-                new SysUserEntity().setId(2L)));
+        // TENANT_FIRST 走 selectIdsByStatuses 专用查询，超管 0 在门面层排除
+        Mockito.when(sysUserMapper.selectIdsByStatuses(Mockito.any())).thenReturn(List.of(1L, 0L, 2L));
 
         Assertions.assertEquals(List.of(1L, 2L), facade.listUserIdsByTenant(10L, null));
     }
