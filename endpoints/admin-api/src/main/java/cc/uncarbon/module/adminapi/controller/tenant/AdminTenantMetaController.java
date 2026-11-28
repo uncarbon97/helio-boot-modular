@@ -112,7 +112,8 @@ public class AdminTenantMetaController {
         // 后处理
         if (EnabledStatusEnum.DISABLED == request.getNewStatus()) {
             // 「已切入该租户视角」的会话（如超管切换后停留）不整会话登出，强制退回原视角；本租户用户仍强制登出
-            Set<Long> visitorIds = tenantSwitchHelper.listUserIds(request.getId());
+            // 拷贝入参，避免不可变空集
+            Set<Long> visitorIds = new HashSet<>(tenantSwitchHelper.listUserIds(request.getId()));
             kickedUserIds.forEach(visitorIds::remove);
             if (CollUtil.isNotEmpty(visitorIds)) {
                 eventPublisher.publishEvent(new ExitTenantSwitchEvent(
